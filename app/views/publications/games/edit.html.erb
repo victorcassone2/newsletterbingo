@@ -1,0 +1,23 @@
+<h1>Edit game</h1>
+<div class="card">
+  <%= form_with model: @game, url: account_publication_game_path(publication_id: @publication.id, id: @game.id), method: :patch do |form| %>
+    <% if @game.errors.any? %>
+      <div class="errors"><%= @game.errors.full_messages.to_sentence %></div>
+    <% end %>
+
+    <div class="field">
+      <%= form.label :name, "Game name" %>
+      <%= form.text_field :name %>
+    </div>
+    <% if @game.draft? %>
+      <div class="field">
+        <%= form.label :starts_on, "Day 1" %>
+        <%= form.date_field :starts_on %>
+      </div>
+    <% else %>
+      <p class="small muted">Dates are locked after launch (<%= @game.starts_on.strftime("%b %-d") %> – <%= @game.ends_on.strftime("%b %-d") %>).</p>
+    <% end %>
+
+    <%= form.submit "Save", class: "btn btn-primary" %>
+  <% end %>
+</div>

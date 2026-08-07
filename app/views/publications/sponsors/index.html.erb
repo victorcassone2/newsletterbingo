@@ -1,0 +1,37 @@
+<div class="page-head">
+  <h1>Sponsors</h1>
+  <%= link_to "New sponsor", new_account_publication_sponsor_path(publication_id: @publication.id), class: "btn btn-primary" %>
+</div>
+
+<% if @sponsors.any? %>
+  <div class="card">
+    <ul class="list">
+      <% @sponsors.each do |sponsor| %>
+        <li>
+          <div>
+            <strong><%= sponsor.name %></strong>
+            <% if sponsor.archived? %><span class="badge badge-gray">Archived</span><% end %>
+            <div class="small muted">
+              <% if sponsor.website_url.present? %><%= sponsor.website_url %> · <% end %>
+              Used in <%= pluralize(sponsor.daily_call_usage_count, "daily call") %>
+            </div>
+          </div>
+          <div style="display:flex; gap:.6rem; align-items:center;">
+            <%= link_to "Edit", edit_account_publication_sponsor_path(publication_id: @publication.id, id: sponsor.id), class: "btn btn-quiet btn-small" %>
+            <% if sponsor.archived? %>
+              <%= button_to "Restore", account_publication_sponsor_archival_path(publication_id: @publication.id, sponsor_id: sponsor.id), method: :delete, class: "link-button small" %>
+            <% else %>
+              <%= button_to "Archive", account_publication_sponsor_archival_path(publication_id: @publication.id, sponsor_id: sponsor.id), method: :post, class: "link-button small" %>
+            <% end %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% else %>
+  <div class="card" style="text-align:center; padding: 2.5rem 1.5rem;">
+    <h2>No sponsors yet</h2>
+    <p class="muted">Sponsors can back daily calls and prizes — new inventory you can sell without giving up newsletter space.</p>
+    <%= link_to "Add your first sponsor", new_account_publication_sponsor_path(publication_id: @publication.id), class: "btn btn-primary" %>
+  </div>
+<% end %>

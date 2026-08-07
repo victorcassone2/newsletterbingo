@@ -1,0 +1,82 @@
+<% if @game.nil? %>
+  <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+    <h1>No game yet</h1>
+    <p class="muted">Start a 24-day bingo game to light up your newsletter.</p>
+    <%= link_to "Create a game", new_account_publication_game_path(publication_id: @publication.id), class: "btn btn-primary" %>
+  </div>
+<% elsif @game.draft? %>
+  <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+    <h1><%= @game.name %> is ready to launch</h1>
+    <p class="muted">Review the words and prizes, then launch. Day 1 is <%= @game.starts_on.strftime("%B %-d") %>.</p>
+    <%= link_to "Review & launch", account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-primary" %>
+  </div>
+<% elsif @call.nil? %>
+  <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+    <h1><%= @game.started? ? "No call today" : "Starts soon" %></h1>
+    <p class="muted">
+      <% if !@game.started? %>
+        <%= @game.name %> begins <%= @game.starts_on.strftime("%A, %B %-d") %>.
+      <% else %>
+        <%= @game.name %> has finished. Start the next game when you're ready.
+      <% end %>
+    </p>
+    <%= link_to "View game", account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet" %>
+  </div>
+<% else %>
+  <div class="page-head">
+    <div>
+      <div class="eyebrow">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>
+      <h1>Day <%= @call.day_number %> of <%= Game::DAYS %> — <%= @game.name %></h1>
+    </div>
+    <%= link_to "Full schedule", account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="eyebrow">Today's word</div>
+      <div class="today-word"><%= @call.label %> <% if @call.prize_call? %>🎁<% end %></div>
+
+      <div class="today-meta">
+        <div class="stat">
+          <div class="eyebrow">Claims today</div>
+          <strong><%= @claims_today %></strong>
+        </div>
+        <div class="stat">
+          <div class="eyebrow">Sponsor</div>
+          <strong><%= @call.sponsor&.name || "—" %></strong>
+        </div>
+        <div class="stat">
+          <div class="eyebrow">Prize call</div>
+          <strong><%= @call.prize_call? ? "Yes" : "No" %></strong>
+        </div>
+      </div>
+
+      <% if @call.description.present? %>
+        <p class="small" style="margin-top: .9rem;"><%= @call.description %></p>
+      <% end %>
+      <% if @call.link? %>
+        <p class="small muted"><%= @call.link_text %> → <%= @call.link_url %></p>
+      <% end %>
+
+      <div class="today-actions">
+        <%= link_to "Edit today's call", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id, from: "today"), class: "btn btn-primary btn-small" %>
+        <% if @call.word_changeable? %>
+          <span class="badge badge-amber">Word can still change</span>
+        <% else %>
+          <span class="badge badge-gray">Word locked<%= " — already claimed" if @call.daily_claims.any? %></span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card" data-controller="clipboard">
+      <div class="page-head" style="margin-bottom:.5rem;">
+        <h2>Newsletter HTML</h2>
+        <button class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+      </div>
+      <div class="embed-preview"><%= @newsletter_block.to_html %></div>
+      <textarea class="embed-html" readonly data-clipboard-target="source" rows="8"><%= @newsletter_block.to_html %></textarea>
+      <p class="small muted">Paste near the bottom of today's email. The claim link personalizes itself with your merge tag
+        (<code><%= @publication.email_merge_tag %></code>).</p>
+    </div>
+  </div>
+<% end %>

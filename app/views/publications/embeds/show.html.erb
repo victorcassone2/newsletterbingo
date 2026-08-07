@@ -1,0 +1,51 @@
+<div class="page-head">
+  <h1>Newsletter embed</h1>
+</div>
+
+<div class="grid-2">
+  <div>
+    <div class="card" data-controller="clipboard">
+      <div class="page-head" style="margin-bottom:.5rem;">
+        <h2>Email-safe HTML</h2>
+        <button class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+      </div>
+      <textarea class="embed-html" readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
+    </div>
+
+    <div class="card" style="margin-top:1.25rem;" data-controller="clipboard">
+      <div class="page-head" style="margin-bottom:.5rem;">
+        <h2>Claim link only</h2>
+        <button class="btn btn-quiet btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy link</button>
+      </div>
+      <%= text_field_tag :claim_url, @newsletter_block.claim_url, readonly: true, data: { clipboard_target: "source" } %>
+      <p class="small muted" style="margin-top:.5rem;">Use this if you'd rather style your own button.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Live preview</h2>
+      <div class="embed-preview"><%= @newsletter_block.to_html %></div>
+      <p class="small muted" style="margin-top: .75rem;">
+        Shows today's word when a game is running. Branding comes from your
+        <%= link_to "Branding settings", edit_account_publication_branding_path(publication_id: @publication.id) %>.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:1.25rem;">
+      <h2>Setup</h2>
+      <ol class="small" style="padding-left: 1.1rem; margin: 0;">
+        <li>Set your <strong>subscriber email merge tag</strong> in <%= link_to "Settings", edit_account_publication_path(id: @publication.id) %>.
+          Currently: <code><%= @publication.email_merge_tag %></code></li>
+        <li>Copy the HTML block.</li>
+        <li>Paste it near the bottom of your publication email.</li>
+        <li>Send as normal — each subscriber gets a personalized bingo link.</li>
+      </ol>
+      <p class="small muted" style="margin-top:.75rem;">
+        No JavaScript, no iframes — plain email-safe tables and inline styles.
+        The description and destination link you attach to a call appear only
+        <em>after</em> the reader claims, never in the email.
+      </p>
+    </div>
+  </div>
+</div>

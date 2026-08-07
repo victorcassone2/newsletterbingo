@@ -1,0 +1,12 @@
+<% 40.times do |i| %>
+system_<%= i %>:
+  label: SYSWORD<%= i %>
+<% end %>
+
+custom_omaha:
+  publication: omaha
+  label: FARMERS MARKET
+
+custom_rival:
+  publication: rival
+  label: RIVALWORD

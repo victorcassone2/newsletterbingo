@@ -1,0 +1,8 @@
+car_wash:
+  publication: omaha
+  name: Omaha Car Wash
+  website_url: https://example.com/carwash
+
+rival_sponsor:
+  publication: rival
+  name: Rival Sponsor

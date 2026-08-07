@@ -1,0 +1,10 @@
+<% if @publication %>
+  <div class="player-head">
+    <div class="player-pubname"><%= @publication.name.upcase %></div>
+  </div>
+<% end %>
+
+<div class="unavailable-card">
+  <h2>Hold that thought</h2>
+  <p><%= @message %></p>
+</div>

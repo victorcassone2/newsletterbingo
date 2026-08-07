@@ -1,0 +1,4 @@
+<h1>Edit sponsor</h1>
+<div class="card">
+  <%= render "form", sponsor: @sponsor, url: account_publication_sponsor_path(publication_id: @publication.id, id: @sponsor.id) %>
+</div>

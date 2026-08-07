@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Daily Bingo" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "admin", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="admin">
+    <% if authenticated? && Current.account %>
+      <header class="topbar">
+        <div class="topbar-inner">
+          <%= link_to account_publications_path(account_id: Current.account.id), class: "topbar-brand" do %>
+            <span class="brand-dot"></span> Daily Bingo
+          <% end %>
+          <nav class="topbar-nav">
+            <%= nav_link_to "Publications", account_publications_path(account_id: Current.account.id),
+                  active: controller_name == "publications" && controller_path == "publications" %>
+            <%= nav_link_to "People", account_account_profile_path(account_id: Current.account.id),
+                  active: controller_name == "account_profiles" %>
+            <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
+          </nav>
+        </div>
+      </header>
+
+      <% if @publication&.persisted? %>
+        <nav class="pubnav">
+          <div class="pubnav-inner">
+            <span class="pubnav-name"><%= @publication.name %></span>
+            <div class="pubnav-links">
+              <%= nav_link_to "Today", account_publication_today_path(publication_id: @publication.id), active: controller_name == "todays" %>
+              <%= nav_link_to "Game", account_publication_games_path(publication_id: @publication.id), active: controller_path.include?("games") %>
+              <%= nav_link_to "Words", account_publication_words_path(publication_id: @publication.id), active: controller_path.include?("words") && !controller_path.include?("games") %>
+              <%= nav_link_to "Sponsors", account_publication_sponsors_path(publication_id: @publication.id), active: controller_path.include?("sponsors") %>
+              <%= nav_link_to "Embed", account_publication_embed_path(publication_id: @publication.id), active: controller_name == "embeds" %>
+              <%= nav_link_to "Branding", edit_account_publication_branding_path(publication_id: @publication.id), active: controller_name == "brandings" %>
+              <%= nav_link_to "Analytics", account_publication_analytics_path(publication_id: @publication.id), active: controller_name == "analytics" %>
+              <%= nav_link_to "Settings", edit_account_publication_path(id: @publication.id), active: controller_path == "publications" && action_name == "edit" %>
+            </div>
+          </div>
+        </nav>
+      <% end %>
+    <% end %>
+
+    <main class="admin-main">
+      <% if notice %><div class="flash flash-notice"><%= notice %></div><% end %>
+      <% if alert %><div class="flash flash-alert"><%= alert %></div><% end %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

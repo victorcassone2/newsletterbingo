@@ -1,0 +1,110 @@
+/* Publisher administration. Calm, compact, 37signals-adjacent. */
+
+.topbar { background: var(--card); border-bottom: 1px solid var(--line); }
+.topbar-inner {
+  max-width: 62rem; margin: 0 auto; padding: .65rem 1.25rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.topbar-brand { font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: .45rem; }
+.topbar-brand:hover { text-decoration: none; }
+.brand-dot {
+  width: .8rem; height: .8rem; border-radius: 3px;
+  background: linear-gradient(135deg, var(--blue), #7c3aed);
+}
+.topbar-nav { display: flex; align-items: center; gap: 1.1rem; font-size: .9rem; }
+
+.nav-link { color: var(--ink-soft); font-weight: 500; }
+.nav-link:hover { color: var(--ink); text-decoration: none; }
+.nav-link.active { color: var(--ink); font-weight: 650; }
+
+.pubnav { background: var(--card); border-bottom: 1px solid var(--line); }
+.pubnav-inner {
+  max-width: 62rem; margin: 0 auto; padding: .5rem 1.25rem;
+  display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+}
+.pubnav-name { font-weight: 700; font-size: .95rem; }
+.pubnav-links { display: flex; gap: .95rem; font-size: .88rem; flex-wrap: wrap; }
+
+.admin-main { max-width: 62rem; margin: 0 auto; padding: 1.75rem 1.25rem 4rem; }
+
+.page-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+@media (max-width: 44rem) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+/* Today dashboard */
+.today-word {
+  font-size: 2rem; font-weight: 800; letter-spacing: -.01em; margin: .1rem 0 .4rem;
+}
+.today-meta { display: flex; gap: 1.4rem; flex-wrap: wrap; margin: .75rem 0 0; }
+.today-meta .stat .eyebrow { margin-bottom: 0; }
+.today-meta .stat strong { font-size: 1.15rem; }
+.today-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+
+.stat-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .9rem; }
+.stat-tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: .9rem 1rem; }
+.stat-tile strong { display: block; font-size: 1.35rem; letter-spacing: -.02em; }
+.stat-tile span { font-size: .78rem; color: var(--ink-soft); }
+
+/* Lists and tables */
+.list { list-style: none; margin: 0; padding: 0; }
+.list li {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .6rem 0; border-bottom: 1px solid var(--line);
+}
+.list li:last-child { border-bottom: none; }
+
+table.simple { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.simple th {
+  text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ink-soft); padding: .45rem .6rem; border-bottom: 1px solid var(--line);
+}
+table.simple td { padding: .55rem .6rem; border-bottom: 1px solid var(--line); }
+table.simple tr:last-child td { border-bottom: none; }
+
+/* Game schedule */
+.schedule { list-style: none; margin: 0; padding: 0; }
+.schedule li {
+  display: flex; align-items: center; gap: .75rem;
+  padding: .5rem .6rem; border-bottom: 1px solid var(--line); font-size: .92rem;
+}
+.schedule li:last-child { border-bottom: none; }
+.schedule .day-no { color: var(--ink-soft); font-size: .8rem; width: 6.5rem; flex-shrink: 0; }
+.schedule .word { font-weight: 650; }
+.schedule .marker { width: 1.2rem; text-align: center; flex-shrink: 0; }
+.schedule li.today-row { background: #eff6ff; border-radius: var(--radius-sm); }
+.schedule .spacer { flex: 1; }
+.schedule .extras { display: flex; gap: .4rem; align-items: center; }
+
+/* Embed page */
+.embed-html {
+  width: 100%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .78rem; line-height: 1.45; min-height: 14rem;
+}
+.embed-preview {
+  border: 1px dashed var(--line); border-radius: var(--radius);
+  padding: 1rem; background: #fff;
+}
+
+/* Words page */
+.tabs { display: flex; gap: .4rem; margin-bottom: 1rem; }
+.tabs a {
+  padding: .35rem .8rem; border-radius: 999px; font-size: .85rem; font-weight: 600;
+  color: var(--ink-soft); background: var(--tint);
+}
+.tabs a.active { background: var(--ink); color: #fff; }
+.tabs a:hover { text-decoration: none; }
+
+.word-chip-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; }
+
+/* Branding editor */
+.swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 1rem; }
+
+/* Auth pages */
+.auth-wrap { max-width: 24rem; margin: 8vh auto 0; }
+.auth-wrap .card { padding: 1.75rem; }
+.auth-title { text-align: center; margin-bottom: 1.25rem; }

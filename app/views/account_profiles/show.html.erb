@@ -1,0 +1,16 @@
+<div class="page-head">
+  <h1><%= Current.account.name %></h1>
+</div>
+
+<div class="card">
+  <h2>People</h2>
+  <ul class="list">
+    <% @memberships.each do |membership| %>
+      <li>
+        <span><%= membership.user.email_address %></span>
+        <span class="badge <%= membership.owner? ? "badge-green" : "badge-gray" %>"><%= membership.role.capitalize %></span>
+      </li>
+    <% end %>
+  </ul>
+  <p class="small muted" style="margin-top: .75rem;">Team invitations are coming soon.</p>
+</div>

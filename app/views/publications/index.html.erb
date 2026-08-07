@@ -1,0 +1,33 @@
+<div class="page-head">
+  <h1>Publications</h1>
+  <%= link_to "New publication", new_account_publication_path, class: "btn btn-primary" %>
+</div>
+
+<% if @publications.any? %>
+  <div class="card">
+    <ul class="list">
+      <% @publications.each do |publication| %>
+        <li>
+          <div>
+            <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
+            <% unless publication.active? %><span class="badge badge-gray">Inactive</span><% end %>
+            <div class="small muted">
+              <% if (game = publication.games.active.first) %>
+                <%= game.name %> — Day <%= game.days_elapsed %> of <%= Game::DAYS %>
+              <% else %>
+                No game running
+              <% end %>
+            </div>
+          </div>
+          <%= link_to "Open →", account_publication_today_path(publication_id: publication.id), class: "btn btn-quiet btn-small" %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% else %>
+  <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+    <h2>Set up your first publication</h2>
+    <p class="muted">A publication gets its own branding, word library, games, and embed code.</p>
+    <%= link_to "New publication", new_account_publication_path, class: "btn btn-primary" %>
+  </div>
+<% end %>

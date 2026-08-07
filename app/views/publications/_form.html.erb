@@ -1,0 +1,38 @@
+<%= form_with model: publication, url: url, method: publication.persisted? ? :patch : :post do |form| %>
+  <% if publication.errors.any? %>
+    <div class="errors"><%= publication.errors.full_messages.to_sentence %></div>
+  <% end %>
+
+  <div class="field-row">
+    <div class="field">
+      <%= form.label :name, "Publication name" %>
+      <%= form.text_field :name, placeholder: "Omaha Daily" %>
+    </div>
+    <div class="field">
+      <%= form.label :slug %>
+      <%= form.text_field :slug, placeholder: "omaha-daily" %>
+      <div class="hint">Lowercase letters, numbers and dashes.</div>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <%= form.label :timezone %>
+      <%= form.select :timezone, options_for_select(timezone_options, publication.timezone) %>
+      <div class="hint">Game days follow this timezone.</div>
+    </div>
+    <div class="field">
+      <%= form.label :email_merge_tag, "Subscriber email merge tag" %>
+      <%= form.text_field :email_merge_tag %>
+      <div class="hint">Enter the merge tag your email platform uses for the subscriber's email address, e.g. <code>{{email}}</code>, <code>|EMAIL|</code> or <code>{{ subscriber.email }}</code>.</div>
+    </div>
+  </div>
+
+  <% if publication.persisted? %>
+    <div class="field">
+      <label><%= form.check_box :active %> Active — readers can claim and view boards</label>
+    </div>
+  <% end %>
+
+  <%= form.submit publication.persisted? ? "Save settings" : "Create publication", class: "btn btn-primary" %>
+<% end %>

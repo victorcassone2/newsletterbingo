@@ -1,0 +1,150 @@
+<div class="player-head">
+  <% if @publication.logo.attached? %>
+    <%= image_tag @publication.logo, alt: @publication.name, class: "player-logo" %><br>
+  <% end %>
+  <div class="player-pubname"><%= @publication.name.upcase %></div>
+</div>
+
+<% if @celebrate == "bingo" %>
+  <div class="celebration bingo">
+    <h2>BINGO!</h2>
+    <% if @line_prize&.enabled? %>
+      <p>You completed a line and won: <strong><%= @line_prize.name %></strong></p>
+      <% if @line_prize.sponsor %><p class="small">Sponsored by <%= @line_prize.sponsor.name %></p><% end %>
+      <% if @line_prize.instructions.present? %><p class="small"><%= @line_prize.instructions %></p><% end %>
+      <% if @line_prize.link_url.present? %>
+        <p><%= link_to (@line_prize.link_text.presence || "Claim your prize"), prize_outbound_path(@publication.public_code, @line_prize.id) %></p>
+      <% end %>
+    <% else %>
+      <p>You completed a full line. Nicely done!</p>
+    <% end %>
+  </div>
+<% elsif @celebrate == "blackout" %>
+  <div class="celebration blackout">
+    <h2>BLACKOUT!</h2>
+    <p>Every single day, claimed. Incredible.</p>
+    <% if @blackout_prize&.enabled? %>
+      <p>You won: <strong><%= @blackout_prize.name %></strong></p>
+      <% if @blackout_prize.sponsor %><p class="small">Sponsored by <%= @blackout_prize.sponsor.name %></p><% end %>
+      <% if @blackout_prize.instructions.present? %><p class="small"><%= @blackout_prize.instructions %></p><% end %>
+      <% if @blackout_prize.link_url.present? %>
+        <p><%= link_to (@blackout_prize.link_text.presence || "Claim your prize"), prize_outbound_path(@publication.public_code, @blackout_prize.id) %></p>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if @todays_call %>
+  <div class="today-card">
+    <div class="today-eyebrow">TODAY&rsquo;S BINGO <% if @todays_call.prize_call? %><span class="prize-flag">🎁</span><% end %></div>
+    <% if @todays_call.sponsor %>
+      <div class="today-sponsor">Sponsored by <%= @todays_call.sponsor.name %></div>
+    <% end %>
+    <div class="today-callword"><%= @todays_call.label %></div>
+
+    <% if @claimed_today %>
+      <span class="claim-check">✓ Today&rsquo;s spot claimed</span>
+      <% if @todays_call.prize_call? && @todays_call.prize_description.present? %>
+        <p class="today-desc">🎁 <%= @todays_call.prize_description %></p>
+      <% end %>
+      <% if @todays_call.description.present? %>
+        <p class="today-desc"><%= @todays_call.description %></p>
+      <% end %>
+      <% if @todays_call.link? %>
+        <%= link_to "#{@todays_call.link_text} →", call_outbound_path(@publication.public_code, @todays_call.id), class: "today-link" %>
+      <% end %>
+    <% else %>
+      <p class="today-desc muted small">Tap the bingo link in today&rsquo;s email to claim this spot.</p>
+    <% end %>
+  </div>
+<% elsif @game.completed? || @game.over? %>
+  <div class="today-card">
+    <div class="today-eyebrow">GAME COMPLETE</div>
+    <p class="today-desc">Thanks for playing <%= @game.name %>! Watch the newsletter for the next game.</p>
+  </div>
+<% end %>
+
+<section class="board-section" data-controller="board">
+  <div class="board-eyebrow">YOUR BINGO CARD</div>
+  <div class="board-progress">
+    <% if (day = @game.day_number) %>Day <%= day %> of <%= Game::DAYS %> · <% end %><%= @claimed_count %> / <%= Game::DAYS %> spots claimed
+  </div>
+
+  <div class="bingo-header" aria-hidden="true">
+    <% %w[B I N G O].each do |letter| %><span><%= letter %></span><% end %>
+  </div>
+
+  <% line_positions = @completed_lines.flatten.to_set %>
+  <div class="bingo-grid" role="grid">
+    <% @squares.each do |square| %>
+      <%
+        call = square.daily_call
+        has_content = square.claimed? && !square.free? && call &&
+          (call.description.present? || call.link? || call.sponsor || call.prize_call?)
+        classes = class_names("square",
+          free: square.free?,
+          claimed: square.claimed? && !square.free?,
+          unclaimed: !square.claimed?,
+          "in-line": line_positions.include?(square.position),
+          "just-claimed": @celebrate.present? && @todays_call && call == @todays_call)
+      %>
+      <% if has_content %>
+        <button type="button" class="<%= classes %>" data-action="board#reveal" data-square-key="<%= square.position %>">
+          <% if call.prize_call? %><span class="gift">🎁</span><% end %>
+          <span class="check">✓</span>
+          <%= square.label %>
+        </button>
+      <% else %>
+        <div class="<%= classes %>">
+          <% if square.claimed? && !square.free? %><span class="check">✓</span><% end %>
+          <%= square.label %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+
+  <% @squares.each do |square| %>
+    <% call = square.daily_call %>
+    <% next unless square.claimed? && !square.free? && call &&
+         (call.description.present? || call.link? || call.sponsor || call.prize_call?) %>
+    <div class="square-detail" hidden data-board-target="detail" data-square-key="<%= square.position %>">
+      <h3><%= square.label %> <% if call.prize_call? %>🎁<% end %></h3>
+      <% if call.prize_call? && call.prize_description.present? %>
+        <p><%= call.prize_description %></p>
+      <% end %>
+      <% if call.description.present? %><p><%= call.description %></p><% end %>
+      <% if call.link? %>
+        <%= link_to "#{call.link_text} →", call_outbound_path(@publication.public_code, call.id), class: "today-link" %>
+      <% end %>
+      <% if call.sponsor %><div class="sponsor-line">Sponsored by <%= call.sponsor.name %></div><% end %>
+    </div>
+  <% end %>
+
+  <% if @board.bingo_achieved? && @celebrate != "bingo" && @line_prize&.enabled? %>
+    <div class="prize-note">
+      🎉 You&rsquo;ve got Bingo! Line prize: <strong><%= @line_prize.name %></strong>
+      <% if @line_prize.link_url.present? %>
+        · <%= link_to (@line_prize.link_text.presence || "Details"), prize_outbound_path(@publication.public_code, @line_prize.id) %>
+      <% end %>
+    </div>
+  <% elsif !@board.bingo_achieved? && @line_prize&.enabled? %>
+    <div class="prize-note">
+      Line prize: <strong><%= @line_prize.name %></strong>
+      <% if @line_prize.sponsor %> · Sponsored by <%= @line_prize.sponsor.name %><% end %>
+    </div>
+  <% end %>
+
+  <% if @board.blackout_achieved? && @celebrate != "blackout" && @blackout_prize&.enabled? %>
+    <div class="prize-note">
+      🏆 Blackout complete! <strong><%= @blackout_prize.name %></strong>
+      <% if @blackout_prize.link_url.present? %>
+        · <%= link_to (@blackout_prize.link_text.presence || "Details"), prize_outbound_path(@publication.public_code, @blackout_prize.id) %>
+      <% end %>
+    </div>
+  <% elsif !@board.blackout_achieved? && @blackout_prize&.enabled? %>
+    <div class="prize-note">
+      Blackout prize: <strong><%= @blackout_prize.name %></strong>
+      <% if @blackout_prize.sponsor %> · Sponsored by <%= @blackout_prize.sponsor.name %><% end %>
+    </div>
+  <% end %>
+</section>

@@ -1,0 +1,102 @@
+<div class="page-head">
+  <div>
+    <div class="eyebrow"><%= @game.starts_on.strftime("%b %-d") %> – <%= @game.ends_on.strftime("%b %-d, %Y") %></div>
+    <h1>
+      <%= @game.name %>
+      <% if @game.active? %><span class="badge badge-green">Live</span>
+      <% elsif @game.draft? %><span class="badge badge-amber">Draft</span>
+      <% else %><span class="badge badge-gray">Completed</span><% end %>
+    </h1>
+    <% if @game.active? && @game.day_number %>
+      <p class="muted">Day <%= @game.day_number %> of <%= Game::DAYS %> · <%= @game.days_elapsed %> completed · <%= @game.days_remaining %> remaining</p>
+    <% end %>
+  </div>
+  <div style="display:flex; gap:.6rem;">
+    <%= link_to "Rename", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
+    <% if @game.draft? %>
+      <%= button_to "Launch game", account_publication_game_launch_path(publication_id: @publication.id, game_id: @game.id), method: :post, class: "btn btn-primary btn-small", form: { data: { turbo_confirm: "Launch #{@game.name}? Words lock into a daily schedule." } } %>
+    <% end %>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <% if @game.draft? %>
+      <div class="page-head" style="margin-bottom:.75rem;">
+        <h2><%= Game::DAYS %> words</h2>
+        <%= button_to "Shuffle new words", account_publication_game_word_shuffle_path(publication_id: @publication.id, game_id: @game.id), method: :post, class: "btn btn-quiet btn-small" %>
+      </div>
+      <p class="small muted">The daily order is drawn at launch. Replace any word before launching.</p>
+      <ul class="list">
+        <% @game.game_words.each do |game_word| %>
+          <li>
+            <strong><%= game_word.label %></strong>
+            <%= form_with url: account_publication_game_game_word_path(publication_id: @publication.id, game_id: @game.id, id: game_word.id), method: :patch, class: "word-swap-form" do %>
+              <span style="display:flex; gap:.35rem;">
+                <%= select_tag :word_id, options_from_collection_for_select(@eligible_replacements.reject { |w| @game.game_words.map(&:word_id).include?(w.id) }, :id, :label), include_blank: "Replace with…" %>
+                <%= submit_tag "Go", class: "btn btn-quiet btn-small" %>
+              </span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <h2>Daily calls</h2>
+      <ul class="schedule">
+        <% today = @publication.local_date %>
+        <% @calls.each do |call| %>
+          <li class="<%= "today-row" if call.call_on == today %>">
+            <span class="marker">
+              <% if call.call_on < today %>✓<% elsif call.call_on == today %>●<% else %>○<% end %>
+            </span>
+            <span class="day-no">Day <%= call.day_number %> · <%= call.call_on.strftime("%-m/%-d") %></span>
+            <span class="word"><%= call.label %></span>
+            <span class="extras">
+              <% if call.prize_call? %><span title="Prize call">🎁</span><% end %>
+              <% if call.sponsor %><span class="badge badge-gray"><%= call.sponsor.name %></span><% end %>
+            </span>
+            <span class="spacer"></span>
+            <% if call.call_on == today %><span class="badge badge-green">TODAY</span><% end %>
+            <% if call.word_changeable? || call.today? %>
+              <%= link_to "Edit", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: call.id), class: "small" %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Prizes</h2>
+      <ul class="list">
+        <% [@game.line_prize, @game.blackout_prize].compact.each do |prize| %>
+          <li>
+            <div>
+              <strong><%= prize.line? ? "Line prize" : "Blackout prize" %></strong>
+              <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
+              <div class="small muted">
+                <%= prize.enabled? ? prize.name : "No prize configured" %>
+                <% if prize.sponsor %> · Sponsored by <%= prize.sponsor.name %><% end %>
+              </div>
+            </div>
+            <%= link_to "Edit →", edit_account_publication_game_prize_path(publication_id: @publication.id, game_id: @game.id, id: prize.id), class: "btn btn-quiet btn-small" %>
+          </li>
+        <% end %>
+      </ul>
+      <p class="small muted" style="margin-top:.5rem;">Prizes are optional — games run fine without them.</p>
+    </div>
+
+    <% unless @game.draft? %>
+      <div class="card" style="margin-top: 1.25rem;">
+        <h2>Players</h2>
+      <div class="stat-tiles">
+        <div class="stat-tile"><strong><%= @game.bingo_boards.count %></strong><span>Boards</span></div>
+        <div class="stat-tile"><strong><%= @game.daily_claims.count %></strong><span>Total claims</span></div>
+        <div class="stat-tile"><strong><%= @game.bingo_boards.where.not(bingo_achieved_at: nil).count %></strong><span>Bingos</span></div>
+        <div class="stat-tile"><strong><%= @game.bingo_boards.where.not(blackout_achieved_at: nil).count %></strong><span>Blackouts</span></div>
+      </div>
+      </div>
+    <% end %>
+  </div>
+</div>

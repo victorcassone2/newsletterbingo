@@ -1,0 +1,65 @@
+<div class="page-head">
+  <h1>Branding</h1>
+</div>
+
+<div data-controller="brand-preview">
+  <div class="grid-2">
+    <div class="card">
+      <%= form_with model: @publication, url: account_publication_branding_path(publication_id: @publication.id), method: :patch do |form| %>
+        <% if @publication.errors.any? %>
+          <div class="errors"><%= @publication.errors.full_messages.to_sentence %></div>
+        <% end %>
+
+        <div class="swatch-grid">
+          <div class="field">
+            <%= form.label :primary_color, "Primary" %>
+            <%= form.color_field :primary_color, data: { action: "input->brand-preview#update", brand_property: "--brand-primary" } %>
+            <div class="hint">Headings & identity</div>
+          </div>
+          <div class="field">
+            <%= form.label :accent_color, "Accent" %>
+            <%= form.color_field :accent_color, data: { action: "input->brand-preview#update", brand_property: "--brand-accent" } %>
+            <div class="hint">Buttons & claimed squares</div>
+          </div>
+          <div class="field">
+            <%= form.label :background_color, "Background" %>
+            <%= form.color_field :background_color, data: { action: "input->brand-preview#update", brand_property: "--brand-background" } %>
+          </div>
+          <div class="field">
+            <%= form.label :text_color, "Text" %>
+            <%= form.color_field :text_color, data: { action: "input->brand-preview#update", brand_property: "--brand-text" } %>
+          </div>
+        </div>
+
+        <div class="field">
+          <%= form.label :logo %>
+          <%= form.file_field :logo, accept: "image/png,image/jpeg,image/webp,image/svg+xml" %>
+          <% if @publication.logo.attached? %>
+            <div class="hint">Current: <%= image_tag @publication.logo, style: "max-height: 2rem; vertical-align: middle;" %></div>
+          <% end %>
+        </div>
+
+        <%= form.submit "Save branding", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+
+    <div class="card">
+      <h2>Preview</h2>
+      <div data-brand-preview-target="preview" style="<%= brand_style(@publication) %>; background: var(--brand-background); border-radius: 12px; padding: 1.25rem;">
+        <div class="today-card" style="margin-bottom: 1rem;">
+          <div class="today-eyebrow">TODAY&rsquo;S BINGO 🎁</div>
+          <div class="today-sponsor">Sponsored by Omaha Car Wash</div>
+          <div class="today-callword">FARMERS MARKET</div>
+          <span class="claim-check">✓ Today&rsquo;s spot claimed</span>
+        </div>
+        <div class="bingo-grid" style="max-width: 16rem; margin: 0 auto;">
+          <% [["PIZZA", "claimed"], ["RIVER", "unclaimed"], ["COFFEE", "claimed"], ["PARK", "unclaimed"], ["FREE", "free"],
+              ["TRAIN", "unclaimed"], ["DONUT", "claimed"], ["MOVIE", "unclaimed"], ["GARDEN", "claimed"], ["STAR", "unclaimed"]].each do |label, state| %>
+            <div class="square <%= state %>"><%= label %></div>
+          <% end %>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top:.75rem;">The newsletter block and the reader board both use these colors.</p>
+    </div>
+  </div>
+</div>

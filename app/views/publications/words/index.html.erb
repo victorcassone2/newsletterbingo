@@ -1,0 +1,54 @@
+<div class="page-head">
+  <h1>Words</h1>
+</div>
+
+<div class="tabs">
+  <%= link_to "Custom (#{@publication.words.active.count})", account_publication_words_path(publication_id: @publication.id, filter: "custom", q: params[:q]), class: ("active" if @filter == "custom") %>
+  <%= link_to "System library (#{Word.system.active.count})", account_publication_words_path(publication_id: @publication.id, filter: "system", q: params[:q]), class: ("active" if @filter == "system") %>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <%= form_with url: account_publication_words_path(publication_id: @publication.id), method: :get, data: { turbo_frame: "_top" } do %>
+      <%= hidden_field_tag :filter, @filter %>
+      <div class="field" style="display:flex; gap:.5rem; margin-bottom: 1rem;">
+        <%= text_field_tag :q, params[:q], placeholder: "Search words…" %>
+        <%= submit_tag "Search", class: "btn btn-quiet" %>
+      </div>
+    <% end %>
+
+    <% if @words.any? %>
+      <ul class="list">
+        <% @words.each do |word| %>
+          <li class="word-chip-row">
+            <span>
+              <strong><%= word.label %></strong>
+              <% if word.archived? %><span class="badge badge-gray">Archived</span><% end %>
+              <% if word.in_open_game? %><span class="badge badge-green">In current game</span><% end %>
+            </span>
+            <% unless word.system? %>
+              <% if word.archived? %>
+                <%= button_to "Restore", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id), method: :delete, class: "link-button small" %>
+              <% else %>
+                <%= button_to "Archive", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id), method: :post, class: "link-button small" %>
+              <% end %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="muted">No words<%= " match “#{params[:q]}”" if params[:q].present? %>.</p>
+    <% end %>
+  </div>
+
+  <div class="card">
+    <h2>Add a custom word</h2>
+    <p class="small muted">Local words make the game yours — neighborhoods, teams, landmarks, events. They're only used by this publication and get picked before system words.</p>
+    <%= form_with model: @word, url: account_publication_words_path(publication_id: @publication.id) do |form| %>
+      <div class="field">
+        <%= form.text_field :label, placeholder: "FARMERS MARKET" %>
+      </div>
+      <%= form.submit "Add word", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<div class="page-head">
+  <h1>Settings</h1>
+</div>
+
+<div class="card">
+  <%= render "form", publication: @publication, url: account_publication_path(id: @publication.id) %>
+</div>
+
+<div class="card" style="margin-top: 1.25rem;">
+  <h2>Integration</h2>
+  <p class="small muted">Public code (used in your claim links — treat it like a password for your game):</p>
+  <p><code><%= @publication.public_code %></code></p>
+</div>

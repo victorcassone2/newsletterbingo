@@ -1,0 +1,13 @@
+<div class="player-head">
+  <% if @publication.logo.attached? %>
+    <%= image_tag @publication.logo, alt: @publication.name, class: "player-logo" %><br>
+  <% end %>
+  <div class="player-pubname"><%= @publication.name.upcase %></div>
+</div>
+
+<div class="unavailable-card">
+  <h2>Daily Bingo</h2>
+  <p>Your bingo card lives here — one new word every day.</p>
+  <p class="muted small">Open today&rsquo;s <%= @publication.name %> email and tap
+    <strong>Claim today&rsquo;s spot</strong> to see your card and claim today&rsquo;s square.</p>
+</div>

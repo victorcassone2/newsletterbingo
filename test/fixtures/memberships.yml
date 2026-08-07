@@ -1,0 +1,9 @@
+publisher_owner:
+  account: publisher
+  user: one
+  role: owner
+
+rival_owner:
+  account: rival
+  user: two
+  role: owner

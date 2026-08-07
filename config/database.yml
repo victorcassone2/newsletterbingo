@@ -1,0 +1,45 @@
+# Local development and test use a dedicated Dockerized PostgreSQL 16:
+#
+#   docker run -d --name daily_bingo_postgres \
+#     -e POSTGRES_USER=daily_bingo -e POSTGRES_PASSWORD=daily_bingo \
+#     -p 5434:5432 --restart unless-stopped postgres:16
+#
+# Override any of these with standard PG* env vars or DATABASE_URL.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  host: <%= ENV.fetch("PGHOST") { "127.0.0.1" } %>
+  port: <%= ENV.fetch("PGPORT") { 5434 } %>
+  username: <%= ENV.fetch("PGUSER") { "daily_bingo" } %>
+  password: <%= ENV.fetch("PGPASSWORD") { "daily_bingo" } %>
+
+development:
+  <<: *default
+  database: daily_bingo_development
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *default
+  database: daily_bingo_test
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: daily_bingo_production
+    username: daily_bingo
+    password: <%= ENV["DAILY_BINGO_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: daily_bingo_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: daily_bingo_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: daily_bingo_production_cable
+    migrations_paths: db/cable_migrate

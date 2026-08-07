@@ -1,0 +1,29 @@
+<div class="auth-wrap">
+  <h1 class="auth-title">Create your account</h1>
+  <div class="card">
+    <%= form_with model: @user, url: registration_path do |form| %>
+      <% if @user.errors.any? %>
+        <div class="errors"><%= @user.errors.full_messages.to_sentence %></div>
+      <% end %>
+
+      <div class="field">
+        <%= label_tag :account_name, "Company or publisher name" %>
+        <%= text_field_tag :account_name, params[:account_name], placeholder: "Omaha Media Co.", autofocus: true %>
+      </div>
+      <div class="field">
+        <%= form.label :email_address, "Email" %>
+        <%= form.email_field :email_address, autocomplete: "username" %>
+      </div>
+      <div class="field">
+        <%= form.label :password %>
+        <%= form.password_field :password, autocomplete: "new-password" %>
+      </div>
+      <div class="field">
+        <%= form.label :password_confirmation, "Confirm password" %>
+        <%= form.password_field :password_confirmation, autocomplete: "new-password" %>
+      </div>
+      <%= form.submit "Create account", class: "btn btn-primary" %>
+    <% end %>
+    <p class="small muted" style="margin-top: 1rem;">Already have an account? <%= link_to "Sign in", new_session_path %></p>
+  </div>
+</div>
