@@ -87,6 +87,25 @@ class Game < ApplicationRecord
     update!(status: "completed") if active?
   end
 
+  # Adapts an in-flight game when the publication switches cadence. Words
+  # that already went out keep their dates; the rest go back to the
+  # unissued queue (issues) or onto upcoming send days (calendar).
+  def reschedule_for_cadence
+    return unless active?
+
+    if issue_cadence?
+      daily_calls.where(call_on: (publication.local_date + 1)..).update_all(call_on: nil)
+    else
+      transaction do
+        pending = daily_calls.where(call_on: nil).to_a
+        scheduled_dates(from: publication.local_date + 1, count: pending.size).each_with_index do |date, index|
+          pending[index].update!(call_on: date)
+        end
+        update!(starts_on: daily_calls.minimum(:call_on), ends_on: daily_calls.maximum(:call_on))
+      end
+    end
+  end
+
   # The one claimable call right now: today's scheduled word (calendar)
   # or the most recently issued word (issues).
   def current_call
@@ -174,13 +193,13 @@ class Game < ApplicationRecord
       self.ends_on = starts_on + (DAYS - 1) if starts_on.present? && draft?
     end
 
-    # The next 24 dates on the publication's send days, starting no
-    # earlier than starts_on.
-    def scheduled_dates
+    # The next `count` dates on the publication's send days, starting no
+    # earlier than `from`.
+    def scheduled_dates(from: starts_on, count: DAYS)
       wdays = publication.sending_wdays
       dates = []
-      date = starts_on
-      while dates.size < DAYS
+      date = from
+      while dates.size < count
         dates << date if wdays.include?(date.wday)
         date += 1
       end

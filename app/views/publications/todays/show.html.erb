@@ -140,7 +140,7 @@
   <div class="page-head">
     <div>
       <% if @publication.issue_cadence? %>
-        <div class="eyebrow">Current issue · went out <%= @current_issue.called_on.strftime("%A, %B %-d") %></div>
+        <div class="eyebrow">Current issue · went out <%= @call.call_on.strftime("%A, %B %-d") %></div>
         <h1>Word <%= @call.position %> of <%= Game::DAYS %> — <%= @game.name %></h1>
       <% else %>
         <div class="eyebrow">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>

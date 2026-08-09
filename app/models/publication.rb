@@ -28,6 +28,7 @@ class Publication < ApplicationRecord
   validate :timezone_must_be_recognized
 
   before_validation :assign_public_code, on: :create
+  after_update :reschedule_active_game, if: :saved_change_to_cadence?
 
   def issue_cadence?
     cadence == "issues"
@@ -96,5 +97,9 @@ class Publication < ApplicationRecord
       if timezone.blank? || ActiveSupport::TimeZone[timezone].nil?
         errors.add(:timezone, "is not a recognized timezone")
       end
+    end
+
+    def reschedule_active_game
+      active_game&.reschedule_for_cadence
     end
 end
