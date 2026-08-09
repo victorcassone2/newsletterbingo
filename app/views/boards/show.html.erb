@@ -40,7 +40,9 @@
     <% if @todays_call.sponsor %>
       <div class="today-sponsor">Sponsored by <%= @todays_call.sponsor.name %></div>
     <% end %>
-    <div class="today-callword"><%= @todays_call.label %></div>
+    <div class="today-word-stub">
+      <div class="today-callword"><%= @todays_call.label %></div>
+    </div>
 
     <% if @claimed_today %>
       <span class="claim-check">✓ Today&rsquo;s spot claimed</span>
@@ -67,7 +69,7 @@
 <section class="board-section" data-controller="board">
   <div class="board-eyebrow">YOUR BINGO CARD</div>
   <div class="board-progress">
-    <% if (day = @game.day_number) %>Day <%= day %> of <%= Game::DAYS %> · <% end %><%= @claimed_count %> / <%= Game::DAYS %> spots claimed
+    <% if (day = @game.day_number) %><%= @publication.issue_cadence? ? "Word" : "Day" %> <%= day %> of <%= Game::DAYS %> · <% end %><%= @claimed_count %> / <%= Game::DAYS %> spots claimed
   </div>
 
   <div class="bingo-header" aria-hidden="true">
@@ -75,12 +77,10 @@
   </div>
 
   <% line_positions = @completed_lines.flatten.to_set %>
-  <div class="bingo-grid" role="grid">
+  <div class="bingo-grid">
     <% @squares.each do |square| %>
       <%
         call = square.daily_call
-        has_content = square.claimed? && !square.free? && call &&
-          (call.description.present? || call.link? || call.sponsor || call.prize_call?)
         classes = class_names("square",
           free: square.free?,
           claimed: square.claimed? && !square.free?,
@@ -88,15 +88,15 @@
           "in-line": line_positions.include?(square.position),
           "just-claimed": @celebrate.present? && @todays_call && call == @todays_call)
       %>
-      <% if has_content %>
-        <button type="button" class="<%= classes %>" data-action="board#reveal" data-square-key="<%= square.position %>">
-          <% if call.prize_call? %><span class="gift">🎁</span><% end %>
+      <% if square.claimed? && !square.free? %>
+        <button type="button" class="<%= classes %>" data-action="board#reveal" data-square-key="<%= square.position %>"
+                aria-label="<%= square.label %>, claimed — show details">
+          <% if call&.prize_call? %><span class="gift">🎁</span><% end %>
           <span class="check">✓</span>
           <%= square.label %>
         </button>
       <% else %>
         <div class="<%= classes %>">
-          <% if square.claimed? && !square.free? %><span class="check">✓</span><% end %>
           <%= square.label %>
         </div>
       <% end %>
@@ -105,18 +105,20 @@
 
   <% @squares.each do |square| %>
     <% call = square.daily_call %>
-    <% next unless square.claimed? && !square.free? && call &&
-         (call.description.present? || call.link? || call.sponsor || call.prize_call?) %>
+    <% next unless square.claimed? && !square.free? %>
     <div class="square-detail" hidden data-board-target="detail" data-square-key="<%= square.position %>">
-      <h3><%= square.label %> <% if call.prize_call? %>🎁<% end %></h3>
-      <% if call.prize_call? && call.prize_description.present? %>
-        <p><%= call.prize_description %></p>
+      <h3><%= square.label %> <% if call&.prize_call? %>🎁<% end %></h3>
+      <% if call %>
+        <p class="small muted"><%= @publication.issue_cadence? ? "Word" : "Day" %> <%= call.position %><% if call.issued? %> · called <%= call.call_on.strftime("%B %-d") %><% end %></p>
+        <% if call.prize_call? && call.prize_description.present? %>
+          <p><%= call.prize_description %></p>
+        <% end %>
+        <% if call.description.present? %><p><%= call.description %></p><% end %>
+        <% if call.link? %>
+          <%= link_to "#{call.link_text} →", call_outbound_path(@publication.public_code, call.id), class: "today-link" %>
+        <% end %>
+        <% if call.sponsor %><div class="sponsor-line">Sponsored by <%= call.sponsor.name %></div><% end %>
       <% end %>
-      <% if call.description.present? %><p><%= call.description %></p><% end %>
-      <% if call.link? %>
-        <%= link_to "#{call.link_text} →", call_outbound_path(@publication.public_code, call.id), class: "today-link" %>
-      <% end %>
-      <% if call.sponsor %><div class="sponsor-line">Sponsored by <%= call.sponsor.name %></div><% end %>
     </div>
   <% end %>
 
@@ -147,4 +149,16 @@
       <% if @blackout_prize.sponsor %> · Sponsored by <%= @blackout_prize.sponsor.name %><% end %>
     </div>
   <% end %>
+
+  <div class="board-help">
+    <p class="bookmark-hint">📌 Bookmark this page — your card lives here for the whole game.</p>
+    <details class="board-rules">
+      <summary>How to play</summary>
+      <p>A new word drops with every <%= @publication.name %> email. Tap the bingo link in the email to claim
+        its square — it&rsquo;s the only way to fill your card.</p>
+      <p>Five claimed squares in a row — across, down, or diagonal — is a <strong>bingo</strong>.
+        Claim all <%= Game::DAYS %> words for a <strong>blackout</strong>. The center square is free.</p>
+      <p>Tap any claimed square to see what it was about.</p>
+    </details>
+  </div>
 </section>

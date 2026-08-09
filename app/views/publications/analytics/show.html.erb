@@ -1,5 +1,6 @@
 <div class="page-head">
   <h1>Analytics</h1>
+  <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
 </div>
 
 <div class="stat-tiles" style="margin-bottom: 1.25rem;">
@@ -25,11 +26,10 @@
     <table class="simple">
       <thead><tr><th>Day</th><th>Word</th><th>Claims</th></tr></thead>
       <tbody>
-        <% today = @publication.local_date %>
         <% @analytics.claims_per_day(@game).each do |call, count| %>
-          <% next if call.call_on > today %>
+          <% next unless call.called? %>
           <tr>
-            <td>Day <%= call.day_number %> · <%= call.call_on.strftime("%-m/%-d") %></td>
+            <td>Word <%= call.position %> · <%= call.call_on.strftime("%-m/%-d") %></td>
             <td><%= call.label %><% if call.sponsor %> <span class="badge badge-gray"><%= call.sponsor.name %></span><% end %></td>
             <td><%= count %></td>
           </tr>

@@ -1,3 +1,5 @@
+<p><%= link_to "← Back to Today", account_publication_today_path(publication_id: @publication.id), class: "back-link" %></p>
+
 <div class="page-head">
   <div>
     <div class="eyebrow">Day <%= @call.day_number %> · <%= @call.call_on.strftime("%A, %B %-d") %></div>
@@ -7,9 +9,9 @@
 
 <div class="grid-2">
   <div class="card">
-    <h2>Call content</h2>
+    <div class="card-head"><h2>Call content</h2></div>
     <p class="small muted">Shown to readers <em>after</em> they claim — never in the email itself.</p>
-    <%= form_with model: @call, url: account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id, from: params[:from]), method: :patch do |form| %>
+    <%= form_with model: @call, url: account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), method: :patch do |form| %>
       <% if @call.errors.any? %>
         <div class="errors"><%= @call.errors.full_messages.to_sentence %></div>
       <% end %>
@@ -45,22 +47,23 @@
   </div>
 
   <div class="card">
-    <h2>Today's word</h2>
+    <div class="card-head"><h2>Day <%= @call.day_number %> word</h2></div>
     <% if @call.word_changeable? %>
       <p class="small muted">This word hasn't been called or claimed yet, so it can still change.</p>
 
       <% if @swappable_calls.any? %>
-        <%= form_with url: account_publication_game_call_word_path(publication_id: @publication.id, game_id: @game.id, call_id: @call.id, from: params[:from]), method: :patch do %>
+        <%= form_with url: account_publication_game_call_word_path(publication_id: @publication.id, game_id: @game.id, call_id: @call.id), method: :patch do %>
           <div class="field">
             <%= label_tag :swap_call_id, "Swap with another scheduled word" %>
             <%= select_tag :swap_call_id, options_for_select(@swappable_calls.map { |c| [ "#{c.label} (Day #{c.day_number})", c.id ] }), include_blank: "Choose a word…" %>
+            <div class="hint">The two days trade words; nothing enters or leaves the game.</div>
           </div>
           <%= submit_tag "Swap words", class: "btn btn-quiet" %>
         <% end %>
         <hr style="border: none; border-top: 1px solid var(--line); margin: 1.25rem 0;">
       <% end %>
 
-      <%= form_with url: account_publication_game_call_word_path(publication_id: @publication.id, game_id: @game.id, call_id: @call.id, from: params[:from]), method: :patch do %>
+      <%= form_with url: account_publication_game_call_word_path(publication_id: @publication.id, game_id: @game.id, call_id: @call.id), method: :patch do %>
         <div class="field">
           <%= label_tag :word_id, "Replace with a word from the library" %>
           <%= select_tag :word_id, options_from_collection_for_select(@eligible_replacements, :id, :label), include_blank: "Choose a word…" %>

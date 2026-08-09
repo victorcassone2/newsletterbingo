@@ -59,7 +59,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
   test "an unreplaced merge tag shows a configuration hint" do
     get claim_path(@publication.public_code, email: "{{email}}")
     assert_response :unprocessable_entity
-    assert_match(/merge tag/, response.body)
+    assert_match(/bingo link/, response.body)
   end
 
   test "malformed email shows a friendly error" do

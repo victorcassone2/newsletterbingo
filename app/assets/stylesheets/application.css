@@ -1,21 +1,31 @@
-/* Shared foundation: tokens, reset, type, forms, buttons, flash. */
+/* Shared foundation: tokens, reset, type, forms, buttons, flash.
+   Slate-only neutrals; color appears only when it carries state. */
 
 :root {
-  --ink: #1c1c1e;
-  --ink-soft: #6e6e73;
-  --ink-faint: #aeaeb2;
-  --paper: #f7f7f8;
+  --ink: #0f172a;
+  --ink-strong: #334155;
+  --ink-soft: #64748b;
+  --ink-faint: #94a3b8;
+  --paper: #f8fafc;
   --card: #ffffff;
-  --line: #e5e5ea;
-  --tint: #f2f2f7;
-  --blue: #2563eb;
-  --green: #16a34a;
-  --amber: #d97706;
-  --red: #dc2626;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.05);
+  --line: #e2e8f0;
+  --line-soft: #f1f5f9;
+  --tint: #f1f5f9;
+  --green-bg: #ecfdf5;
+  --green-line: #a7f3d0;
+  --green-ink: #065f46;
+  --amber-bg: #fffbeb;
+  --amber-line: #fde68a;
+  --amber-ink: #92400e;
+  --red-bg: #fff1f2;
+  --red-line: #fecdd3;
+  --red-ink: #9f1239;
+  --brand: #059669;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 1px 3px rgba(15, 23, 42, .05);
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -30,41 +40,46 @@ body {
 }
 
 h1, h2, h3 { line-height: 1.2; margin: 0 0 .5rem; letter-spacing: -0.01em; }
-h1 { font-size: 1.6rem; font-weight: 700; }
-h2 { font-size: 1.15rem; font-weight: 650; }
-h3 { font-size: .95rem; font-weight: 600; }
+h1 { font-size: 1.5rem; font-weight: 650; }
+h2 { font-size: 1.05rem; font-weight: 650; }
+h3 { font-size: .9rem; font-weight: 600; }
 p { margin: 0 0 .75rem; }
 
-a { color: var(--blue); text-decoration: none; }
+a { color: var(--ink); text-decoration: none; font-weight: 500; }
 a:hover { text-decoration: underline; }
 
 .muted { color: var(--ink-soft); }
 .small { font-size: .85rem; }
 .eyebrow {
-  font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+  font-size: .72rem; font-weight: 600; letter-spacing: .08em;
   text-transform: uppercase; color: var(--ink-soft); margin-bottom: .35rem;
 }
 
+code {
+  font-family: var(--mono); font-size: .85em;
+  background: var(--tint); border-radius: 4px; padding: .1em .35em;
+}
+
 /* Forms */
-label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: .3rem; }
+label { display: block; font-size: .85rem; font-weight: 500; margin-bottom: .3rem; color: var(--ink-strong); }
 input[type="text"], input[type="email"], input[type="password"], input[type="date"],
 input[type="url"], select, textarea {
   width: 100%;
   font: inherit;
-  padding: .55rem .7rem;
-  border: 1px solid var(--line);
+  padding: .5rem .7rem;
+  border: 1px solid #cbd5e1;
   border-radius: var(--radius-sm);
   background: var(--card);
   color: var(--ink);
 }
 input:focus, select:focus, textarea:focus {
-  outline: 2px solid var(--blue);
-  outline-offset: 1px;
-  border-color: transparent;
+  outline: 1px solid var(--ink-soft);
+  outline-offset: 0;
+  border-color: var(--ink-soft);
 }
 input[type="color"] {
   inline-size: 3rem; block-size: 2.2rem; padding: 2px;
-  border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--card);
+  border: 1px solid #cbd5e1; border-radius: var(--radius-sm); background: var(--card);
 }
 .field { margin-bottom: 1rem; }
 .field .hint { font-size: .8rem; color: var(--ink-soft); margin-top: .25rem; }
@@ -72,15 +87,15 @@ input[type="color"] {
 .field-row .field { flex: 1 1 10rem; margin-bottom: 1rem; }
 
 .errors {
-  background: #fef2f2; border: 1px solid #fecaca; color: var(--red);
+  background: var(--red-bg); border: 1px solid var(--red-line); color: var(--red-ink);
   border-radius: var(--radius-sm); padding: .6rem .9rem; margin-bottom: 1rem; font-size: .9rem;
 }
 
-/* Buttons */
+/* Buttons: primary is near-black; secondary is white on a hairline. */
 .btn, button.btn {
   display: inline-block;
-  font: inherit; font-weight: 600; font-size: .9rem;
-  padding: .55rem 1rem;
+  font: inherit; font-weight: 500; font-size: .875rem;
+  padding: .5rem .85rem;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
   background: var(--ink);
@@ -88,25 +103,34 @@ input[type="color"] {
   cursor: pointer;
   text-decoration: none;
 }
-.btn:hover { opacity: .9; text-decoration: none; }
-.btn-primary { background: var(--blue); }
-.btn-quiet { background: var(--card); color: var(--ink); border-color: var(--line); }
-.btn-danger { background: var(--card); color: var(--red); border-color: var(--line); }
+.btn:hover { background: #1e293b; text-decoration: none; }
+.btn-primary { background: var(--ink); }
+.btn-primary:hover { background: #1e293b; }
+.btn-quiet { background: var(--card); color: var(--ink-strong); border-color: var(--line); }
+.btn-quiet:hover { background: var(--paper); }
+.btn-danger { background: var(--card); color: var(--red-ink); border-color: var(--line); }
+.btn-danger:hover { background: var(--red-bg); }
 .btn-small { padding: .3rem .65rem; font-size: .8rem; }
+.btn-disabled {
+  display: inline-block; font-weight: 500; font-size: .875rem;
+  padding: .5rem .85rem; border-radius: var(--radius-sm);
+  background: var(--paper); color: var(--ink-faint); border: 1px solid var(--line);
+  cursor: not-allowed;
+}
 .link-button {
-  background: none; border: none; padding: 0; font: inherit;
-  color: var(--blue); cursor: pointer;
+  background: none; border: none; padding: 0; font: inherit; font-weight: 500;
+  color: var(--ink); cursor: pointer;
 }
 .link-button:hover { text-decoration: underline; }
 
-/* Flash */
+/* Flash: border-200 / bg-50 / text-800 formula. */
 .flash {
   border-radius: var(--radius-sm); padding: .6rem .9rem; margin-bottom: 1rem; font-size: .9rem;
 }
-.flash-notice { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-.flash-alert { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+.flash-notice { background: var(--green-bg); border: 1px solid var(--green-line); color: var(--green-ink); }
+.flash-alert { background: var(--amber-bg); border: 1px solid var(--amber-line); color: var(--amber-ink); }
 
-/* Cards */
+/* Cards. A .card-head inside a card becomes its titled header bar. */
 .card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -114,11 +138,48 @@ input[type="color"] {
   padding: 1.25rem;
   box-shadow: var(--shadow);
 }
-
-.badge {
-  display: inline-block; font-size: .72rem; font-weight: 700;
-  padding: .15rem .55rem; border-radius: 999px; vertical-align: middle;
+.card > .card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin: -1.25rem -1.25rem 1rem;
+  padding: .75rem 1.25rem;
+  border-bottom: 1px solid var(--line);
 }
-.badge-green { background: #f0fdf4; color: #166534; }
-.badge-gray { background: var(--tint); color: var(--ink-soft); }
-.badge-amber { background: #fffbeb; color: #92400e; }
+.card > .card-head h2, .card > .card-head h3 { margin: 0; }
+
+/* Empty states: dashed standalone card with one recovery action. */
+.empty-state {
+  background: var(--card);
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius);
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+}
+.empty-state p { color: var(--ink-soft); }
+.empty-state .btn { margin-top: .5rem; }
+
+/* Badges: ringed pills. */
+.badge {
+  display: inline-block; font-size: .72rem; font-weight: 600;
+  padding: .1rem .6rem; border-radius: 999px; vertical-align: middle;
+  border: 1px solid var(--line); background: var(--tint); color: var(--ink-strong);
+}
+.badge-green { background: var(--green-bg); border-color: var(--green-line); color: var(--green-ink); }
+.badge-gray { background: var(--tint); border-color: var(--line); color: var(--ink-soft); }
+.badge-amber { background: var(--amber-bg); border-color: var(--amber-line); color: var(--amber-ink); }
+
+/* The ticket: dashed stub framing the daily word, everywhere it appears. */
+.ticket {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: var(--paper);
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
+.ticket .ticket-label {
+  font-size: .68rem; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-soft);
+}
+.ticket .ticket-word {
+  font-family: var(--mono); font-size: 1.6rem; font-weight: 700;
+  letter-spacing: .08em; margin-top: .25rem; color: var(--ink);
+}

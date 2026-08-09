@@ -1,5 +1,9 @@
 class Game < ApplicationRecord
   DAYS = 24
+  # Issue cadence: minimum gap between word advances, and how long the
+  # final word stays claimable before the game completes.
+  ISSUE_INTERVAL_FLOOR = 12.hours
+  LAST_ISSUE_OPEN_FOR = 7 # days
 
   class NotLaunchable < StandardError; end
 
@@ -9,7 +13,8 @@ class Game < ApplicationRecord
   has_many :daily_claims, dependent: :destroy
   has_many :prize_awards, dependent: :destroy
   has_many :bingo_boards, dependent: :destroy
-  has_many :daily_calls, -> { order(:call_on) }, dependent: :destroy, inverse_of: :game
+  has_many :issues, dependent: :destroy
+  has_many :daily_calls, -> { order(:position) }, dependent: :destroy, inverse_of: :game
   has_many :prizes, dependent: :destroy
   has_many :game_words, -> { order(:created_at) }, dependent: :destroy, inverse_of: :game
   has_one :line_prize, -> { where(kind: "line") }, class_name: "Prize", inverse_of: :game
@@ -24,6 +29,8 @@ class Game < ApplicationRecord
   validates :status, inclusion: { in: %w[ draft active completed ] }
 
   before_validation :align_ends_on
+
+  delegate :issue_cadence?, :calendar_cadence?, to: :publication
 
   # Picks 24 words for a new game: the publication's own words first,
   # topped up with system words, in random order. Custom words win label
@@ -58,8 +65,9 @@ class Game < ApplicationRecord
     assign_words(self.class.random_word_selection(publication))
   end
 
-  # Launching creates the game's 24 daily calls up front, one per local
-  # calendar date, with the words in random order.
+  # Launching fixes the words into a random calling order. Calendar games
+  # get their 24 dates up front (on the publication's send days); issue
+  # games date each call when its newsletter actually goes out.
   def launch
     transaction do
       raise NotLaunchable, "game is already #{status}" unless draft?
@@ -67,9 +75,11 @@ class Game < ApplicationRecord
 
       update!(status: "active")
       schedule = game_words.to_a.shuffle(random: SecureRandom)
+      dates = calendar_cadence? ? scheduled_dates : []
       schedule.each_with_index do |game_word, index|
-        daily_calls.create!(game_word: game_word, call_on: starts_on + index)
+        daily_calls.create!(game_word: game_word, position: index + 1, call_on: dates[index])
       end
+      update!(starts_on: dates.first, ends_on: dates.last) if dates.any?
     end
   end
 
@@ -77,25 +87,68 @@ class Game < ApplicationRecord
     update!(status: "completed") if active?
   end
 
+  # The one claimable call right now: today's scheduled word (calendar)
+  # or the most recently issued word (issues).
+  def current_call
+    if issue_cadence?
+      issued_calls.last
+    else
+      call_for(publication.local_date)
+    end
+  end
+
+  # Resolves the claimable call for a newsletter's issue token, advancing
+  # to the next word the first time a plausible new token shows up.
+  def call_for_issue(token)
+    token = token.to_s.strip
+    issue = issues.find_by(token: token)
+    if issue
+      issue.daily_call
+    elsif Issue.plausible_token?(token) && issue_floor_elapsed?
+      advance_to_next_word(token)
+    else
+      current_call
+    end
+  end
+
+  def issued_calls
+    daily_calls.where.not(call_on: nil)
+  end
+
   def over?(date = publication.local_date)
-    date > ends_on
+    if issue_cadence?
+      last_issued = issued_calls.last
+      daily_calls.any? && daily_calls.where(call_on: nil).none? &&
+        last_issued.call_on < date - LAST_ISSUE_OPEN_FOR
+    else
+      date > ends_on
+    end
   end
 
   def started?(date = publication.local_date)
-    date >= starts_on
+    if issue_cadence?
+      issued_calls.exists?
+    else
+      date >= starts_on
+    end
   end
 
   def in_window?(date)
     date.between?(starts_on, ends_on)
   end
 
-  # 1-based day number for a date, nil outside the 24-day window.
+  # Position of the current word: the call on the given date (calendar)
+  # or the latest issued call. Nil before the game produces one.
   def day_number(date = publication.local_date)
-    in_window?(date) ? (date - starts_on).to_i + 1 : nil
+    if issue_cadence?
+      issued_calls.last&.position
+    else
+      call_for(date)&.position
+    end
   end
 
   def days_elapsed(date = publication.local_date)
-    ((date - starts_on).to_i + 1).clamp(0, DAYS)
+    called_calls(date).count
   end
 
   def days_remaining(date = publication.local_date)
@@ -111,11 +164,47 @@ class Game < ApplicationRecord
   end
 
   def upcoming_calls(date = publication.local_date)
-    daily_calls.where(call_on: (date + 1)..)
+    daily_calls.where(call_on: (date + 1)..).or(daily_calls.where(call_on: nil))
   end
 
   private
+    # Drafts carry an estimated end date; launch replaces it with the real
+    # schedule's last day, which later saves must not clobber.
     def align_ends_on
-      self.ends_on = starts_on + (DAYS - 1) if starts_on.present?
+      self.ends_on = starts_on + (DAYS - 1) if starts_on.present? && draft?
+    end
+
+    # The next 24 dates on the publication's send days, starting no
+    # earlier than starts_on.
+    def scheduled_dates
+      wdays = publication.sending_wdays
+      dates = []
+      date = starts_on
+      while dates.size < DAYS
+        dates << date if wdays.include?(date.wday)
+        date += 1
+      end
+      dates
+    end
+
+    def issue_floor_elapsed?
+      last = issues.order(:created_at).last
+      last.nil? || last.created_at <= ISSUE_INTERVAL_FLOOR.ago
+    end
+
+    def advance_to_next_word(token)
+      next_call = daily_calls.find_by(call_on: nil)
+      if next_call.nil?
+        complete
+        current_call
+      else
+        transaction do
+          issues.create!(token: token, daily_call: next_call, called_on: publication.local_date)
+          next_call.update!(call_on: publication.local_date)
+        end
+        next_call
+      end
+    rescue ActiveRecord::RecordNotUnique
+      issues.find_by(token: token)&.daily_call || current_call
     end
 end

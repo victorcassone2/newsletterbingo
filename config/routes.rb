@@ -12,8 +12,6 @@ Rails.application.routes.draw do
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
-        resource :embed, only: %i[ show ]
-        resource :branding, only: %i[ edit update ]
         resource :analytics, only: %i[ show ]
         resources :words, only: %i[ index create ] do
           resource :archival, only: %i[ create destroy ], module: :words
@@ -25,7 +23,8 @@ Rails.application.routes.draw do
           scope module: :games do
             resource :launch, only: %i[ create ]
             resource :word_shuffle, only: %i[ create ]
-            resources :game_words, only: %i[ update ]
+            resources :issues, only: %i[ destroy ]
+            resources :game_words, only: %i[ edit update ]
             resources :calls, only: %i[ edit update ] do
               resource :word, only: %i[ update ], module: :calls
             end

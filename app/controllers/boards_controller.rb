@@ -16,7 +16,7 @@ class BoardsController < PublicController
     end
 
     @squares = @board.bingo_squares.includes(game_word: { daily_call: :sponsor }).to_a
-    @todays_call = @game.call_for(@publication.local_date)
+    @todays_call = @game.current_call
     @claimed_today = @todays_call &&
       current_participant.daily_claims.exists?(daily_call_id: @todays_call.id)
     @claimed_count = @board.claimed_word_count

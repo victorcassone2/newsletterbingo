@@ -1,5 +1,10 @@
 <h1>New game</h1>
-<p class="muted">Every game runs exactly <%= Game::DAYS %> days. We'll pick <%= Game::DAYS %> words for you — you can shuffle or replace them before launch.</p>
+<% if @publication.issue_cadence? %>
+  <p class="muted">Every game is <%= Game::DAYS %> words. We'll pick them for you — shuffle or replace any before launch.
+    Words go live one per send, starting with your first newsletter after launch.</p>
+<% else %>
+  <p class="muted">Every game runs exactly <%= Game::DAYS %> send days. We'll pick <%= Game::DAYS %> words for you — you can shuffle or replace them before launch.</p>
+<% end %>
 
 <div class="card">
   <%= form_with model: @game, url: account_publication_games_path(publication_id: @publication.id) do |form| %>
@@ -12,11 +17,13 @@
         <%= form.label :name, "Game name" %>
         <%= form.text_field :name, placeholder: "Summer Bingo" %>
       </div>
-      <div class="field">
-        <%= form.label :starts_on, "Day 1" %>
-        <%= form.date_field :starts_on %>
-        <div class="hint">Day <%= Game::DAYS %> lands <%= Game::DAYS - 1 %> days later.</div>
-      </div>
+      <% if @publication.calendar_cadence? %>
+        <div class="field">
+          <%= form.label :starts_on, "Day 1" %>
+          <%= form.date_field :starts_on %>
+          <div class="hint">Words land on your send days only — set those in Setup.</div>
+        </div>
+      <% end %>
     </div>
 
     <%= form.submit "Create game", class: "btn btn-primary" %>

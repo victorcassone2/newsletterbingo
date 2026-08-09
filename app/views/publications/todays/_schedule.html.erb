@@ -1,0 +1,25 @@
+<% current_call = game.current_call %>
+<ul class="schedule">
+  <% calls.each do |call| %>
+    <li class="<%= "today-row" if call == current_call %>">
+      <span class="marker">
+        <% if call == current_call %>●<% elsif call.called? %>✓<% else %>○<% end %>
+      </span>
+      <span class="day-no">
+        Word <%= call.position %><% if call.issued? %> · <%= call.call_on.strftime("%-m/%-d") %><% end %>
+      </span>
+      <span class="word"><%= call.label %></span>
+      <span class="extras">
+        <% if call.prize_call? %><span title="Prize call">🎁</span><% end %>
+        <% if call.sponsor %><span class="badge badge-gray"><%= call.sponsor.name %></span><% end %>
+      </span>
+      <span class="spacer"></span>
+      <% if call == current_call %>
+        <span class="badge badge-green"><%= game.issue_cadence? ? "CURRENT" : "TODAY" %></span>
+      <% end %>
+      <% if call.word_changeable? || call == current_call %>
+        <%= link_to "Edit", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: call.game_id, id: call.id), class: "small" %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>

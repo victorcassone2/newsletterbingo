@@ -1,6 +1,8 @@
 /* Reader-facing experience. Branded via CSS custom properties set on body:
    --brand-primary, --brand-accent, --brand-background, --brand-text,
-   --brand-on-accent, --brand-on-primary. Mobile-first. */
+   --brand-on-accent, --brand-on-primary, --brand-surface, --brand-on-surface.
+   Cards sit on --brand-surface (computed server-side to stay readable on
+   light or dark backgrounds) — never on hardcoded white. Mobile-first. */
 
 body.player {
   background: var(--brand-background, var(--paper));
@@ -21,8 +23,9 @@ body.player {
 }
 
 .today-card {
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.08);
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  border: 1px solid rgba(127, 127, 127, .25);
   border-radius: 16px;
   padding: 1.25rem 1.25rem 1.35rem;
   text-align: center;
@@ -34,18 +37,24 @@ body.player {
   color: var(--brand-primary, var(--ink));
 }
 .today-sponsor { font-size: .8rem; opacity: .7; margin-top: .3rem; }
+.today-word-stub {
+  border: 2px dashed rgba(127, 127, 127, .4);
+  border-radius: 12px;
+  padding: .7rem .9rem .8rem;
+  margin: .7rem 0 .5rem;
+}
 .today-callword {
-  font-size: 1.9rem; font-weight: 800; letter-spacing: -.01em;
-  margin: .45rem 0 .3rem; color: var(--brand-text, var(--ink));
+  font-size: 1.7rem; font-weight: 800; letter-spacing: .04em;
+  color: var(--brand-on-surface, var(--ink));
 }
 .claim-check {
   display: inline-flex; align-items: center; gap: .35rem;
-  font-size: .9rem; font-weight: 650; color: var(--brand-accent, var(--green));
+  font-size: .9rem; font-weight: 650; color: var(--brand-accent, var(--green-ink));
 }
 .today-desc { font-size: .95rem; margin: .8rem 0 .3rem; }
 .today-link {
   display: inline-block; margin-top: .5rem;
-  font-weight: 700; color: var(--brand-accent, var(--blue));
+  font-weight: 700; color: var(--brand-accent, var(--ink));
 }
 .prize-flag { font-size: 1rem; }
 
@@ -83,13 +92,13 @@ body.player {
   hyphens: auto;
   border: none;
   font-family: inherit;
-  background: #ffffff;
-  color: var(--brand-text, var(--ink));
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.09);
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  box-shadow: inset 0 0 0 1px rgba(127, 127, 127, .3);
 }
-.square.unclaimed { opacity: .55; background: rgba(255,255,255,.6); }
+.square.unclaimed { opacity: .55; }
 .square.claimed {
-  background: var(--brand-accent, var(--blue));
+  background: var(--brand-accent, var(--ink));
   color: var(--brand-on-accent, #fff);
   box-shadow: none;
   cursor: pointer;
@@ -112,11 +121,15 @@ body.player {
   100% { transform: scale(1); }
 }
 .square.just-claimed { animation: square-pop .6s ease-out .3s 1 both; }
+@media (prefers-reduced-motion: reduce) {
+  .square.just-claimed { animation: none; }
+}
 
 /* Square detail cards */
 .square-detail {
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.08);
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  border: 1px solid rgba(127, 127, 127, .25);
   border-radius: 12px;
   padding: 1rem 1.1rem;
   margin-top: .9rem;
@@ -126,6 +139,24 @@ body.player {
 .square-detail[hidden] { display: none; }
 .square-detail h3 { color: var(--brand-primary, var(--ink)); }
 .square-detail .sponsor-line { font-size: .8rem; opacity: .7; margin-top: .5rem; }
+
+/* How to play + bookmark hint */
+.board-help { margin-top: 1.5rem; font-size: .85rem; text-align: center; }
+.board-help .bookmark-hint { opacity: .75; margin-bottom: .6rem; }
+.board-rules {
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  border: 1px solid rgba(127, 127, 127, .25);
+  border-radius: 12px;
+  padding: .7rem 1rem;
+  text-align: left;
+}
+.board-rules summary {
+  cursor: pointer; font-weight: 700; font-size: .8rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .8;
+  list-style-position: inside;
+}
+.board-rules p { margin: .6rem 0 0; font-size: .88rem; }
 
 /* Celebration */
 .celebration {
@@ -137,7 +168,7 @@ body.player {
   color: var(--brand-on-primary, #fff);
   animation: celebrate-in .5s ease-out both;
 }
-.celebration.blackout { background: var(--brand-accent, var(--blue)); color: var(--brand-on-accent, #fff); }
+.celebration.blackout { background: var(--brand-accent, var(--ink)); color: var(--brand-on-accent, #fff); }
 .celebration h2 { margin-bottom: .25rem; }
 .celebration p { margin: 0; font-size: .92rem; opacity: .92; }
 .celebration a { color: inherit; text-decoration: underline; font-weight: 700; }
@@ -145,10 +176,14 @@ body.player {
   from { opacity: 0; transform: translateY(-6px) scale(.98); }
   to { opacity: 1; transform: none; }
 }
+@media (prefers-reduced-motion: reduce) {
+  .celebration { animation: none; }
+}
 
 .prize-note {
-  background: #fff;
-  border: 1px solid rgba(0,0,0,.08);
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  border: 1px solid rgba(127, 127, 127, .25);
   border-radius: 12px;
   padding: .9rem 1.1rem;
   margin-top: 1.25rem;
@@ -165,6 +200,8 @@ body.player {
 }
 
 .unavailable-card {
-  background: #fff; border-radius: 16px; padding: 2rem 1.5rem; text-align: center;
-  border: 1px solid rgba(0,0,0,.08); margin-top: 3rem;
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  border-radius: 16px; padding: 2rem 1.5rem; text-align: center;
+  border: 1px solid rgba(127, 127, 127, .25); margin-top: 3rem;
 }

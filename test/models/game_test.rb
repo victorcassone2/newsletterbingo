@@ -68,7 +68,7 @@ class GameTest < ActiveSupport::TestCase
     ActiveRecord::Base.connection.execute("SET CONSTRAINTS daily_calls_game_word_unique IMMEDIATE")
     assert_raises(ActiveRecord::RecordNotUnique) do
       # Day 25 would need to reuse one of the 24 words — blocked.
-      game.daily_calls.create!(game_word: game.game_words.first, call_on: Date.new(2026, 8, 25))
+      game.daily_calls.create!(game_word: game.game_words.first, call_on: Date.new(2026, 8, 25), position: 25)
     end
   end
 

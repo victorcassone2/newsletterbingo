@@ -20,10 +20,10 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
 
     # Create a publication
     post account_publications_path(account_id: account_id), params: {
-      publication: { name: "Bellevue Beacon", slug: "bellevue-beacon", timezone: "America/Chicago",
+      publication: { name: "Bellevue Beacon", timezone: "America/Chicago",
                      email_merge_tag: "*|EMAIL|*" }
     }
-    publication = accounts(:publisher).publications.find_by(slug: "bellevue-beacon")
+    publication = accounts(:publisher).publications.find_by(name: "Bellevue Beacon")
     assert publication.present?
     assert_match(/\Apub_/, publication.public_code)
 
@@ -41,37 +41,50 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     post account_publication_game_word_shuffle_path(account_id: account_id, publication_id: publication.id, game_id: game.id)
     assert_equal 24, game.game_words.reload.count
 
-    # Launch
+    # Launch — issue cadence (the default): calls exist but stay undated
     post account_publication_game_launch_path(account_id: account_id, publication_id: publication.id, game_id: game.id)
     assert game.reload.active?
     assert_equal 24, game.daily_calls.count
+    assert_equal 0, game.issued_calls.count
 
-    # Today dashboard shows the word
+    # Today dashboard waits for the first send
     get account_publication_today_path(account_id: account_id, publication_id: publication.id)
     assert_response :success
-    todays_call = game.call_for(publication.local_date)
-    assert_match todays_call.label, response.body
+    assert_match "first word arrives", response.body
 
-    # Configure today's call: description, link, prize call, sponsor
+    # The first click of a send advances the game and claims the square
+    get claim_path(publication.public_code, email: "reader@example.com", issue: "campaign-001")
+    assert_redirected_to board_path(publication.public_code)
+    current_call = game.reload.current_call
+    assert_equal 1, current_call.position
+    assert_equal 1, current_call.daily_claims.count
+
+    # Today dashboard now shows the issued word
+    get account_publication_today_path(account_id: account_id, publication_id: publication.id)
+    assert_response :success
+    assert_match current_call.label, response.body
+
+    # Configure the current call: description, link, prize call, sponsor
     sponsor = publication.sponsors.create!(name: "Local Bakery")
     patch account_publication_game_call_path(account_id: account_id, publication_id: publication.id,
-      game_id: game.id, id: todays_call.id, from: "today"), params: {
+      game_id: game.id, id: current_call.id), params: {
         daily_call: { description: "Fresh rolls at dawn.", link_url: "https://example.com/bakery",
                       link_text: "See the menu", prize_call: "1", sponsor_id: sponsor.id }
       }
     assert_redirected_to account_publication_today_path(account_id: account_id, publication_id: publication.id)
-    todays_call.reload
-    assert todays_call.prize_call?
-    assert_equal sponsor, todays_call.sponsor
+    current_call.reload
+    assert current_call.prize_call?
+    assert_equal sponsor, current_call.sponsor
 
-    # Change today's word (nobody has claimed yet)
+    # Change an unissued word (issued words are locked)
+    upcoming_call = game.daily_calls.find_by(call_on: nil)
     replacement = publication.eligible_words.where.not(id: game.game_words.select(:word_id)).first
     patch account_publication_game_call_word_path(account_id: account_id, publication_id: publication.id,
-      game_id: game.id, call_id: todays_call.id), params: { word_id: replacement.id }
-    assert_equal replacement.label, todays_call.reload.label
+      game_id: game.id, call_id: upcoming_call.id), params: { word_id: replacement.id }
+    assert_equal replacement.label, upcoming_call.reload.label
 
-    # Embed page carries the merge tag and the code
-    get account_publication_embed_path(account_id: account_id, publication_id: publication.id)
+    # Setup page carries the merge tag and the code
+    get edit_account_publication_path(account_id: account_id, id: publication.id)
     assert_response :success
     assert_match publication.public_code, response.body
     assert_match(/EMAIL/, response.body)

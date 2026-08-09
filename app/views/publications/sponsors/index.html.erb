@@ -1,7 +1,9 @@
 <div class="page-head">
-  <h1>Sponsors</h1>
+  <h1>Library</h1>
   <%= link_to "New sponsor", new_account_publication_sponsor_path(publication_id: @publication.id), class: "btn btn-primary" %>
 </div>
+
+<%= render "publications/words/library_tabs", publication: @publication, section: :sponsors %>
 
 <% if @sponsors.any? %>
   <div class="card">
@@ -29,9 +31,9 @@
     </ul>
   </div>
 <% else %>
-  <div class="card" style="text-align:center; padding: 2.5rem 1.5rem;">
+  <div class="empty-state">
     <h2>No sponsors yet</h2>
-    <p class="muted">Sponsors can back daily calls and prizes — new inventory you can sell without giving up newsletter space.</p>
+    <p>Sponsors can back daily calls and prizes — new inventory you can sell without giving up newsletter space.</p>
     <%= link_to "Add your first sponsor", new_account_publication_sponsor_path(publication_id: @publication.id), class: "btn btn-primary" %>
   </div>
 <% end %>

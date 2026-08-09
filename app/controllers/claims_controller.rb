@@ -1,13 +1,16 @@
 # The newsletter link itself performs the claim: one GET identifies the
-# publication, claims today's square, establishes the participant session,
-# and redirects to a clean URL with no email in it.
+# publication, claims the current square, establishes the participant
+# session, and redirects to a clean URL with no email in it.
+#
+# Issue-cadence publications also carry an issue token — the first click
+# of a new send advances the game to its next word before claiming.
 class ClaimsController < PublicController
   rate_limit to: 60, within: 1.minute, only: :create
 
   def create
     email = params[:email].to_s.strip
     if merge_tag_unreplaced?(email)
-      return render_unavailable("Your email platform didn't fill in your address. The publication needs to check its merge tag setting.", status: :unprocessable_entity)
+      return render_unavailable("That link couldn't tell us who you are, so we can't find your card. Try tapping the bingo button in today's email again — and if this keeps happening, reply to the newsletter so they can fix their bingo link.", status: :unprocessable_entity)
     end
     unless valid_email?(email)
       return render_unavailable("We couldn't read your email address from that link. Open today's email and tap the bingo button again.", status: :unprocessable_entity)
@@ -15,14 +18,13 @@ class ClaimsController < PublicController
 
     game = @publication.active_game
     return render_unavailable("There's no bingo game running right now. Check back soon!") if game.nil?
-    return render_unavailable("This game starts #{game.starts_on.strftime("%B %-d")}. Come back on Day 1!") unless game.started?
     if game.over?
       game.complete
       return render_unavailable("This game has finished. Watch the newsletter for the next one!")
     end
 
-    call = game.call_for(@publication.local_date)
-    return render_unavailable("There's no bingo word today. Check back tomorrow!") if call.nil?
+    call = current_call_for(game)
+    return render_unavailable(no_call_message(game)) if call.nil?
 
     participant = Participant.locate_or_register(@publication, email)
     board_before = participant.bingo_boards.find_by(game: game)
@@ -49,6 +51,24 @@ class ClaimsController < PublicController
   end
 
   private
+    def current_call_for(game)
+      if @publication.issue_cadence?
+        game.call_for_issue(params[:issue])
+      elsif game.started?
+        game.call_for(@publication.local_date)
+      end
+    end
+
+    def no_call_message(game)
+      if @publication.issue_cadence?
+        "The game starts with the next newsletter — watch your inbox!"
+      elsif !game.started?
+        "This game starts #{game.starts_on.strftime("%B %-d")}. Come back on Day 1!"
+      else
+        "There's no bingo word today. Check back tomorrow!"
+      end
+    end
+
     def valid_email?(email)
       email.match?(URI::MailTo::EMAIL_REGEXP)
     end

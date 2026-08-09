@@ -2,28 +2,15 @@ require "test_helper"
 
 class PublicationTest < ActiveSupport::TestCase
   test "generates a secure public code on create" do
-    publication = accounts(:publisher).publications.create!(name: "New Pub", slug: "new-pub")
+    publication = accounts(:publisher).publications.create!(name: "New Pub")
     assert_match(/\Apub_[1-9A-HJ-NP-Za-km-z]{20}\z/, publication.public_code)
   end
 
   test "public codes are unique" do
-    publication = accounts(:publisher).publications.new(name: "Dup", slug: "dup",
+    publication = accounts(:publisher).publications.new(name: "Dup",
       public_code: publications(:omaha).public_code)
     assert_not publication.valid?
     assert publication.errors[:public_code].any?
-  end
-
-  test "slug is unique per account but reusable across accounts" do
-    duplicate = accounts(:publisher).publications.new(name: "Dup", slug: "omaha-daily")
-    assert_not duplicate.valid?
-
-    other_account = accounts(:rival).publications.new(name: "Other", slug: "omaha-daily")
-    assert other_account.valid?
-  end
-
-  test "slug is normalized" do
-    publication = accounts(:publisher).publications.create!(name: "X", slug: "  My Cool Pub!  ")
-    assert_equal "my-cool-pub", publication.slug
   end
 
   test "colors must be hex" do
@@ -43,7 +30,7 @@ class PublicationTest < ActiveSupport::TestCase
   end
 
   test "email merge tag has a sensible default and is required" do
-    publication = accounts(:publisher).publications.create!(name: "Y", slug: "y-pub")
+    publication = accounts(:publisher).publications.create!(name: "Y")
     assert_equal "{{email}}", publication.email_merge_tag
 
     publication.email_merge_tag = ""

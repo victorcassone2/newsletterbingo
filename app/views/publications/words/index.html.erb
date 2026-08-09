@@ -1,6 +1,8 @@
 <div class="page-head">
-  <h1>Words</h1>
+  <h1>Library</h1>
 </div>
+
+<%= render "publications/words/library_tabs", publication: @publication, section: :words %>
 
 <div class="tabs">
   <%= link_to "Custom (#{@publication.words.active.count})", account_publication_words_path(publication_id: @publication.id, filter: "custom", q: params[:q]), class: ("active" if @filter == "custom") %>
@@ -42,7 +44,7 @@
   </div>
 
   <div class="card">
-    <h2>Add a custom word</h2>
+    <div class="card-head"><h2>Add a custom word</h2></div>
     <p class="small muted">Local words make the game yours — neighborhoods, teams, landmarks, events. They're only used by this publication and get picked before system words.</p>
     <%= form_with model: @word, url: account_publication_words_path(publication_id: @publication.id) do |form| %>
       <div class="field">

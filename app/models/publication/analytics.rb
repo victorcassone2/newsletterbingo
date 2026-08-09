@@ -12,7 +12,7 @@ class Publication::Analytics
   end
 
   def claims_today
-    publication.todays_call&.daily_claims&.count || 0
+    publication.current_call&.daily_claims&.count || 0
   end
 
   def claims_since(time)

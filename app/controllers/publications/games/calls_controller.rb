@@ -9,7 +9,7 @@ class Publications::Games::CallsController < Publications::Games::BaseController
 
   def update
     if @call.update(call_params)
-      redirect_back_to_source notice: "Day #{@call.day_number} updated."
+      back_to_game notice: "Day #{@call.day_number} updated."
     else
       @sponsors = @publication.sponsors.active.order(:name)
       @swappable_calls = @game.daily_calls.includes(:game_word).select(&:word_changeable?) - [ @call ]
@@ -37,13 +37,5 @@ class Publications::Games::CallsController < Publications::Games::BaseController
     def replacement_words
       in_game = @game.game_words.pluck(:word_id)
       @publication.eligible_words.where.not(id: in_game).order(:label)
-    end
-
-    def redirect_back_to_source(**options)
-      if params[:from] == "today"
-        redirect_to account_publication_today_path(publication_id: @publication.id), **options
-      else
-        redirect_to account_publication_game_path(publication_id: @publication.id, id: @game.id), **options
-      end
     end
 end

@@ -31,14 +31,12 @@
           <div class="pubnav-inner">
             <span class="pubnav-name"><%= @publication.name %></span>
             <div class="pubnav-links">
-              <%= nav_link_to "Today", account_publication_today_path(publication_id: @publication.id), active: controller_name == "todays" %>
-              <%= nav_link_to "Game", account_publication_games_path(publication_id: @publication.id), active: controller_path.include?("games") %>
-              <%= nav_link_to "Words", account_publication_words_path(publication_id: @publication.id), active: controller_path.include?("words") && !controller_path.include?("games") %>
-              <%= nav_link_to "Sponsors", account_publication_sponsors_path(publication_id: @publication.id), active: controller_path.include?("sponsors") %>
-              <%= nav_link_to "Embed", account_publication_embed_path(publication_id: @publication.id), active: controller_name == "embeds" %>
-              <%= nav_link_to "Branding", edit_account_publication_branding_path(publication_id: @publication.id), active: controller_name == "brandings" %>
+              <%= nav_link_to "Today", account_publication_today_path(publication_id: @publication.id),
+                    active: controller_name == "todays" || controller_path.include?("games") %>
+              <%= nav_link_to "Library", account_publication_words_path(publication_id: @publication.id),
+                    active: (controller_path.include?("words") || controller_path.include?("sponsors")) && !controller_path.include?("games") %>
               <%= nav_link_to "Analytics", account_publication_analytics_path(publication_id: @publication.id), active: controller_name == "analytics" %>
-              <%= nav_link_to "Settings", edit_account_publication_path(id: @publication.id), active: controller_path == "publications" && action_name == "edit" %>
+              <%= nav_link_to "Setup", edit_account_publication_path(id: @publication.id), active: controller_path == "publications" && action_name == "edit" %>
             </div>
           </div>
         </nav>

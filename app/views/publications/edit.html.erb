@@ -1,13 +1,189 @@
 <div class="page-head">
-  <h1>Settings</h1>
+  <div>
+    <h1>Setup</h1>
+    <p class="muted small">Everything that connects Daily Bingo to your newsletter — merge tag, embed block, branding, and settings.</p>
+  </div>
 </div>
 
-<div class="card">
-  <%= render "form", publication: @publication, url: account_publication_path(id: @publication.id) %>
+<% if @publication.errors.any? %>
+  <div class="errors"><%= @publication.errors.full_messages.to_sentence %></div>
+<% end %>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-head"><h2>1 · Connect your newsletter</h2></div>
+    <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
+      <div class="field">
+        <label>Word cadence</label>
+        <label class="small" style="font-weight: 400; display: block; margin-bottom: .3rem;">
+          <%= form.radio_button :cadence, "issues" %>
+          <strong>Match my sends</strong> (recommended) — a new word goes live automatically each time you send, whatever your schedule
+        </label>
+        <label class="small" style="font-weight: 400; display: block;">
+          <%= form.radio_button :cadence, "calendar" %>
+          <strong>Calendar days</strong> — one word per selected weekday, on a fixed schedule
+        </label>
+        <div class="hint">Use calendar mode if your email platform has no campaign-id merge tag. Save to switch — the fields below follow the cadence. Changing cadence affects the next game you launch.</div>
+      </div>
+
+      <div class="field">
+        <%= form.label :email_merge_tag, "Subscriber email merge tag" %>
+        <%= form.text_field :email_merge_tag %>
+        <div class="hint">The tag your email platform swaps for each subscriber's address —
+          e.g. <code>{{email}}</code> (beehiiv), <code>*|EMAIL|*</code> (Mailchimp), <code>{{ subscriber.email }}</code> (Ghost).
+          If this is wrong, readers' claim links won't work.</div>
+      </div>
+
+      <% if @publication.issue_cadence? %>
+        <div class="field">
+          <%= form.label :campaign_merge_tag, "Campaign id merge tag" %>
+          <%= form.text_field :campaign_merge_tag %>
+          <div class="hint">The tag your platform swaps for a unique id per send —
+            e.g. <code>{{campaign_id}}</code> (beehiiv), <code>*|CAMPAIGN_UID|*</code> (Mailchimp).
+            It's how Daily Bingo notices a new issue went out and reveals the next word.</div>
+        </div>
+      <% else %>
+        <div class="field">
+          <label>Send days</label>
+          <% wdays = @publication.sending_wdays %>
+          <div style="display: flex; gap: .9rem; flex-wrap: wrap;">
+            <% Date::ABBR_DAYNAMES.each_with_index do |day_name, wday| %>
+              <label class="small" style="font-weight: 400; display: inline-flex; gap: .3rem; align-items: center;">
+                <%= check_box_tag "publication[send_days][]", wday, wdays.include?(wday), id: "send_day_#{wday}" %>
+                <%= day_name %>
+              </label>
+            <% end %>
+          </div>
+          <%= hidden_field_tag "publication[send_days][]", "" %>
+          <div class="hint">Game words land only on these days. Applies to the next game you launch.</div>
+        </div>
+      <% end %>
+
+      <%= form.submit "Save connection settings", class: "btn btn-primary btn-small" %>
+    <% end %>
+
+    <hr style="border: none; border-top: 1px solid var(--line); margin: 1.25rem 0;">
+
+    <ol class="small" style="padding-left: 1.1rem; margin: 0;">
+      <li>Set the merge tag above.</li>
+      <li>Copy the HTML block on the right.</li>
+      <li>Paste it near the bottom of your publication email.</li>
+      <li>Send as normal — each subscriber gets a personalized bingo link.</li>
+    </ol>
+    <p class="small muted" style="margin-top: .75rem;">
+      No JavaScript, no iframes — plain email-safe tables and inline styles. Descriptions and
+      links you attach to a call appear only <em>after</em> the reader claims, never in the email.
+    </p>
+  </div>
+
+  <div>
+    <div class="card" data-controller="clipboard">
+      <div class="card-head">
+        <h2>2 · The embed block</h2>
+        <button class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+      </div>
+      <div class="embed-preview"><%= @newsletter_block.to_html %></div>
+      <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
+      <p class="small muted" style="margin-top: .75rem;">Shows today's word when a game is running.</p>
+    </div>
+
+    <div class="card" style="margin-top: 1.25rem;" data-controller="clipboard">
+      <div class="card-head">
+        <h3>Claim link only</h3>
+        <button class="btn btn-quiet btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy link</button>
+      </div>
+      <%= text_field_tag :claim_url, @newsletter_block.claim_url, readonly: true, data: { clipboard_target: "source" } %>
+      <p class="small muted" style="margin-top: .5rem;">Use this if you'd rather style your own button.</p>
+    </div>
+  </div>
 </div>
 
-<div class="card" style="margin-top: 1.25rem;">
-  <h2>Integration</h2>
-  <p class="small muted">Public code (used in your claim links — treat it like a password for your game):</p>
-  <p><code><%= @publication.public_code %></code></p>
+<div data-controller="brand-preview">
+  <div class="grid-2" style="margin-top: 1.25rem;">
+    <div class="card">
+      <div class="card-head"><h2>3 · Branding</h2></div>
+      <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
+        <div class="swatch-grid">
+          <div class="field">
+            <%= form.label :primary_color, "Primary" %>
+            <%= form.color_field :primary_color, data: { action: "input->brand-preview#update", brand_property: "--brand-primary" } %>
+            <div class="hint">Headings & identity</div>
+          </div>
+          <div class="field">
+            <%= form.label :accent_color, "Accent" %>
+            <%= form.color_field :accent_color, data: { action: "input->brand-preview#update", brand_property: "--brand-accent" } %>
+            <div class="hint">Buttons & claimed squares</div>
+          </div>
+          <div class="field">
+            <%= form.label :background_color, "Background" %>
+            <%= form.color_field :background_color, data: { action: "input->brand-preview#update", brand_property: "--brand-background" } %>
+          </div>
+          <div class="field">
+            <%= form.label :text_color, "Text" %>
+            <%= form.color_field :text_color, data: { action: "input->brand-preview#update", brand_property: "--brand-text" } %>
+          </div>
+        </div>
+
+        <div class="field">
+          <%= form.label :logo %>
+          <%= form.file_field :logo, accept: "image/png,image/jpeg,image/webp,image/svg+xml" %>
+          <% if @publication.logo.attached? %>
+            <div class="hint">Current: <%= image_tag @publication.logo, style: "max-height: 2rem; vertical-align: middle;" %></div>
+          <% end %>
+        </div>
+
+        <%= form.submit "Save branding", class: "btn btn-primary" %>
+      <% end %>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Preview</h2></div>
+      <div class="brand-preview-frame" data-brand-preview-target="preview" style="<%= brand_style(@publication) %>">
+        <div class="preview-card">
+          <div class="preview-eyebrow">TODAY&rsquo;S BINGO</div>
+          <div class="preview-word"><%= @preview_words.first || "FARMERS MARKET" %></div>
+        </div>
+        <div class="preview-grid">
+          <% board = @preview_words.first(24) %>
+          <% (0..24).each do |position| %>
+            <% if position == 12 %>
+              <div class="preview-square free">FREE</div>
+            <% else %>
+              <% word_index = position < 12 ? position : position - 1 %>
+              <div class="preview-square <%= word_index % 3 == 0 ? "claimed" : "unclaimed" %>"><%= board[word_index] %></div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top: .75rem;">Your readers' board and the email block both use these colors.
+        Card surfaces adapt to dark backgrounds after you save.</p>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top: 1.25rem;">
+  <div class="card">
+    <div class="card-head"><h2>4 · Publication</h2></div>
+    <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
+      <div class="field">
+        <%= form.label :name, "Publication name" %>
+        <%= form.text_field :name %>
+      </div>
+      <div class="field">
+        <%= form.label :timezone %>
+        <%= form.select :timezone, options_for_select(timezone_options, @publication.timezone) %>
+        <div class="hint">Game days follow this timezone.</div>
+      </div>
+      <div class="field">
+        <label><%= form.check_box :active %> Active — readers can claim and view boards</label>
+      </div>
+      <%= form.submit "Save settings", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Integration</h2></div>
+    <p class="small muted">Public code (used in your claim links — treat it like a password for your game):</p>
+    <p><code><%= @publication.public_code %></code></p>
+  </div>
 </div>

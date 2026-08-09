@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_07_190012) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_09_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,7 +76,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_07_190012) do
   end
 
   create_table "daily_calls", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.date "call_on", null: false
+    t.date "call_on"
     t.datetime "created_at", null: false
     t.text "description"
     t.uuid "game_id", null: false
@@ -84,11 +84,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_07_190012) do
     t.integer "link_clicks_count", default: 0, null: false
     t.string "link_text"
     t.string "link_url"
+    t.integer "position", null: false
     t.boolean "prize_call", default: false, null: false
     t.string "prize_description"
     t.uuid "sponsor_id"
     t.datetime "updated_at", null: false
-    t.index ["game_id", "call_on"], name: "index_daily_calls_on_game_id_and_call_on", unique: true
+    t.index ["game_id", "call_on"], name: "index_daily_calls_on_game_id_and_call_on"
+    t.index ["game_id", "position"], name: "index_daily_calls_on_game_id_and_position", unique: true
     t.index ["game_id"], name: "index_daily_calls_on_game_id"
     t.index ["game_word_id"], name: "index_daily_calls_on_game_word_id"
     t.index ["sponsor_id"], name: "index_daily_calls_on_sponsor_id"
@@ -132,8 +134,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_07_190012) do
     t.datetime "updated_at", null: false
     t.index ["publication_id"], name: "index_games_on_publication_id"
     t.index ["publication_id"], name: "index_games_one_open_per_publication", unique: true, where: "((status)::text = ANY (ARRAY[('draft'::character varying)::text, ('active'::character varying)::text]))"
-    t.check_constraint "ends_on = (starts_on + 23)", name: "games_span_24_days"
+    t.check_constraint "ends_on >= starts_on", name: "games_span_forward"
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'completed'::character varying::text])", name: "games_status_check"
+  end
+
+  create_table "issues", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.date "called_on", null: false
+    t.datetime "created_at", null: false
+    t.uuid "daily_call_id", null: false
+    t.uuid "game_id", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["daily_call_id"], name: "index_issues_on_daily_call_id", unique: true
+    t.index ["game_id", "token"], name: "index_issues_on_game_id_and_token", unique: true
+    t.index ["game_id"], name: "index_issues_on_game_id"
   end
 
   create_table "memberships", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -198,16 +212,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_07_190012) do
     t.uuid "account_id", null: false
     t.boolean "active", default: true, null: false
     t.string "background_color", default: "#F9FAFB", null: false
+    t.string "cadence", default: "issues", null: false
+    t.string "campaign_merge_tag", default: "{{campaign_id}}", null: false
     t.datetime "created_at", null: false
     t.string "email_merge_tag", default: "{{email}}", null: false
     t.string "name", null: false
     t.string "primary_color", default: "#1F2937", null: false
     t.string "public_code", null: false
-    t.string "slug", null: false
+    t.integer "send_days", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
     t.string "text_color", default: "#111827", null: false
     t.string "timezone", default: "America/Chicago", null: false
     t.datetime "updated_at", null: false
-    t.index ["account_id", "slug"], name: "index_publications_on_account_id_and_slug", unique: true
     t.index ["account_id"], name: "index_publications_on_account_id"
     t.index ["public_code"], name: "index_publications_on_public_code", unique: true
   end

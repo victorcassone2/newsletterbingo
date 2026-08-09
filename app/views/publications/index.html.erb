@@ -13,7 +13,7 @@
             <% unless publication.active? %><span class="badge badge-gray">Inactive</span><% end %>
             <div class="small muted">
               <% if (game = publication.games.active.first) %>
-                <%= game.name %> — Day <%= game.days_elapsed %> of <%= Game::DAYS %>
+                <%= game.name %> — Word <%= game.days_elapsed %> of <%= Game::DAYS %>
               <% else %>
                 No game running
               <% end %>
@@ -25,9 +25,9 @@
     </ul>
   </div>
 <% else %>
-  <div class="card" style="text-align:center; padding: 3rem 1.5rem;">
+  <div class="empty-state">
     <h2>Set up your first publication</h2>
-    <p class="muted">A publication gets its own branding, word library, games, and embed code.</p>
+    <p>A publication gets its own branding, word library, games, and embed code.</p>
     <%= link_to "New publication", new_account_publication_path, class: "btn btn-primary" %>
   </div>
 <% end %>

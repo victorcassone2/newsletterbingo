@@ -9,12 +9,12 @@
       <%= form.label :name, "Game name" %>
       <%= form.text_field :name %>
     </div>
-    <% if @game.draft? %>
+    <% if @game.draft? && @publication.calendar_cadence? %>
       <div class="field">
         <%= form.label :starts_on, "Day 1" %>
         <%= form.date_field :starts_on %>
       </div>
-    <% else %>
+    <% elsif @publication.calendar_cadence? %>
       <p class="small muted">Dates are locked after launch (<%= @game.starts_on.strftime("%b %-d") %> – <%= @game.ends_on.strftime("%b %-d") %>).</p>
     <% end %>
 

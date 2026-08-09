@@ -1,21 +1,21 @@
 omaha:
   account: publisher
   name: Omaha Daily
-  slug: omaha-daily
   public_code: pub_omaha_test_code_1234
   timezone: America/Chicago
   email_merge_tag: "{{email}}"
+  cadence: calendar
 
 lincoln:
   account: publisher
   name: Lincoln Daily
-  slug: lincoln-daily
   public_code: pub_lincoln_test_code_12
   timezone: America/Chicago
+  cadence: calendar
 
 rival:
   account: rival
   name: Rival Weekly
-  slug: rival-weekly
   public_code: pub_rival_test_code_1234
   timezone: America/New_York
+  cadence: calendar
