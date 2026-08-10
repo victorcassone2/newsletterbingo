@@ -59,4 +59,17 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     assert_equal "no-referrer", response.headers["Referrer-Policy"]
     assert_match(/noindex/, response.headers["X-Robots-Tag"])
   end
+
+  test "a finished game's board stays visible until the reader joins the new game" do
+    get claim_path(@publication.public_code, email: "me@example.com")
+    @game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
+    @game.daily_calls.update_all("call_on = call_on - 27")
+
+    get board_path(@publication.public_code)
+    assert_response :success
+    assert @game.reload.completed?
+    assert @publication.active_game.present?, "rotation launched the successor"
+    assert_select ".bingo-grid"
+    assert_match(/GAME COMPLETE/, response.body)
+  end
 end

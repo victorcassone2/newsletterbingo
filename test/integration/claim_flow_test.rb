@@ -79,11 +79,24 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "no active game shows a friendly message" do
-    @game.complete
+  test "before the first launch there is no game to claim" do
+    @game.destroy!
     get claim_path(@publication.public_code, email: "reader@example.com")
     assert_response :not_found
     assert_match(/no bingo game running/i, response.body)
+  end
+
+  test "a completed game rolls into a successor that accepts the claim" do
+    @game.complete
+    get claim_path(@publication.public_code, email: "reader@example.com")
+    assert_redirected_to board_path(@publication.public_code)
+
+    successor = @publication.active_game
+    assert successor.present?
+    assert_not_equal @game.id, successor.id
+    participant = @publication.participants.find_by(email: "reader@example.com")
+    assert_equal 1, participant.daily_claims.count
+    assert_equal successor.id, participant.daily_claims.sole.game_id
   end
 
   test "a game that hasn't started yet says so" do
@@ -94,13 +107,15 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_match(/starts/i, response.body)
   end
 
-  test "a finished game refuses claims and completes itself" do
-    game = @game
-    game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
+  test "a finished game completes itself and the claim lands on the successor" do
+    @game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
     get claim_path(@publication.public_code, email: "reader@example.com")
-    assert_response :not_found
-    assert game.reload.completed?
-    assert_equal 0, @publication.participants.where(email: "reader@example.com").count
+    assert_redirected_to board_path(@publication.public_code)
+
+    assert @game.reload.completed?
+    successor = @publication.active_game
+    participant = @publication.participants.find_by(email: "reader@example.com")
+    assert_equal successor.id, participant.daily_claims.sole.game_id
   end
 
   test "celebration flash fires when the claim completes a bingo line" do

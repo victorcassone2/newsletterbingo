@@ -74,11 +74,11 @@ class BingoBoard < ApplicationRecord
   def refresh_achievements
     if bingo? && bingo_achieved_at.nil?
       update!(bingo_achieved_at: Time.current)
-      game.line_prize&.award_to(participant)
+      game.publication.line_prize&.award_to(participant, game: game)
     end
     if blackout? && blackout_achieved_at.nil?
       update!(blackout_achieved_at: Time.current)
-      game.blackout_prize&.award_to(participant)
+      game.publication.blackout_prize&.award_to(participant, game: game)
     end
   end
 end

@@ -2,7 +2,6 @@
   <h1>Library</h1>
 </div>
 
-<%= render "publications/words/library_tabs", publication: @publication, section: :words %>
 
 <div class="tabs">
   <%= link_to "Custom (#{@publication.words.active.count})", account_publication_words_path(publication_id: @publication.id, filter: "custom", q: params[:q]), class: ("active" if @filter == "custom") %>

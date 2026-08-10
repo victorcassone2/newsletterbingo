@@ -26,7 +26,7 @@ end
 puts "System word library: #{Word.system.count} words"
 
 return unless Rails.env.development?
-return if Publication.exists?(slug: "omaha-daily")
+return if Publication.exists?(name: "Omaha Daily")
 
 puts "Creating demo publisher…"
 
@@ -36,7 +36,6 @@ Membership.create!(account: account, user: user, role: "owner")
 
 publication = account.publications.create!(
   name: "Omaha Daily",
-  slug: "omaha-daily",
   timezone: "America/Chicago",
   primary_color: "#B3402A",
   accent_color: "#D97706",
@@ -49,12 +48,17 @@ publication = account.publications.create!(
   publication.words.create!(label: label)
 end
 
-car_wash = publication.sponsors.create!(name: "Omaha Car Wash", website_url: "https://example.com/carwash",
-  description: "Hand wash and detail in Midtown.")
-dundee_coffee = publication.sponsors.create!(name: "Dundee Coffee", website_url: "https://example.com/dundee-coffee",
-  description: "Neighborhood roastery.")
-midtown_market = publication.sponsors.create!(name: "Midtown Market", website_url: "https://example.com/midtown-market",
-  description: "Local grocers since 1952.")
+# The standing "Brought to you by" line and prize pair — always on,
+# whatever game is running.
+publication.update!(sponsor_name: "Dundee Coffee")
+publication.line_prize.update!(enabled: true, name: "$25 Dundee Coffee Gift Card",
+  description: "A little fuel for your daily routine.",
+  instructions: "We'll email the gift card within 24 hours.",
+  link_url: "https://example.com/dundee-coffee", link_text: "About Dundee Coffee")
+publication.blackout_prize.update!(enabled: true, name: "$250 Midtown Market Shopping Spree",
+  description: "The grand prize for perfect daily participation.",
+  instructions: "We'll contact you to arrange your spree.",
+  link_url: "https://example.com/midtown-market", link_text: "About Midtown Market")
 
 # Active game, currently on Day 9 of 24.
 today = publication.local_date
@@ -66,37 +70,38 @@ GAME_WORDS = [
   "LIBRARY", "DONUT", "RIVER", "MOVIE", "PICNIC", "BACKPACK", "COOKIE", "FLOWER", "TRAIN"
 ]
 
-game = publication.games.create!(name: "Summer Omaha Bingo", starts_on: starts_on, status: "active")
-game_words = GAME_WORDS.map do |label|
+game = publication.games.create!(starts_on: starts_on, ends_on: starts_on + Game::DAYS - 1, status: "active")
+game_words = GAME_WORDS.each_with_index.map do |label, index|
   word = publication.eligible_words.find_by!("lower(label) = ?", label.downcase)
-  game.game_words.create!(word: word, label: word.label)
+  game.game_words.create!(word: word, label: word.label, position: index + 1)
 end
 
-# Fixed schedule so FARMERS MARKET (index 8) lands on today (Day 9).
+# Issue cadence: nine sends have gone out so far, one word per issue, so
+# FARMERS MARKET (index 8) is the current word. The rest wait undated.
 game_words.each_with_index do |game_word, index|
-  game.daily_calls.create!(game_word: game_word, call_on: starts_on + index)
+  issued_on = index <= 8 ? starts_on + index : nil
+  call = game.daily_calls.create!(game_word: game_word, position: index + 1, call_on: issued_on)
+  next unless issued_on
+  # Backdated past the issue-interval floor so a fresh test send can
+  # advance the game right away.
+  sent_at = [ issued_on.in_time_zone(publication.tz).change(hour: 8), 13.hours.ago ].min
+  game.issues.create!(token: "campaign-#{format('%03d', index + 1)}", daily_call: call,
+    called_on: issued_on, created_at: sent_at)
 end
 
-# Yesterday was sponsored; today is a sponsored prize call with rich content.
-game.call_for(today - 1).update!(sponsor: dundee_coffee,
+# Yesterday carried rich content; today is a prize call.
+game.call_for(today - 1).update!(
   description: "Free refill day at Dundee Coffee — mention the newsletter.",
   link_url: "https://example.com/dundee-coffee", link_text: "See the menu")
 game.call_for(today).update!(
-  sponsor: car_wash,
   prize_call: true,
   prize_description: "First 50 claims get a free basic wash.",
   description: "Explore local vendors, food and live music at this week's farmers market.",
   link_url: "https://example.com/farmers-market", link_text: "See market details"
 )
 
-game.prizes.create!(kind: "line", enabled: true, name: "$25 Dundee Coffee Gift Card",
-  description: "A little fuel for your daily routine.", sponsor: dundee_coffee,
-  instructions: "We'll email the gift card within 24 hours.",
-  link_url: "https://example.com/dundee-coffee", link_text: "About Dundee Coffee")
-game.prizes.create!(kind: "blackout", enabled: true, name: "$250 Midtown Market Shopping Spree",
-  description: "The grand prize for perfect daily participation.", sponsor: midtown_market,
-  instructions: "We'll contact you to arrange your spree.",
-  link_url: "https://example.com/midtown-market", link_text: "About Midtown Market")
+# The on-deck draft that will launch automatically when this game ends.
+publication.rotate_games
 
 # --- Demo participants -----------------------------------------------------
 

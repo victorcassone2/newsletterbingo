@@ -7,4 +7,5 @@ class GameWord < ApplicationRecord
   has_many :bingo_squares
 
   validates :label, presence: true
+  validates :position, presence: true
 end

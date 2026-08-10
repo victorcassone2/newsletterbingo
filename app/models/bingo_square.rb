@@ -19,7 +19,7 @@ class BingoSquare < ApplicationRecord
   end
 
   # The call that claimed (or will claim) this square, source of its
-  # description, link, sponsor, and prize treatment.
+  # description, link, and prize treatment.
   def daily_call
     game_word&.daily_call
   end

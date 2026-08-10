@@ -4,7 +4,6 @@ class DailyCall < ApplicationRecord
 
   belongs_to :game
   belongs_to :game_word
-  belongs_to :sponsor, optional: true
   has_many :daily_claims, dependent: :destroy
   has_one :issue, dependent: :destroy
   has_one :publication, through: :game
@@ -55,24 +54,29 @@ class DailyCall < ApplicationRecord
   end
 
   # Once a word is out — called, claimed, or sent with an issue — it keeps
-  # its place in game history.
+  # its place in game history. Draft calls are always still on the table.
   def word_changeable?
-    if game.issue_cadence?
+    if game.draft?
+      true
+    elsif game.issue_cadence?
       !issued?
     else
       call_on >= publication.local_date && daily_claims.none?
     end
   end
 
-  # Swap words with another changeable call (reordering the future schedule).
-  # The unique (game, game_word) constraint is deferred, so this is atomic.
-  def swap_word_with(other_call)
-    raise WordLocked unless word_changeable? && other_call.word_changeable?
+  # Moves this call's word to another slot in the upcoming schedule; the
+  # words between the two slots shift by one to make room. Calls keep
+  # their positions and dates — only the word assignments rotate, so
+  # issued history is never rewritten.
+  def move_word_to(new_position)
+    affected = game.daily_calls.where(position: [ position, new_position ].min..[ position, new_position ].max).to_a
+    return if affected.size < 2
+    raise WordLocked unless affected.all?(&:word_changeable?)
 
     transaction do
-      ours, theirs = game_word_id, other_call.game_word_id
-      update!(game_word_id: theirs)
-      other_call.update!(game_word_id: ours)
+      words = affected.map(&:game_word_id).rotate(new_position > position ? 1 : -1)
+      affected.each_with_index { |call, index| call.update!(game_word_id: words[index]) }
     end
   end
 

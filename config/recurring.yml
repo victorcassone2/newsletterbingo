@@ -1,0 +1,15 @@
+# Safety net for continuous games: rotation normally happens lazily on
+# page loads and reader clicks, but a calendar game's Day 1 must exist
+# near local midnight even with zero traffic. Hourly because publications
+# span timezones.
+production:
+  rotate_games:
+    class: RotateGamesJob
+    queue: default
+    schedule: every hour
+
+development:
+  rotate_games:
+    class: RotateGamesJob
+    queue: default
+    schedule: every hour

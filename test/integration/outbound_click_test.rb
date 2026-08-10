@@ -37,7 +37,8 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
   end
 
   test "prize links require the matching achievement" do
-    prize = @game.prizes.create!(kind: "line", enabled: true, name: "Card",
+    prize = @publication.line_prize
+    prize.update!(enabled: true, name: "Card",
       link_url: "https://example.com/prize", link_text: "Redeem")
     get claim_path(@publication.public_code, email: "me@example.com")
 

@@ -16,19 +16,16 @@ Rails.application.routes.draw do
         resources :words, only: %i[ index create ] do
           resource :archival, only: %i[ create destroy ], module: :words
         end
-        resources :sponsors, except: %i[ show destroy ] do
-          resource :archival, only: %i[ create destroy ], module: :sponsors
-        end
-        resources :games, only: %i[ index show new create edit update ] do
+        resources :prizes, only: %i[ index update ]
+        resource :sponsor, only: %i[ update ]
+        resources :games, only: %i[ index show edit update ] do
           scope module: :games do
             resource :launch, only: %i[ create ]
-            resource :word_shuffle, only: %i[ create ]
             resources :issues, only: %i[ destroy ]
-            resources :game_words, only: %i[ edit update ]
             resources :calls, only: %i[ edit update ] do
               resource :word, only: %i[ update ], module: :calls
+              resource :position, only: %i[ update ], module: :calls
             end
-            resources :prizes, only: %i[ edit update ]
           end
         end
       end

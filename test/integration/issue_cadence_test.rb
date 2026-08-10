@@ -4,7 +4,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
   setup do
     @publication = publications(:omaha)
     @publication.update!(cadence: "issues")
-    @game = @publication.games.create!(name: "Issue Game", starts_on: @publication.local_date)
+    @game = @publication.games.create!(starts_on: @publication.local_date)
     @game.assign_words(Game.random_word_selection(@publication))
     @game.launch
   end
@@ -83,6 +83,17 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     assert_equal 0, late.daily_claims.count
   end
 
+  test "an unissued call's edit page renders without a date" do
+    sign_in_as users(:one)
+    unissued = @game.daily_calls.find_by(call_on: nil)
+
+    get edit_account_publication_game_call_path(account_id: accounts(:publisher).id,
+      publication_id: @publication.id, game_id: @game.id, id: unissued.id)
+
+    assert_response :success
+    assert_match "goes out with a future send", response.body
+  end
+
   test "a spurious advance can be rolled back until someone claims" do
     sign_in_as users(:one)
     call = @game.call_for_issue("test-send-oops")
@@ -111,21 +122,61 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     assert @game.current_call.issued?
   end
 
-  test "the game completes after the last word's grace period" do
-    Game::DAYS.times do |index|
-      travel((index * 13).hours) do
-        get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-#{index}")
-      end
+  test "the next send after the last word rolls into a new game and claims its first square" do
+    issue_every_word
+
+    travel (Game::DAYS * 13).hours do
+      get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-next")
+      assert_redirected_to board_path(@publication.public_code)
     end
-    assert_equal Game::DAYS, @game.issues.count
+
+    assert @game.reload.completed?, "the old game's tail is cut short at rollover"
+    successor = @publication.active_game
+    assert successor.present?
+    assert_not_equal @game.id, successor.id
+    assert_equal "camp-next", successor.issues.sole.token
+    assert_equal 1, successor.current_call.position
+    assert_equal 1, successor.current_call.daily_claims.count
+  end
+
+  test "an old game's token after rollover reaches the board but claims nothing" do
+    issue_every_word
+    travel (Game::DAYS * 13).hours do
+      get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-next")
+
+      get claim_path(@publication.public_code, email: "late@example.com", issue: "camp-3")
+      assert_redirected_to board_path(@publication.public_code)
+    end
+
+    successor = @publication.active_game
+    assert_equal 1, successor.issues.count
+    late = @publication.participants.find_by(email: "late@example.com")
+    assert_equal 0, late.daily_claims.count
+  end
+
+  test "the game completes after the last word's grace period and the next send starts fresh" do
+    issue_every_word
     assert @game.reload.active?
 
     last_issued_on = @game.issued_calls.last.call_on
     travel_to @publication.tz.local(last_issued_on.year, last_issued_on.month, last_issued_on.day, 12) + (Game::LAST_ISSUE_OPEN_FOR + 1).days do
       get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-final")
-      assert_response :not_found
-      assert_match(/finished/, response.body)
+      assert_redirected_to board_path(@publication.public_code)
     end
+
     assert @game.reload.completed?
+    successor = @publication.active_game
+    assert_equal "camp-final", successor.issues.sole.token
+    assert_equal 1, successor.current_call.position
   end
+
+  private
+    def issue_every_word
+      Game::DAYS.times do |index|
+        travel((index * 13).hours) do
+          get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-#{index}")
+        end
+      end
+      assert_equal Game::DAYS, @game.issues.count
+    end
 end

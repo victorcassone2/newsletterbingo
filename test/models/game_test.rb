@@ -6,20 +6,35 @@ class GameTest < ActiveSupport::TestCase
   end
 
   test "a game spans exactly 24 local calendar days" do
-    game = @publication.games.create!(name: "Span", starts_on: Date.new(2026, 8, 1))
+    game = @publication.games.create!(starts_on: Date.new(2026, 8, 1))
     assert_equal Date.new(2026, 8, 24), game.ends_on
     assert_equal 24, (game.ends_on - game.starts_on).to_i + 1
   end
 
   test "ends_on stays aligned even if given a wrong value" do
-    game = @publication.games.create!(name: "Span", starts_on: Date.new(2026, 8, 1), ends_on: Date.new(2026, 9, 30))
+    game = @publication.games.create!(starts_on: Date.new(2026, 8, 1), ends_on: Date.new(2026, 9, 30))
     assert_equal Date.new(2026, 8, 24), game.ends_on
   end
 
-  test "only one open game per publication" do
+  test "only one active game per publication" do
     create_running_game(@publication)
     assert_raises(ActiveRecord::RecordNotUnique) do
-      @publication.games.create!(name: "Second", starts_on: @publication.local_date + 30)
+      @publication.games.create!(starts_on: @publication.local_date + 30,
+        ends_on: @publication.local_date + 53, status: "active")
+    end
+  end
+
+  test "only one draft game per publication" do
+    @publication.games.create!(starts_on: @publication.local_date)
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      @publication.games.create!(starts_on: @publication.local_date + 30)
+    end
+  end
+
+  test "a draft coexists with an active game" do
+    create_running_game(@publication)
+    assert_nothing_raised do
+      @publication.games.create!(starts_on: @publication.local_date + 30)
     end
   end
 
@@ -38,8 +53,24 @@ class GameTest < ActiveSupport::TestCase
     assert_includes selection, words(:custom_omaha)
   end
 
+  test "word selection biases against avoided words when the pool is big enough" do
+    avoided = Word.system.active.order(:label).first(10).map(&:id)
+    10.times do
+      selection = Game.random_word_selection(@publication, avoiding: avoided)
+      assert_equal 24, selection.size
+      assert_empty selection.map(&:id) & avoided
+    end
+  end
+
+  test "word selection falls back to avoided words when the pool runs short" do
+    avoided = @publication.eligible_words.pluck(:id)
+    selection = Game.random_word_selection(@publication, avoiding: avoided)
+    assert_equal 24, selection.size
+    assert_equal 24, selection.uniq.size
+  end
+
   test "assign_words demands exactly 24 unique words" do
-    game = @publication.games.create!(name: "Strict", starts_on: @publication.local_date)
+    game = @publication.games.create!(starts_on: @publication.local_date)
     assert_raises(ArgumentError) { game.assign_words(Word.system.first(23)) }
     assert_raises(ArgumentError) { game.assign_words(Word.system.first(23) + [ Word.system.first ]) }
   end
@@ -50,10 +81,69 @@ class GameTest < ActiveSupport::TestCase
   end
 
   test "launch creates one call per day using each word exactly once" do
-    game = create_running_game(@publication, starts_on: Date.new(2026, 8, 1))
+    travel_to local_noon(@publication, Date.new(2026, 8, 1)) do
+      game = create_running_game(@publication, starts_on: Date.new(2026, 8, 1))
+      assert_equal 24, game.daily_calls.count
+      assert_equal (Date.new(2026, 8, 1)..Date.new(2026, 8, 24)).to_a, game.daily_calls.map(&:call_on)
+      assert_equal game.game_words.pluck(:id).sort, game.daily_calls.map(&:game_word_id).sort
+    end
+  end
+
+  test "a draft's calls exist undated so content can be written before launch" do
+    game = @publication.games.create!(starts_on: @publication.local_date)
+    game.assign_words(Game.random_word_selection(@publication))
+
     assert_equal 24, game.daily_calls.count
-    assert_equal (Date.new(2026, 8, 1)..Date.new(2026, 8, 24)).to_a, game.daily_calls.map(&:call_on)
-    assert_equal game.game_words.pluck(:id).sort, game.daily_calls.map(&:game_word_id).sort
+    assert_equal 0, game.issued_calls.count
+    assert_equal game.game_words.pluck(:id), game.daily_calls.map(&:game_word_id)
+  end
+
+  test "launch follows the draft's reveal order" do
+    game = @publication.games.create!(starts_on: @publication.local_date)
+    game.assign_words(Game.random_word_selection(@publication))
+    game.daily_calls.find_by(position: 1).move_word_to(24)
+    ordered_ids = game.daily_calls.reload.map(&:game_word_id)
+
+    game.launch
+    assert_equal ordered_ids, game.daily_calls.reload.map(&:game_word_id)
+  end
+
+  test "a draft word drags to a new slot and the others shift" do
+    game = @publication.games.create!(starts_on: @publication.local_date)
+    game.assign_words(Game.random_word_selection(@publication))
+    labels = game.daily_calls.map(&:label)
+
+    game.daily_calls.find_by(position: 5).move_word_to(2)
+    expected = labels[0..0] + [ labels[4] ] + labels[1..3] + labels[5..]
+    assert_equal expected, game.daily_calls.reload.map(&:label)
+  end
+
+  test "call content written on a draft survives launch" do
+    game = @publication.games.create!(starts_on: @publication.local_date)
+    game.assign_words(Game.random_word_selection(@publication))
+    call = game.daily_calls.find_by(position: 3)
+    call.update!(description: "Market day", prize_call: true)
+
+    game.launch
+    call.reload
+    assert_equal "Market day", call.description
+    assert call.prize_call?
+    assert_equal 3, call.position
+  end
+
+  test "an upcoming word drags to a new slot without touching called words" do
+    game = create_running_game(@publication, starts_on: @publication.local_date - 3) # today is Day 4
+    labels = game.daily_calls.map(&:label)
+
+    game.daily_calls.find_by(position: 10).move_word_to(5)
+    expected = labels[0..3] + [ labels[9] ] + labels[4..8] + labels[10..]
+    assert_equal expected, game.daily_calls.reload.map(&:label)
+  end
+
+  test "a called word cannot be dragged" do
+    game = create_running_game(@publication, starts_on: @publication.local_date - 3)
+    assert_raises(DailyCall::WordLocked) { game.daily_calls.find_by(position: 2).move_word_to(10) }
+    assert_raises(DailyCall::WordLocked) { game.daily_calls.find_by(position: 10).move_word_to(2) }
   end
 
   test "a launched game cannot launch again" do

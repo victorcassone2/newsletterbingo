@@ -16,15 +16,13 @@ class ClaimsController < PublicController
       return render_unavailable("We couldn't read your email address from that link. Open today's email and tap the bingo button again.", status: :unprocessable_entity)
     end
 
+    @publication.rotate_games
     game = @publication.active_game
     return render_unavailable("There's no bingo game running right now. Check back soon!") if game.nil?
-    if game.over?
-      game.complete
-      return render_unavailable("This game has finished. Watch the newsletter for the next one!")
-    end
 
     call = current_call_for(game)
     return render_unavailable(no_call_message(game)) if call.nil?
+    game = call.game # an issue token can cross a game boundary
 
     participant = Participant.locate_or_register(@publication, email)
     board_before = participant.bingo_boards.find_by(game: game)

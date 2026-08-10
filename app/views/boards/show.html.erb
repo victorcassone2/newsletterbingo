@@ -10,7 +10,6 @@
     <h2>BINGO!</h2>
     <% if @line_prize&.enabled? %>
       <p>You completed a line and won: <strong><%= @line_prize.name %></strong></p>
-      <% if @line_prize.sponsor %><p class="small">Sponsored by <%= @line_prize.sponsor.name %></p><% end %>
       <% if @line_prize.instructions.present? %><p class="small"><%= @line_prize.instructions %></p><% end %>
       <% if @line_prize.link_url.present? %>
         <p><%= link_to (@line_prize.link_text.presence || "Claim your prize"), prize_outbound_path(@publication.public_code, @line_prize.id) %></p>
@@ -25,7 +24,6 @@
     <p>Every single day, claimed. Incredible.</p>
     <% if @blackout_prize&.enabled? %>
       <p>You won: <strong><%= @blackout_prize.name %></strong></p>
-      <% if @blackout_prize.sponsor %><p class="small">Sponsored by <%= @blackout_prize.sponsor.name %></p><% end %>
       <% if @blackout_prize.instructions.present? %><p class="small"><%= @blackout_prize.instructions %></p><% end %>
       <% if @blackout_prize.link_url.present? %>
         <p><%= link_to (@blackout_prize.link_text.presence || "Claim your prize"), prize_outbound_path(@publication.public_code, @blackout_prize.id) %></p>
@@ -37,9 +35,6 @@
 <% if @todays_call %>
   <div class="today-card">
     <div class="today-eyebrow">TODAY&rsquo;S BINGO <% if @todays_call.prize_call? %><span class="prize-flag">🎁</span><% end %></div>
-    <% if @todays_call.sponsor %>
-      <div class="today-sponsor">Sponsored by <%= @todays_call.sponsor.name %></div>
-    <% end %>
     <div class="today-word-stub">
       <div class="today-callword"><%= @todays_call.label %></div>
     </div>
@@ -62,7 +57,7 @@
 <% elsif @game.completed? || @game.over? %>
   <div class="today-card">
     <div class="today-eyebrow">GAME COMPLETE</div>
-    <p class="today-desc">Thanks for playing <%= @game.name %>! Watch the newsletter for the next game.</p>
+    <p class="today-desc">Thanks for playing! Tap the bingo link in the next newsletter to join the new game.</p>
   </div>
 <% end %>
 
@@ -117,7 +112,6 @@
         <% if call.link? %>
           <%= link_to "#{call.link_text} →", call_outbound_path(@publication.public_code, call.id), class: "today-link" %>
         <% end %>
-        <% if call.sponsor %><div class="sponsor-line">Sponsored by <%= call.sponsor.name %></div><% end %>
       <% end %>
     </div>
   <% end %>
@@ -132,7 +126,6 @@
   <% elsif !@board.bingo_achieved? && @line_prize&.enabled? %>
     <div class="prize-note">
       Line prize: <strong><%= @line_prize.name %></strong>
-      <% if @line_prize.sponsor %> · Sponsored by <%= @line_prize.sponsor.name %><% end %>
     </div>
   <% end %>
 
@@ -146,7 +139,6 @@
   <% elsif !@board.blackout_achieved? && @blackout_prize&.enabled? %>
     <div class="prize-note">
       Blackout prize: <strong><%= @blackout_prize.name %></strong>
-      <% if @blackout_prize.sponsor %> · Sponsored by <%= @blackout_prize.sponsor.name %><% end %>
     </div>
   <% end %>
 

@@ -40,23 +40,14 @@ class TenancyTest < ActionDispatch::IntegrationTest
     assert_no_match(/RIVALWORD/, response.body)
   end
 
-  test "sponsors are scoped to the publication" do
+  test "another publication's prize cannot be edited through my publication" do
     sign_in_as users(:one)
-    get account_publication_sponsors_path(account_id: accounts(:publisher).id, publication_id: @omaha.id)
-    assert_response :success
-    assert_match(/Omaha Car Wash/, response.body)
-    assert_no_match(/Rival Sponsor/, response.body)
-  end
-
-  test "another account's sponsor cannot be attached to my call" do
-    sign_in_as users(:one)
-    game = create_running_game(@omaha)
-    call = game.call_for(@omaha.local_date)
-    patch account_publication_game_call_path(account_id: accounts(:publisher).id,
-      publication_id: @omaha.id, game_id: game.id, id: call.id),
-      params: { daily_call: { sponsor_id: sponsors(:rival_sponsor).id } }
+    rival_prize = publications(:rival).line_prize
+    patch account_publication_prize_path(account_id: accounts(:publisher).id,
+      publication_id: @omaha.id, id: rival_prize.id),
+      params: { prize: { enabled: "1", name: "Hijacked" } }
     assert_response :not_found
-    assert_nil call.reload.sponsor_id
+    assert_not rival_prize.reload.enabled?
   end
 
   test "games are scoped to the publication" do

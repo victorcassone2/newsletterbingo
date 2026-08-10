@@ -15,18 +15,13 @@ class Game < ApplicationRecord
   has_many :bingo_boards, dependent: :destroy
   has_many :issues, dependent: :destroy
   has_many :daily_calls, -> { order(:position) }, dependent: :destroy, inverse_of: :game
-  has_many :prizes, dependent: :destroy
-  has_many :game_words, -> { order(:created_at) }, dependent: :destroy, inverse_of: :game
-  has_one :line_prize, -> { where(kind: "line") }, class_name: "Prize", inverse_of: :game
-  has_one :blackout_prize, -> { where(kind: "blackout") }, class_name: "Prize", inverse_of: :game
-
-  normalizes :sponsor_name, with: ->(n) { n.strip }
+  has_many :game_words, -> { order(:position) }, dependent: :destroy, inverse_of: :game
 
   scope :open, -> { where(status: %w[ draft active ]) }
+  scope :draft, -> { where(status: "draft") }
   scope :active, -> { where(status: "active") }
   scope :completed, -> { where(status: "completed") }
 
-  validates :name, presence: true
   validates :starts_on, presence: true
   validates :status, inclusion: { in: %w[ draft active completed ] }
 
@@ -36,15 +31,22 @@ class Game < ApplicationRecord
 
   # Picks 24 words for a new game: the publication's own words first,
   # topped up with system words, in random order. Custom words win label
-  # collisions with system words.
-  def self.random_word_selection(publication)
-    custom = publication.words.active.to_a.shuffle(random: SecureRandom).first(DAYS)
+  # collisions with system words. Words in `avoiding` (typically the
+  # previous game's) sort behind fresh ones within each tier, so repeats
+  # only happen when a tier's pool runs short.
+  def self.random_word_selection(publication, avoiding: [])
+    avoided = avoiding.to_set
+    fresh, recent = publication.words.active.to_a.shuffle(random: SecureRandom)
+      .partition { |word| avoided.exclude?(word.id) }
+    custom = (fresh + recent).first(DAYS)
     return custom if custom.size == DAYS
 
     taken_labels = custom.map { |w| w.label.downcase }
     pool = Word.system.active
     pool = pool.where.not("lower(label) IN (?)", taken_labels) if taken_labels.any?
-    custom + pool.to_a.shuffle(random: SecureRandom).first(DAYS - custom.size)
+    fresh, recent = pool.to_a.shuffle(random: SecureRandom)
+      .partition { |word| avoided.exclude?(word.id) }
+    custom + (fresh + recent).first(DAYS - custom.size)
   end
 
   def draft? = status == "draft"
@@ -52,36 +54,49 @@ class Game < ApplicationRecord
   def completed? = status == "completed"
 
   # Replaces the draft game's word set. Labels are snapshotted so later
-  # edits to the library never rewrite game history.
+  # edits to the library never rewrite game history. Each word gets an
+  # undated call up front, so the publisher can write call content and
+  # reorder the schedule before launch, exactly like a live game.
   def assign_words(words)
     raise NotLaunchable, "words are locked once a game launches" unless draft?
     raise ArgumentError, "a game needs exactly #{DAYS} unique words" unless words.map(&:id).uniq.size == DAYS
 
     transaction do
+      daily_calls.destroy_all
       game_words.destroy_all
-      words.each { |word| game_words.create!(word: word, label: word.label) }
+      words.each_with_index do |word, index|
+        game_word = game_words.create!(word: word, label: word.label, position: index + 1)
+        daily_calls.create!(game_word: game_word, position: index + 1)
+      end
     end
   end
 
   def regenerate_words
-    assign_words(self.class.random_word_selection(publication))
+    assign_words(self.class.random_word_selection(publication, avoiding: publication.recent_word_ids))
   end
 
-  # Launching fixes the words into a random calling order. Calendar games
-  # get their 24 dates up front (on the publication's send days); issue
-  # games date each call when its newsletter actually goes out.
+  # Launching fixes the draft's call order as the calling order. Calendar
+  # games get their 24 dates up front (on the publication's send days);
+  # issue games date each call when its newsletter actually goes out. A
+  # draft can sit on deck long past its estimated start, so dates are
+  # clamped to begin no earlier than today.
   def launch
     transaction do
-      raise NotLaunchable, "game is already #{status}" unless draft?
+      # Row-lock and re-check status so concurrent launches serialize;
+      # the loser sees "active" and backs off.
+      locked_status = self.class.lock.find(id).status
+      raise NotLaunchable, "game is already #{locked_status}" unless locked_status == "draft"
       raise NotLaunchable, "a game needs exactly #{DAYS} words" unless game_words.count == DAYS
 
       update!(status: "active")
-      schedule = game_words.to_a.shuffle(random: SecureRandom)
-      dates = calendar_cadence? ? scheduled_dates : []
-      schedule.each_with_index do |game_word, index|
-        daily_calls.create!(game_word: game_word, position: index + 1, call_on: dates[index])
+      ensure_calls_drafted
+      if calendar_cadence?
+        dates = scheduled_dates(from: [ starts_on, publication.local_date ].max)
+        daily_calls.reload.each_with_index { |call, index| call.update!(call_on: dates[index]) }
+        update!(starts_on: dates.first, ends_on: dates.last)
+      else
+        update!(starts_on: publication.local_date, ends_on: publication.local_date + DAYS - 1)
       end
-      update!(starts_on: dates.first, ends_on: dates.last) if dates.any?
     end
   end
 
@@ -130,12 +145,16 @@ class Game < ApplicationRecord
   end
 
   # Resolves the claimable call for a newsletter's issue token, advancing
-  # to the next word the first time a plausible new token shows up.
+  # to the next word the first time a plausible new token shows up. A
+  # token already recorded on an earlier game resolves to the word that
+  # email actually carried (no longer claimable), never a fresh advance.
   def call_for_issue(token)
     token = token.to_s.strip
     issue = issues.find_by(token: token)
     if issue
       issue.daily_call
+    elsif (previous_call = publication.issued_call_for(token))
+      previous_call
     elsif Issue.plausible_token?(token) && issue_floor_elapsed?
       advance_to_next_word(token)
     else
@@ -206,6 +225,15 @@ class Game < ApplicationRecord
       self.ends_on = starts_on + (DAYS - 1) if starts_on.present? && draft?
     end
 
+    # Drafts carry their undated calls from assign_words; rebuild them for
+    # drafts that predate calls existing at draft time.
+    def ensure_calls_drafted
+      return if daily_calls.count == DAYS
+
+      daily_calls.destroy_all
+      game_words.each { |game_word| daily_calls.create!(game_word: game_word, position: game_word.position) }
+    end
+
     # The next `count` dates on the publication's send days, starting no
     # earlier than `from`.
     def scheduled_dates(from: starts_on, count: DAYS)
@@ -224,11 +252,20 @@ class Game < ApplicationRecord
       last.nil? || last.created_at <= ISSUE_INTERVAL_FLOOR.ago
     end
 
+    # A plausible new token with no words left to issue is the next send
+    # after the game's last word: it rolls the games over, and the same
+    # token draws word 1 of the successor.
     def advance_to_next_word(token)
       next_call = daily_calls.find_by(call_on: nil)
       if next_call.nil?
         complete
-        current_call
+        publication.rotate_games
+        successor = publication.active_game
+        if successor && successor != self
+          successor.call_for_issue(token)
+        else
+          current_call
+        end
       else
         transaction do
           issues.create!(token: token, daily_call: next_call, called_on: publication.local_date)

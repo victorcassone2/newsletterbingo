@@ -31,21 +31,15 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes NewsletterBlock.new(@publication).to_html, "&#127873;"
   end
 
-  test "sponsor line appears only when a sponsor is set" do
-    assert_not_includes NewsletterBlock.new(@publication).to_html, "Sponsored by"
-    @call.update!(sponsor: sponsors(:car_wash))
-    assert_includes NewsletterBlock.new(@publication).to_html, "Sponsored by Omaha Car Wash"
-  end
-
-  test "brought to you by line appears only when the game has a sponsor name" do
+  test "brought to you by line appears only when the publication has a sponsor name" do
     assert_not_includes NewsletterBlock.new(@publication).to_html, "Brought to you by"
-    @game.update!(sponsor_name: "Midtown Market")
+    @publication.update!(sponsor_name: "Midtown Market")
     assert_includes NewsletterBlock.new(@publication).to_html, "Brought to you by Midtown Market"
   end
 
-  test "the evergreen block carries the game sponsor line" do
+  test "the evergreen block carries the sponsor line" do
     @publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
-    @game.update!(sponsor_name: "Midtown Market")
+    @publication.update!(sponsor_name: "Midtown Market")
     assert_includes NewsletterBlock.new(@publication).to_html, "Brought to you by Midtown Market"
   end
 
@@ -69,7 +63,7 @@ class NewsletterBlockTest < ActiveSupport::TestCase
   end
 
   test "sponsor names are HTML-escaped" do
-    @call.update!(sponsor: @publication.sponsors.create!(name: "<b>Sneaky</b>"))
+    @publication.update!(sponsor_name: "<b>Sneaky</b>")
     html = NewsletterBlock.new(@publication).to_html
     assert_not_includes html, "<b>Sneaky</b>"
     assert_includes html, "&lt;b&gt;Sneaky&lt;/b&gt;"

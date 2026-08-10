@@ -34,13 +34,30 @@ class ConcurrencyTest < ActiveSupport::TestCase
     assert_equal 1, participant.daily_claims.count
   end
 
+  test "simultaneous rotations produce one active successor and one draft" do
+    @game.update_columns(starts_on: @publication.local_date - 40, ends_on: @publication.local_date - 17)
+
+    threads = 4.times.map do
+      Thread.new do
+        ActiveRecord::Base.connection_pool.with_connection { @publication.rotate_games }
+      end
+    end
+    threads.each(&:join)
+
+    assert @game.reload.completed?
+    assert_equal 1, @publication.games.active.count
+    assert_equal 1, @publication.games.draft.count
+    assert_equal 24, @publication.active_game.daily_calls.count
+  end
+
   test "simultaneous award attempts produce a single prize award" do
-    prize = @game.prizes.create!(kind: "line", enabled: true, name: "Card")
+    prize = @publication.line_prize
+    prize.update!(enabled: true, name: "Card")
     participant = Participant.locate_or_register(@publication, "winner@example.com")
 
     threads = 4.times.map do
       Thread.new do
-        ActiveRecord::Base.connection_pool.with_connection { prize.award_to(participant) }
+        ActiveRecord::Base.connection_pool.with_connection { prize.award_to(participant, game: @game) }
       end
     end
     threads.each(&:join)

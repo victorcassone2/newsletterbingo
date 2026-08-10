@@ -17,10 +17,8 @@ class OutboundClicksController < PublicController
   end
 
   def prize
-    prize = Prize.joins(game: :publication)
-      .where(publications: { id: @publication.id }).find(params[:id])
-    board = current_participant.bingo_boards.find_by(game: prize.game)
-    earned = board && (prize.line? ? board.bingo_achieved? : board.blackout_achieved?)
+    prize = @publication.prizes.find(params[:id])
+    earned = current_participant.prize_awards.exists?(prize_id: prize.id)
     if prize.link_url.present? && earned
       prize.record_link_click
       redirect_to prize.link_url, allow_other_host: true

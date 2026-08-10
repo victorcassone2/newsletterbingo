@@ -1,10 +1,21 @@
 module GameTestHelper
-  # A launched 24-day game with 24 words and 24 daily calls.
-  def create_running_game(publication, starts_on: publication.local_date, name: "Test Game")
-    game = publication.games.create!(name: name, starts_on: starts_on)
+  # A launched 24-day game with 24 words and 24 daily calls. Launch clamps
+  # dates to today, so a past starts_on launches back then via time travel.
+  def create_running_game(publication, starts_on: publication.local_date)
+    game = publication.games.create!(starts_on: starts_on)
     game.assign_words(Game.random_word_selection(publication))
-    game.launch
+    if starts_on < publication.local_date
+      travel_to(local_noon(publication, starts_on)) { game.launch }
+    else
+      game.launch
+    end
     game
+  end
+
+  # The draft waiting behind the current game, fully formed.
+  def create_on_deck_draft(publication)
+    publication.rotate_games
+    publication.on_deck_game
   end
 
   # Claim a specific (usually past) call directly, the way seeds do,

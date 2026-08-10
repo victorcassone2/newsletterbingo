@@ -53,10 +53,10 @@ class PublicationsController < ApplicationController
         :text_color, :logo, send_days: [])
     end
 
-    # Real words for the branding preview: the open game's board if there
-    # is one, otherwise a slice of the library.
+    # Real words for the branding preview: the current game's board if
+    # there is one, otherwise a slice of the library.
     def preview_words
-      if (game = @publication.open_game)
+      if (game = @publication.active_game || @publication.on_deck_game)
         game.game_words.map(&:label).first(24)
       else
         @publication.eligible_words.order(:label).limit(24).map(&:label)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -87,13 +87,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
     t.integer "position", null: false
     t.boolean "prize_call", default: false, null: false
     t.string "prize_description"
-    t.uuid "sponsor_id"
     t.datetime "updated_at", null: false
     t.index ["game_id", "call_on"], name: "index_daily_calls_on_game_id_and_call_on"
     t.index ["game_id", "position"], name: "index_daily_calls_on_game_id_and_position", unique: true
     t.index ["game_id"], name: "index_daily_calls_on_game_id"
     t.index ["game_word_id"], name: "index_daily_calls_on_game_word_id"
-    t.index ["sponsor_id"], name: "index_daily_calls_on_sponsor_id"
     t.unique_constraint ["game_id", "game_word_id"], deferrable: :deferred, name: "daily_calls_game_word_unique"
   end
 
@@ -116,6 +114,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
     t.datetime "created_at", null: false
     t.uuid "game_id", null: false
     t.string "label", null: false
+    t.integer "position", null: false
     t.datetime "updated_at", null: false
     t.uuid "word_id", null: false
     t.index "game_id, lower((label)::text)", name: "index_game_words_on_game_label", unique: true
@@ -127,14 +126,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
   create_table "games", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "ends_on", null: false
-    t.string "name", null: false
     t.uuid "publication_id", null: false
-    t.string "sponsor_name"
     t.date "starts_on", null: false
     t.string "status", default: "draft", null: false
     t.datetime "updated_at", null: false
     t.index ["publication_id"], name: "index_games_on_publication_id"
-    t.index ["publication_id"], name: "index_games_one_open_per_publication", unique: true, where: "((status)::text = ANY (ARRAY[('draft'::character varying)::text, ('active'::character varying)::text]))"
+    t.index ["publication_id"], name: "index_games_one_active_per_publication", unique: true, where: "((status)::text = 'active'::text)"
+    t.index ["publication_id"], name: "index_games_one_draft_per_publication", unique: true, where: "((status)::text = 'draft'::text)"
     t.check_constraint "ends_on >= starts_on", name: "games_span_forward"
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'completed'::character varying::text])", name: "games_status_check"
   end
@@ -181,6 +179,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
     t.string "kind", null: false
     t.uuid "participant_id", null: false
     t.uuid "prize_id", null: false
+    t.string "prize_name"
     t.datetime "updated_at", null: false
     t.index ["game_id"], name: "index_prize_awards_on_game_id"
     t.index ["participant_id", "game_id", "kind"], name: "index_prize_awards_on_participant_id_and_game_id_and_kind", unique: true
@@ -193,18 +192,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
     t.datetime "created_at", null: false
     t.string "description"
     t.boolean "enabled", default: false, null: false
-    t.uuid "game_id", null: false
     t.string "instructions"
     t.string "kind", null: false
     t.integer "link_clicks_count", default: 0, null: false
     t.string "link_text"
     t.string "link_url"
     t.string "name"
-    t.uuid "sponsor_id"
+    t.uuid "publication_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["game_id", "kind"], name: "index_prizes_on_game_id_and_kind", unique: true
-    t.index ["game_id"], name: "index_prizes_on_game_id"
-    t.index ["sponsor_id"], name: "index_prizes_on_sponsor_id"
+    t.index ["publication_id", "kind"], name: "index_prizes_on_publication_id_and_kind", unique: true
     t.check_constraint "kind::text = ANY (ARRAY['line'::character varying::text, 'blackout'::character varying::text])", name: "prizes_kind_check"
   end
 
@@ -221,6 +217,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
     t.string "primary_color", default: "#1F2937", null: false
     t.string "public_code", null: false
     t.integer "send_days", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
+    t.string "sponsor_name"
     t.string "text_color", default: "#111827", null: false
     t.string "timezone", default: "America/Chicago", null: false
     t.datetime "updated_at", null: false
@@ -235,17 +232,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
     t.string "user_agent"
     t.uuid "user_id", null: false
     t.index ["user_id"], name: "index_sessions_on_user_id"
-  end
-
-  create_table "sponsors", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.datetime "archived_at"
-    t.datetime "created_at", null: false
-    t.string "description"
-    t.string "name", null: false
-    t.uuid "publication_id", null: false
-    t.datetime "updated_at", null: false
-    t.string "website_url"
-    t.index ["publication_id"], name: "index_sponsors_on_publication_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -275,7 +261,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
   add_foreign_key "bingo_squares", "game_words"
   add_foreign_key "daily_calls", "game_words"
   add_foreign_key "daily_calls", "games"
-  add_foreign_key "daily_calls", "sponsors"
   add_foreign_key "daily_claims", "daily_calls"
   add_foreign_key "daily_claims", "games"
   add_foreign_key "daily_claims", "participants"
@@ -288,10 +273,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
   add_foreign_key "prize_awards", "games"
   add_foreign_key "prize_awards", "participants"
   add_foreign_key "prize_awards", "prizes"
-  add_foreign_key "prizes", "games"
-  add_foreign_key "prizes", "sponsors"
+  add_foreign_key "prizes", "publications"
   add_foreign_key "publications", "accounts"
   add_foreign_key "sessions", "users"
-  add_foreign_key "sponsors", "publications"
   add_foreign_key "words", "publications"
 end

@@ -1,0 +1,53 @@
+<div class="card" style="margin-top: 1.25rem;">
+  <div class="card-head">
+    <h2><%= prize.line? ? "Line prize" : "Blackout prize" %></h2>
+    <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
+  </div>
+  <p class="small muted">
+    <% if prize.line? %>
+      Awarded once per player the first time they complete any row, column, or diagonal.
+    <% else %>
+      Awarded once per player for claiming all <%= Game::DAYS %> squares — perfect daily participation.
+    <% end %>
+  </p>
+
+  <%= form_with model: prize, url: account_publication_prize_path(publication_id: @publication.id, id: prize.id), method: :patch do |form| %>
+    <% if defined?(@errored_prize) && @errored_prize == prize && prize.errors.any? %>
+      <div class="errors"><%= prize.errors.full_messages.to_sentence %></div>
+    <% end %>
+
+    <div class="field">
+      <label><%= form.check_box :enabled %> Enable this prize</label>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <%= form.label :name, "Prize" %>
+        <%= form.text_field :name, placeholder: prize.line? ? "$25 Dundee Coffee Gift Card" : "$250 Downtown Shopping Spree" %>
+      </div>
+      <div class="field">
+        <%= form.label :description, "Short description" %>
+        <%= form.text_field :description %>
+      </div>
+    </div>
+    <div class="field">
+      <%= form.label :instructions, "Redemption instructions" %>
+      <%= form.text_field :instructions, placeholder: "Show this screen at the counter." %>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <%= form.label :link_url, "Link" %>
+        <%= form.text_field :link_url, placeholder: "https://…" %>
+      </div>
+      <div class="field">
+        <%= form.label :link_text, "Link text" %>
+        <%= form.text_field :link_text, placeholder: "Redeem your prize" %>
+      </div>
+    </div>
+    <div class="field">
+      <%= form.label :image, "Image (optional)" %>
+      <%= form.file_field :image, accept: "image/png,image/jpeg,image/webp" %>
+    </div>
+
+    <%= form.submit "Save prize", class: "btn btn-primary" %>
+  <% end %>
+</div>

@@ -61,20 +61,6 @@ class Publication::Analytics
     game.prize_awards.blackout.count
   end
 
-  # --- Sponsors ---
-
-  def sponsor_stats
-    publication.sponsors.active.map do |sponsor|
-      calls = sponsor.daily_calls
-      {
-        sponsor: sponsor,
-        calls: calls.count,
-        claims: DailyClaim.where(daily_call_id: calls.select(:id)).count,
-        link_clicks: calls.sum(:link_clicks_count)
-      }
-    end
-  end
-
   # --- Completed game summary ---
 
   def completed_game_summary(game)

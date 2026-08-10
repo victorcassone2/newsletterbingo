@@ -2,17 +2,9 @@
 
 <div class="page-head">
   <div>
-    <div class="eyebrow">
-      <% if @publication.issue_cadence? %>
-        <%= @game.issued_calls.first&.call_on&.strftime("%b %-d") || @game.starts_on.strftime("%b %-d") %> –
-        <%= @game.issued_calls.last&.call_on&.strftime("%b %-d, %Y") || "—" %>
-      <% else %>
-        <%= @game.starts_on.strftime("%b %-d") %> – <%= @game.ends_on.strftime("%b %-d, %Y") %>
-      <% end %>
-    </div>
-    <h1><%= @game.name %> <span class="badge badge-gray">Completed</span></h1>
+    <div class="eyebrow">Game history</div>
+    <h1><%= game_label(@game) %> <span class="badge badge-gray">Completed</span></h1>
   </div>
-  <%= link_to "Rename", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
 </div>
 
 <div class="grid-2">
@@ -23,16 +15,18 @@
 
   <div>
     <div class="card">
-      <div class="card-head"><h2>Prizes</h2></div>
+      <div class="card-head"><h2>Prizes awarded</h2></div>
       <ul class="list">
-        <% [ @game.line_prize, @game.blackout_prize ].compact.each do |prize| %>
+        <% { "Line prize" => @game.prize_awards.line, "Blackout prize" => @game.prize_awards.blackout }.each do |label, awards| %>
           <li>
             <div>
-              <strong><%= prize.line? ? "Line prize" : "Blackout prize" %></strong>
-              <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
+              <strong><%= label %></strong>
               <div class="small muted">
-                <%= prize.enabled? ? prize.name : "No prize configured" %>
-                <% if prize.sponsor %> · Sponsored by <%= prize.sponsor.name %><% end %>
+                <% if awards.any? %>
+                  <%= awards.count %> awarded · <%= awards.map(&:prize_name).uniq.to_sentence %>
+                <% else %>
+                  None awarded
+                <% end %>
               </div>
             </div>
           </li>

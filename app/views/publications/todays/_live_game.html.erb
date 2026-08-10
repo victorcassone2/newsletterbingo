@@ -1,0 +1,143 @@
+<% if @call.nil? %>
+  <% if @publication.issue_cadence? %>
+    <div class="page-head">
+      <div>
+        <div class="eyebrow">Live · waiting for your first send</div>
+        <h1>Current game <span class="badge badge-green">Live</span></h1>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2>The first word arrives with your next newsletter</h2>
+        <p class="small muted">Nothing to schedule. When your next issue goes out, the first reader's click
+          draws word 1 of <%= Game::DAYS %> and claims their square — you'll see it appear here.</p>
+        <p class="small muted">Make sure the embed block below is in your email template and your campaign
+          merge tag is set in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
+      </div>
+
+      <div class="card" data-controller="clipboard">
+        <div class="card-head">
+          <h2>Newsletter block</h2>
+          <button class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+        </div>
+        <div class="embed-preview"><%= @newsletter_block.to_html %></div>
+        <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
+        <p class="small muted" style="margin-top: .75rem;">Evergreen — paste it into your reusable template once.</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top: 1.25rem;">
+      <div class="card-head"><h2>Reveal order</h2></div>
+      <%= render "schedule", calls: @calls, game: @game, collapse: true %>
+    </div>
+  <% else %>
+    <div class="empty-state">
+      <h1><%= @game.started? ? "No call today" : "Starts soon" %></h1>
+      <p>
+        <% if !@game.started? %>
+          The game begins <%= @game.starts_on.strftime("%A, %B %-d") %>.
+        <% else %>
+          There's no word scheduled today — the game continues on your next send day.
+        <% end %>
+      </p>
+    </div>
+
+    <% if @calls&.any? %>
+      <div class="card" style="margin-top: 1.25rem;">
+        <div class="card-head"><h2>Schedule</h2></div>
+        <%= render "schedule", calls: @calls, game: @game %>
+      </div>
+    <% end %>
+  <% end %>
+
+<% else %>
+  <div class="page-head">
+    <div>
+      <% if @publication.issue_cadence? %>
+        <h1>Word <%= @call.position %> of <%= Game::DAYS %></h1>
+        <div class="eyebrow" style="margin: .3rem 0 0;">went out <%= @call.call_on.strftime("%A, %B %-d") %></div>
+      <% else %>
+        <h1>Day <%= @call.position %> of <%= Game::DAYS %></h1>
+        <div class="eyebrow" style="margin: .3rem 0 0;">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="ticket">
+        <div class="ticket-label"><%= @publication.issue_cadence? ? "Last Word" : "Today's word" %> <% if @call.prize_call? %>· 🎁 prize call<% end %></div>
+        <div class="ticket-word"><%= @call.label %></div>
+      </div>
+
+      <div class="today-meta">
+        <div class="stat">
+          <div class="eyebrow"><%= @publication.issue_cadence? ? "Claims this issue" : "Claims today" %></div>
+          <strong><%= @claims_today %></strong>
+        </div>
+      </div>
+
+      <% if @call.description.present? %>
+        <p class="small" style="margin-top: .9rem;"><%= @call.description %></p>
+      <% end %>
+      <% if @call.link? %>
+        <p class="small muted"><%= @call.link_text %> → <%= @call.link_url %></p>
+      <% end %>
+
+      <div class="today-actions">
+        <%= link_to "Edit this call", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), class: "btn btn-primary btn-small" %>
+        <% if @call.word_changeable? %>
+          <span class="badge badge-amber">Word can still change</span>
+        <% elsif @publication.issue_cadence? %>
+          <% if @current_issue&.rollbackable? %>
+            <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @current_issue.id),
+                  method: :delete, class: "btn btn-quiet btn-small",
+                  form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
+          <% else %>
+            <span class="badge badge-gray">Word locked — sent with this issue</span>
+          <% end %>
+        <% else %>
+          <span class="badge badge-gray">Word locked<%= " — already claimed" if @call.daily_claims.any? %></span>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ticket">
+        <div class="ticket-label"><%= @publication.issue_cadence? ? "Next Word" : "Next word" %></div>
+        <% if @next_call %>
+          <div class="ticket-word"><%= @next_call.label %></div>
+        <% else %>
+          <div class="ticket-word muted">—</div>
+        <% end %>
+      </div>
+
+      <% if @next_call %>
+        <p class="small muted" style="margin-top: .9rem;">
+          <% if @publication.issue_cadence? %>
+            Goes out with your next send.
+          <% else %>
+            Scheduled for <%= @next_call.call_on.strftime("%A, %B %-d") %>.
+          <% end %>
+        </p>
+        <div class="today-actions">
+          <%= link_to "Edit this call", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @next_call.id), class: "btn btn-quiet btn-small" %>
+        </div>
+      <% else %>
+        <p class="small muted" style="margin-top: .9rem;">That was the last word — the next game takes over automatically.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 1.25rem;">
+    <div class="card-head">
+      <h2><%= @publication.issue_cadence? ? "Reveal order" : "Schedule" %></h2>
+      <% if @publication.issue_cadence? %>
+        <span class="small muted"><%= Game::DAYS - @game.issued_calls.count %> words waiting</span>
+      <% end %>
+    </div>
+    <%= render "schedule", calls: @calls, game: @game, collapse: true %>
+  </div>
+
+<% end %>

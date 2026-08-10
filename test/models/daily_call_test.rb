@@ -62,18 +62,6 @@ class DailyCallTest < ActiveSupport::TestCase
     end
   end
 
-  test "future calls can swap words; called days are locked" do
-    tomorrow = @game.call_for(@publication.local_date + 1)
-    day_after = @game.call_for(@publication.local_date + 2)
-    a, b = tomorrow.game_word_id, day_after.game_word_id
-    tomorrow.swap_word_with(day_after)
-    assert_equal b, tomorrow.reload.game_word_id
-    assert_equal a, day_after.reload.game_word_id
-
-    yesterday = @game.call_for(@publication.local_date - 1)
-    assert_raises(DailyCall::WordLocked) { yesterday.swap_word_with(tomorrow) }
-  end
-
   test "today's word locks once someone claims it" do
     assert @today.word_changeable?
     @today.claim_by(@participant)

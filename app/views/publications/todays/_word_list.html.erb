@@ -1,0 +1,6 @@
+<div class="card">
+  <div class="card-head">
+    <h2><%= Game::DAYS %> words · reveal order</h2>
+  </div>
+  <%= render "schedule", game: game, calls: game.daily_calls.includes(:game_word) %>
+</div>

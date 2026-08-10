@@ -1,0 +1,38 @@
+<div class="page-head">
+  <div>
+    <% if @publication.issue_cadence? %>
+      <div class="eyebrow">Draft · first word goes out with your next send after launch</div>
+    <% else %>
+      <div class="eyebrow">Draft · Day 1 is <%= game.starts_on.strftime("%A, %B %-d") %></div>
+    <% end %>
+    <h1>Your first game <span class="badge badge-amber">Draft</span></h1>
+  </div>
+  <div class="actions">
+    <%= link_to "Edit game", edit_account_publication_game_path(publication_id: @publication.id, id: game.id), class: "btn btn-quiet btn-small" %>
+    <%= button_to "Launch game", account_publication_game_launch_path(publication_id: @publication.id, game_id: game.id),
+          method: :post, class: "btn btn-primary btn-small",
+          form: { data: { turbo_confirm: @publication.issue_cadence? ?
+            "Launch this game? Words lock into their reveal order — the first goes out with your next send." :
+            "Launch this game? Words lock into a daily schedule." } } %>
+  </div>
+</div>
+
+<div class="card">
+  <h2>What launch does</h2>
+  <% if @publication.issue_cadence? %>
+    <p class="small muted">Launching locks these <%= Game::DAYS %> words into the reveal order below.
+      A new word goes live automatically each time you send — the first click of each issue draws it.
+      Nothing happens between sends.</p>
+  <% else %>
+    <p class="small muted">Launching locks these <%= Game::DAYS %> words into a daily schedule in the
+      order below, starting <%= game.starts_on.strftime("%B %-d") %>. You can still tweak any
+      not-yet-called day afterward.</p>
+  <% end %>
+  <p class="small muted">After this first launch, games run continuously — when one ends, the next
+    starts on its own, and you can always adjust it here beforehand. Prizes and the sponsor live on
+    the Sponsors &amp; Prizes tab and apply to every game.</p>
+</div>
+
+<div style="margin-top: 1.25rem;">
+  <%= render "word_list", game: game %>
+</div>

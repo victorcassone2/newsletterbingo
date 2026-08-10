@@ -1,0 +1,26 @@
+# Every publication owns its standing line/blackout pair (created by an
+# after_create callback in the app; fixtures bypass callbacks, so they
+# are declared here).
+omaha_line:
+  publication: omaha
+  kind: line
+
+omaha_blackout:
+  publication: omaha
+  kind: blackout
+
+lincoln_line:
+  publication: lincoln
+  kind: line
+
+lincoln_blackout:
+  publication: lincoln
+  kind: blackout
+
+rival_line:
+  publication: rival
+  kind: line
+
+rival_blackout:
+  publication: rival
+  kind: blackout

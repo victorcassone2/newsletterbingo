@@ -53,4 +53,94 @@ class PublicationTest < ActiveSupport::TestCase
     assert_includes eligible, words(:system_0)
     assert_not_includes eligible, words(:custom_rival)
   end
+
+  test "rotation drafts the first game but never auto-launches it" do
+    publication = publications(:omaha)
+    publication.rotate_games
+
+    draft = publication.on_deck_game
+    assert draft.present?
+    assert_nil publication.active_game
+    assert_equal 24, draft.game_words.count
+  end
+
+  test "rotation leaves a healthy in-flight game alone" do
+    publication = publications(:omaha)
+    game = create_running_game(publication)
+    publication.rotate_games
+
+    assert game.reload.active?
+    assert_equal game, publication.active_game
+    assert publication.on_deck_game.present?
+  end
+
+  test "rotation is idempotent" do
+    publication = publications(:omaha)
+    create_running_game(publication)
+    2.times { publication.rotate_games }
+
+    assert_equal 1, publication.games.active.count
+    assert_equal 1, publication.games.draft.count
+  end
+
+  test "an over game rolls straight into its successor, clamped to today" do
+    publication = publications(:omaha)
+    game = create_running_game(publication)
+    game.update_columns(starts_on: publication.local_date - 40, ends_on: publication.local_date - 17)
+
+    publication.rotate_games
+
+    assert game.reload.completed?
+    successor = publication.active_game
+    assert successor.present?
+    assert_not_equal game.id, successor.id
+    assert_equal publication.local_date, successor.starts_on
+    assert publication.on_deck_game.present?
+  end
+
+  test "a pre-staged draft launches on schedule when the game ends on time" do
+    publication = publications(:omaha)
+    game = create_running_game(publication)
+    on_deck = create_on_deck_draft(publication)
+
+    travel_to local_noon(publication, game.ends_on + 1) do
+      publication.rotate_games
+    end
+
+    assert game.reload.completed?
+    assert on_deck.reload.active?
+    assert_equal game.ends_on + 1, on_deck.starts_on
+  end
+
+  test "sponsor and prizes stay on across rollover" do
+    publication = publications(:omaha)
+    publication.update!(sponsor_name: "Dundee Coffee")
+    publication.line_prize.update!(enabled: true, name: "$25 Gift Card")
+    game = create_running_game(publication)
+    game.update_columns(starts_on: publication.local_date - 40, ends_on: publication.local_date - 17)
+
+    publication.rotate_games
+
+    assert publication.active_game.present?
+    assert_equal "Dundee Coffee", publication.reload.sponsor_name
+    assert publication.line_prize.enabled?, "the standing prize survives rotation untouched"
+  end
+
+  test "a new publication gets its standing prize pair, disabled" do
+    publication = accounts(:publisher).publications.create!(name: "New Pub",
+      timezone: "America/Chicago", email_merge_tag: "{{email}}")
+
+    assert_equal %w[ blackout line ], publication.prizes.pluck(:kind).sort
+    assert publication.prizes.none?(&:enabled?)
+    assert_nil publication.sponsor_name
+  end
+
+  test "recent_word_ids come from the last completed game" do
+    publication = publications(:omaha)
+    assert_equal [], publication.recent_word_ids
+
+    game = create_running_game(publication)
+    game.complete
+    assert_equal game.game_words.pluck(:word_id).sort, publication.recent_word_ids.sort
+  end
 end

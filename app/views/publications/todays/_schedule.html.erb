@@ -1,7 +1,21 @@
 <% current_call = game.current_call %>
-<ul class="schedule">
+<% previous_calls = calls.select { |call| call.called? && call != current_call } %>
+<% collapsed_calls = local_assigns.fetch(:collapse, false) ? previous_calls[0...-2].to_a : [] %>
+<ul class="schedule" data-controller="<%= "reveal " if collapsed_calls.any? %>sortable" data-sortable-mode="words">
+  <% if collapsed_calls.any? %>
+    <li data-reveal-target="trigger">
+      <span class="marker">⋯</span>
+      <button type="button" class="link-button small" data-action="reveal#show">View all previous words</button>
+    </li>
+  <% end %>
   <% calls.each do |call| %>
-    <li class="<%= "today-row" if call == current_call %>">
+    <li class="<%= "today-row" if call == current_call %>" <% if collapsed_calls.include?(call) %>hidden data-reveal-target="item"<% end %>
+        <% if call.word_changeable? %>
+          draggable="true"
+          data-sortable-url="<%= account_publication_game_call_position_path(publication_id: @publication.id, game_id: call.game_id, call_id: call.id) %>"
+          data-sortable-position="<%= call.position %>"
+          data-action="dragstart->sortable#dragstart dragover->sortable#dragover dragleave->sortable#dragleave drop->sortable#drop dragend->sortable#dragend"
+        <% end %>>
       <span class="marker">
         <% if call == current_call %>●<% elsif call.called? %>✓<% else %>○<% end %>
       </span>
@@ -11,7 +25,6 @@
       <span class="word"><%= call.label %></span>
       <span class="extras">
         <% if call.prize_call? %><span title="Prize call">🎁</span><% end %>
-        <% if call.sponsor %><span class="badge badge-gray"><%= call.sponsor.name %></span><% end %>
       </span>
       <span class="spacer"></span>
       <% if call == current_call %>
@@ -19,6 +32,12 @@
       <% end %>
       <% if call.word_changeable? || call == current_call %>
         <%= link_to "Edit", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: call.game_id, id: call.id), class: "small" %>
+      <% end %>
+      <% if call.word_changeable? %>
+        <span class="drag-handle" title="Drag to reorder">⠿</span>
+      <% elsif call == current_call %>
+        <%# Invisible placeholder keeps the Edit column aligned with draggable rows. %>
+        <span class="drag-handle" style="visibility: hidden;">⠿</span>
       <% end %>
     </li>
   <% end %>

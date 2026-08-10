@@ -1,13 +1,6 @@
 <div class="page-head">
   <h1>Games</h1>
-  <% if @open_game.nil? %>
-    <%= link_to "New game", new_account_publication_game_path(publication_id: @publication.id), class: "btn btn-primary" %>
-  <% else %>
-    <span>
-      <span class="btn-disabled">New game</span>
-      <span class="small muted">— finish <%= link_to @open_game.name, account_publication_today_path(publication_id: @publication.id) %> first</span>
-    </span>
-  <% end %>
+  <span class="small muted">Games run continuously — set up the next one from <%= link_to "Today", account_publication_today_path(publication_id: @publication.id) %>.</span>
 </div>
 
 <% if @games.any? %>
@@ -17,17 +10,10 @@
         <li>
           <div>
             <% game_path = game.completed? ? account_publication_game_path(publication_id: @publication.id, id: game.id) : account_publication_today_path(publication_id: @publication.id) %>
-            <%= link_to game.name, game_path %>
+            <%= link_to game_label(game), game_path %>
             <% if game.active? %><span class="badge badge-green">Live — Word <%= game.days_elapsed %> of <%= Game::DAYS %></span>
             <% elsif game.draft? %><span class="badge badge-amber">Draft</span>
             <% else %><span class="badge badge-gray">Completed</span><% end %>
-            <div class="small muted">
-              <% if @publication.issue_cadence? %>
-                Started <%= game.starts_on.strftime("%b %-d, %Y") %>
-              <% else %>
-                <%= game.starts_on.strftime("%b %-d") %> – <%= game.ends_on.strftime("%b %-d, %Y") %>
-              <% end %>
-            </div>
           </div>
           <%= link_to "Open →", game_path, class: "btn btn-quiet btn-small" %>
         </li>
@@ -36,8 +22,8 @@
   </div>
 <% else %>
   <div class="empty-state">
-    <h2>Start your first game</h2>
+    <h2>No games yet</h2>
     <p>A game runs exactly 24 days — one word per day, one click per reader.</p>
-    <%= link_to "New game", new_account_publication_game_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <%= link_to "Set up your first game", account_publication_today_path(publication_id: @publication.id), class: "btn btn-primary" %>
   </div>
 <% end %>
