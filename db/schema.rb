@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_09_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_10_154215) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -129,6 +129,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_09_000004) do
     t.date "ends_on", null: false
     t.string "name", null: false
     t.uuid "publication_id", null: false
+    t.string "sponsor_name"
     t.date "starts_on", null: false
     t.string "status", default: "draft", null: false
     t.datetime "updated_at", null: false

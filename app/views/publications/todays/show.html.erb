@@ -21,7 +21,7 @@
       <h1><%= @game.name %> <span class="badge badge-amber">Draft</span></h1>
     </div>
     <div class="actions">
-      <%= link_to "Rename", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
+      <%= link_to "Edit game", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
       <%= button_to "Launch game", account_publication_game_launch_path(publication_id: @publication.id, game_id: @game.id),
             method: :post, class: "btn btn-primary btn-small",
             form: { data: { turbo_confirm: @publication.issue_cadence? ?
@@ -58,7 +58,7 @@
                 <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
                 <div class="small muted">
                   <%= prize.enabled? ? prize.name : "No prize configured" %>
-                  <% if prize.sponsor %> · Sponsored by <%= prize.sponsor.name %><% end %>
+                  <% if prize.enabled? && prize.sponsor %> · Sponsored by <%= prize.sponsor.name %><% end %>
                 </div>
               </div>
               <%= link_to "Edit →", edit_account_publication_game_prize_path(publication_id: @publication.id, game_id: @game.id, id: prize.id), class: "btn btn-quiet btn-small" %>
@@ -89,7 +89,7 @@
         <div class="eyebrow">Live · waiting for your first send</div>
         <h1><%= @game.name %> <span class="badge badge-green">Live</span></h1>
       </div>
-      <%= link_to "Rename game", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
+      <%= link_to "Edit game", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
     </div>
 
     <div class="grid-2">
@@ -147,7 +147,7 @@
         <h1>Day <%= @call.position %> of <%= Game::DAYS %> — <%= @game.name %></h1>
       <% end %>
     </div>
-    <%= link_to "Rename game", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
+    <%= link_to "Edit game", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
   </div>
 
   <div class="grid-2">
@@ -192,21 +192,60 @@
       </div>
     </div>
 
-    <div class="card" data-controller="clipboard">
-      <div class="card-head">
-        <h2>Newsletter block</h2>
-        <button class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
-      </div>
-      <div class="embed-preview"><%= @newsletter_block.to_html %></div>
-      <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
-      <p class="small muted" style="margin-top: .75rem;">
-        <% if @publication.issue_cadence? %>
-          Evergreen — lives in your reusable template. Merge tags and details in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.
+    <div class="card">
+      <div class="ticket">
+        <div class="ticket-label"><%= @publication.issue_cadence? ? "Next issue's word" : "Next word" %></div>
+        <% if @next_call %>
+          <div class="ticket-word"><%= @next_call.label %></div>
         <% else %>
-          Paste near the bottom of today's email — each subscriber gets a personalized claim link.
-          Merge tag and details live in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.
+          <div class="ticket-word muted">—</div>
         <% end %>
-      </p>
+      </div>
+
+      <% if @next_call %>
+        <p class="small muted" style="margin-top: .9rem;">
+          <% if @publication.issue_cadence? %>
+            Goes out with your next send.
+          <% else %>
+            Scheduled for <%= @next_call.call_on.strftime("%A, %B %-d") %>.
+          <% end %>
+        </p>
+        <div class="today-actions">
+          <%= link_to "Edit this call", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @next_call.id), class: "btn btn-quiet btn-small" %>
+        </div>
+      <% else %>
+        <p class="small muted" style="margin-top: .9rem;">That was the last word — the game wraps up soon.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top: 1.25rem;">
+    <% [ @game.line_prize, @game.blackout_prize ].compact.each do |prize| %>
+      <div class="card">
+        <div class="card-head">
+          <h2><%= prize.line? ? "Line prize" : "Blackout prize" %></h2>
+          <%= link_to "Edit →", edit_account_publication_game_prize_path(publication_id: @publication.id, game_id: @game.id, id: prize.id), class: "btn btn-quiet btn-small" %>
+        </div>
+        <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
+        <div class="small muted" style="margin-top: .5rem;">
+          <%= prize.enabled? ? prize.name : "No prize configured" %>
+          <% if prize.enabled? && prize.sponsor %> · Sponsored by <%= prize.sponsor.name %><% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>Sponsor</h2>
+        <%= link_to "Edit →", edit_account_publication_game_path(publication_id: @publication.id, id: @game.id), class: "btn btn-quiet btn-small" %>
+      </div>
+      <% if @game.sponsor_name.present? %>
+        <span class="badge badge-green">Set</span>
+        <div class="small muted" style="margin-top: .5rem;">Brought to you by <%= @game.sponsor_name %></div>
+      <% else %>
+        <span class="badge badge-gray">None</span>
+        <div class="small muted" style="margin-top: .5rem;">Add one to show &ldquo;Brought to you by &hellip;&rdquo; in the newsletter block.</div>
+      <% end %>
     </div>
   </div>
 
@@ -218,39 +257,5 @@
       <% end %>
     </div>
     <%= render "schedule", calls: @calls, game: @game %>
-  </div>
-
-  <div class="grid-2" style="margin-top: 1.25rem;">
-    <div class="card">
-      <div class="card-head"><h2>Prizes</h2></div>
-      <ul class="list">
-        <% [ @game.line_prize, @game.blackout_prize ].compact.each do |prize| %>
-          <li>
-            <div>
-              <strong><%= prize.line? ? "Line prize" : "Blackout prize" %></strong>
-              <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
-              <div class="small muted">
-                <%= prize.enabled? ? prize.name : "No prize configured" %>
-                <% if prize.sponsor %> · Sponsored by <%= prize.sponsor.name %><% end %>
-              </div>
-            </div>
-            <%= link_to "Edit →", edit_account_publication_game_prize_path(publication_id: @publication.id, game_id: @game.id, id: prize.id), class: "btn btn-quiet btn-small" %>
-          </li>
-        <% end %>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-head">
-        <h2>Players</h2>
-        <%= link_to "Analytics →", account_publication_analytics_path(publication_id: @publication.id), class: "back-link" %>
-      </div>
-      <div class="stat-tiles">
-        <div class="stat-tile"><strong><%= @game.bingo_boards.count %></strong><span>Boards</span></div>
-        <div class="stat-tile"><strong><%= @game.daily_claims.count %></strong><span>Total claims</span></div>
-        <div class="stat-tile"><strong><%= @game.bingo_boards.where.not(bingo_achieved_at: nil).count %></strong><span>Bingos</span></div>
-        <div class="stat-tile"><strong><%= @game.bingo_boards.where.not(blackout_achieved_at: nil).count %></strong><span>Blackouts</span></div>
-      </div>
-    </div>
   </div>
 <% end %>

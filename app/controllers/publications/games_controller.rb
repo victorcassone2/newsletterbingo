@@ -50,7 +50,7 @@ class Publications::GamesController < Publications::BaseController
   end
 
   def update
-    if @game.draft? || game_params.keys == [ "name" ]
+    if @game.draft? || (game_params.keys - %w[ name sponsor_name ]).empty?
       if @game.update(game_params)
         redirect_to account_publication_today_path(publication_id: @publication.id), notice: "Game updated."
       else
@@ -58,7 +58,7 @@ class Publications::GamesController < Publications::BaseController
       end
     else
       redirect_to account_publication_today_path(publication_id: @publication.id),
-        alert: "Only the name can change after launch."
+        alert: "Only the name and sponsor can change after launch."
     end
   end
 
@@ -68,6 +68,6 @@ class Publications::GamesController < Publications::BaseController
     end
 
     def game_params
-      params.require(:game).permit(:name, :starts_on)
+      params.require(:game).permit(:name, :starts_on, :sponsor_name)
     end
 end

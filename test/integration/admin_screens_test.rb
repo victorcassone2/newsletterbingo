@@ -25,15 +25,19 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_select "a.word-chip", Game::DAYS
   end
 
-  test "today shows the word, schedule, prizes and players once live" do
+  test "today shows the word, next word, schedule, prizes and sponsor once live" do
     game = create_running_game(@publication)
     game.prizes.create!(kind: "line")
+    game.update!(sponsor_name: "Midtown Market")
 
     get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
     assert_match game.call_for(@publication.local_date).label, response.body
+    assert_match game.next_call.label, response.body
     assert_select "ul.schedule li", Game::DAYS
-    assert_match "Players", response.body
+    assert_match "Line prize", response.body
+    assert_match "Brought to you by Midtown Market", response.body
+    refute_match "Players", response.body
   end
 
   test "the word picker lists replacements and swaps one in" do

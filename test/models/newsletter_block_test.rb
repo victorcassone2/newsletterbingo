@@ -37,6 +37,18 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes NewsletterBlock.new(@publication).to_html, "Sponsored by Omaha Car Wash"
   end
 
+  test "brought to you by line appears only when the game has a sponsor name" do
+    assert_not_includes NewsletterBlock.new(@publication).to_html, "Brought to you by"
+    @game.update!(sponsor_name: "Midtown Market")
+    assert_includes NewsletterBlock.new(@publication).to_html, "Brought to you by Midtown Market"
+  end
+
+  test "the evergreen block carries the game sponsor line" do
+    @publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
+    @game.update!(sponsor_name: "Midtown Market")
+    assert_includes NewsletterBlock.new(@publication).to_html, "Brought to you by Midtown Market"
+  end
+
   test "description and destination link stay out of the email" do
     html = NewsletterBlock.new(@publication).to_html
     assert_not_includes html, "Secret detail"

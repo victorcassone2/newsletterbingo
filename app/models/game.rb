@@ -20,6 +20,8 @@ class Game < ApplicationRecord
   has_one :line_prize, -> { where(kind: "line") }, class_name: "Prize", inverse_of: :game
   has_one :blackout_prize, -> { where(kind: "blackout") }, class_name: "Prize", inverse_of: :game
 
+  normalizes :sponsor_name, with: ->(n) { n.strip }
+
   scope :open, -> { where(status: %w[ draft active ]) }
   scope :active, -> { where(status: "active") }
   scope :completed, -> { where(status: "completed") }
@@ -113,6 +115,17 @@ class Game < ApplicationRecord
       issued_calls.last
     else
       call_for(publication.local_date)
+    end
+  end
+
+  # The word queued to go out after the current one: next in the unissued
+  # queue (issues) or the next dated call (calendar). Nil once the last
+  # word is out.
+  def next_call
+    if issue_cadence?
+      daily_calls.find_by(call_on: nil)
+    else
+      daily_calls.where(call_on: (publication.local_date + 1)..).first
     end
   end
 

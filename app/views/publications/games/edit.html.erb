@@ -9,6 +9,11 @@
       <%= form.label :name, "Game name" %>
       <%= form.text_field :name %>
     </div>
+    <div class="field">
+      <%= form.label :sponsor_name, "Sponsor" %>
+      <%= form.text_field :sponsor_name, placeholder: "e.g. Dundee Coffee" %>
+      <p class="small muted">Shown as &ldquo;Brought to you by &hellip;&rdquo; in the newsletter block. Applies to every issue that hasn't gone out yet; leave blank for none.</p>
+    </div>
     <% if @game.draft? && @publication.calendar_cadence? %>
       <div class="field">
         <%= form.label :starts_on, "Day 1" %>
