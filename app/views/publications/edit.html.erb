@@ -1,8 +1,8 @@
-<div class="setup-page">
+<div class="setup-page" data-controller="tabs">
 <div class="page-head">
   <div>
     <h1>Setup</h1>
-    <p class="muted small">Everything that connects Daily Bingo to your newsletter: merge tag, embed block, branding, and settings.</p>
+    <p class="muted small">Connect Daily Bingo to your newsletter, brand the board, and manage settings.</p>
   </div>
 </div>
 
@@ -10,98 +10,123 @@
   <div class="errors"><%= @publication.errors.full_messages.to_sentence %></div>
 <% end %>
 
-<div class="card">
-  <div class="card-head"><h2>1 · Connect your newsletter</h2></div>
-  <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch, data: { controller: "cadence" } do |form| %>
-    <div class="field">
-      <label>When words go live</label>
-      <div class="choice-cards">
-        <label class="choice-card">
-          <%= form.radio_button :cadence, "issues", data: { cadence_target: "choice", action: "cadence#update" } %>
-          <span class="choice-card-body">
-            <span class="choice-card-title">Match my sends <span class="badge badge-green">Recommended</span></span>
-            <span class="choice-card-hint">Every newsletter you send reveals the next word — daily, weekly,
-              or whenever inspiration strikes. Paste the block once and never touch it again.</span>
-            <span class="choice-card-platforms">Best for beehiiv, Mailchimp &amp; Kit</span>
-          </span>
-        </label>
-        <label class="choice-card">
-          <%= form.radio_button :cadence, "calendar", data: { cadence_target: "choice", action: "cadence#update" } %>
-          <span class="choice-card-body">
-            <span class="choice-card-title">On a fixed schedule</span>
-            <span class="choice-card-hint">The word changes on the days you pick, and it's printed right in
-              the email. For platforms without a campaign-id tag — or when readers should see the word
-              before they click.</span>
-            <span class="choice-card-platforms">Best for Substack &amp; Ghost</span>
-          </span>
-        </label>
-      </div>
-    </div>
-
-    <div class="field">
-      <%= form.label :email_merge_tag, "Subscriber email merge tag" %>
-      <%= form.text_field :email_merge_tag %>
-      <div class="hint">The tag your email platform swaps for each subscriber's address,
-        e.g. <code>{{email}}</code> (beehiiv), <code>*|EMAIL|*</code> (Mailchimp), <code>{{ subscriber.email }}</code> (Ghost).
-        If this is wrong, readers' claim links won't work.</div>
-    </div>
-
-    <div class="field" data-cadence-target="panel" data-cadence="issues" <%= "hidden" unless @publication.issue_cadence? %>>
-      <%= form.label :campaign_merge_tag, "Campaign id merge tag" %>
-      <%= form.text_field :campaign_merge_tag %>
-      <div class="hint">The tag your platform swaps for a unique id per send,
-        e.g. <code>{{campaign_id}}</code> (beehiiv), <code>*|CAMPAIGN_UID|*</code> (Mailchimp).
-        It's how Daily Bingo notices a new issue went out and reveals the next word.</div>
-    </div>
-
-    <div class="field" data-cadence-target="panel" data-cadence="calendar" <%= "hidden" unless @publication.calendar_cadence? %>>
-      <label>Send days</label>
-      <% wdays = @publication.sending_wdays %>
-      <div style="display: flex; gap: .9rem; flex-wrap: wrap;">
-        <% Date::ABBR_DAYNAMES.each_with_index do |day_name, wday| %>
-          <label class="small" style="font-weight: 400; display: inline-flex; gap: .3rem; align-items: center;">
-            <%= check_box_tag "publication[send_days][]", wday, wdays.include?(wday), id: "send_day_#{wday}" %>
-            <%= day_name %>
-          </label>
-        <% end %>
-      </div>
-      <%= hidden_field_tag "publication[send_days][]", "" %>
-      <div class="hint">Game words land only on these days. Applies to the next game you launch.</div>
-    </div>
-
-    <%= form.submit "Save connection settings", class: "btn btn-primary btn-small" %>
-  <% end %>
-
-  <hr style="border: none; border-top: 1px solid var(--line); margin: 1.25rem 0;">
-
-  <ol class="small" style="padding-left: 1.1rem; margin: 0;">
-    <li>Set the merge tag above.</li>
-    <li>Copy the HTML block below.</li>
-    <li>Paste it near the bottom of your publication email.</li>
-    <li>Send as normal. Each subscriber gets a personalized bingo link.</li>
-  </ol>
-  <p class="small muted" style="margin-top: .75rem;">
-    No JavaScript, no iframes, just plain email-safe tables and inline styles. Descriptions and
-    links you attach to a call appear only <em>after</em> the reader claims, never in the email.
-  </p>
+<div class="tabs seg-tabs" role="tablist" aria-label="Setup sections">
+  <button type="button" class="active" data-tabs-target="tab" data-pane="connect" data-action="tabs#select">Connect</button>
+  <button type="button" data-tabs-target="tab" data-pane="branding" data-action="tabs#select">Branding</button>
+  <button type="button" data-tabs-target="tab" data-pane="general" data-action="tabs#select">General</button>
 </div>
 
-<div class="card" style="margin-top: 1.25rem;" data-controller="clipboard">
-  <div class="card-head">
-    <h2>2 · The embed block</h2>
-    <button class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+<div data-tabs-target="pane" data-pane="connect">
+  <div class="card steps" data-controller="platform cadence clipboard">
+    <div class="step">
+      <div class="step-head"><span class="step-no">1</span><h2>Where do you send from?</h2></div>
+      <div class="step-body">
+        <div class="platform-chips">
+          <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
+            data-email="{{email}}" data-campaign="{{campaign_id}}" data-cadence="issues"
+            data-hint="beehiiv supports campaign tags — your merge tags are filled in below.">beehiiv</button>
+          <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
+            data-email="*|EMAIL|*" data-campaign="*|CAMPAIGN_UID|*" data-cadence="issues"
+            data-hint="Mailchimp supports campaign tags — your merge tags are filled in below.">Mailchimp</button>
+          <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
+            data-email="{{ subscriber.email_address }}" data-campaign="{{ broadcast.id }}" data-cadence="issues"
+            data-hint="Kit supports campaign tags — your merge tags are filled in below.">Kit</button>
+          <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
+            data-email="{{email}}" data-cadence="calendar"
+            data-hint="Substack has no campaign-id tag, so words go out on a fixed schedule instead.">Substack</button>
+          <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
+            data-email="{{ subscriber.email }}" data-cadence="calendar"
+            data-hint="Ghost has no campaign-id tag, so words go out on a fixed schedule instead.">Ghost</button>
+          <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
+            data-hint="Paste the merge tags your platform documents for subscriber email and campaign id.">Other</button>
+        </div>
+        <p class="hint" data-platform-target="hint">Pick your platform and the merge tags below fill themselves in.</p>
+      </div>
+    </div>
+
+    <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch, id: "connect-form" do |form| %>
+      <%= hidden_field_tag :pane, "connect" %>
+      <div class="step">
+        <div class="step-head"><span class="step-no">2</span><h2>When words go live</h2></div>
+        <div class="step-body">
+          <div class="choice-cards">
+            <label class="choice-card">
+              <%= form.radio_button :cadence, "issues", data: { cadence_target: "choice", action: "cadence#update" } %>
+              <span class="choice-card-body">
+                <span class="choice-card-title">Match my sends</span>
+                <span class="choice-card-hint">Every issue you send reveals the next word — daily, weekly,
+                  or whenever inspiration strikes.</span>
+              </span>
+            </label>
+            <label class="choice-card">
+              <%= form.radio_button :cadence, "calendar", data: { cadence_target: "choice", action: "cadence#update" } %>
+              <span class="choice-card-body">
+                <span class="choice-card-title">On a fixed schedule</span>
+                <span class="choice-card-hint">The word changes on the days you pick and is printed
+                  right in the email.</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="field" style="margin-top: 1rem;">
+            <%= form.label :email_merge_tag, "Subscriber email tag" %>
+            <%= form.text_field :email_merge_tag, data: { platform_target: "emailTag" } %>
+            <div class="hint">The tag your platform swaps for each subscriber's address.
+              If this is wrong, readers' claim links won't work.</div>
+          </div>
+
+          <div class="field" data-cadence-target="panel" data-cadence="issues" <%= "hidden" unless @publication.issue_cadence? %>>
+            <%= form.label :campaign_merge_tag, "Campaign id tag" %>
+            <%= form.text_field :campaign_merge_tag, data: { platform_target: "campaignTag" } %>
+            <div class="hint">How Daily Bingo notices a new issue went out and reveals the next word.</div>
+          </div>
+
+          <div class="field" data-cadence-target="panel" data-cadence="calendar" <%= "hidden" unless @publication.calendar_cadence? %>>
+            <label>Send days</label>
+            <% wdays = @publication.sending_wdays %>
+            <div class="day-pills">
+              <% Date::ABBR_DAYNAMES.each_with_index do |day_name, wday| %>
+                <label class="day-pill">
+                  <%= check_box_tag "publication[send_days][]", wday, wdays.include?(wday), id: "send_day_#{wday}" %>
+                  <%= day_name %>
+                </label>
+              <% end %>
+            </div>
+            <%= hidden_field_tag "publication[send_days][]", "" %>
+            <div class="hint">Words land only on these days, starting with the next game you launch.</div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="step">
+      <div class="step-head"><span class="step-no">3</span><h2>Paste the block into your template</h2></div>
+      <div class="step-body">
+        <div class="embed-row">
+          <div class="embed-preview"><%= @newsletter_block.to_html %></div>
+          <div class="embed-aside">
+            <p class="small" style="margin: 0 0 .25rem;">Paste it once, near the bottom of your email — it never changes.</p>
+            <p class="hint" style="margin: 0 0 .8rem;">Plain email-safe tables, no JavaScript. Each subscriber
+              gets a personalized claim link<% unless @publication.issue_cadence? %>, and today's word is drawn
+              in automatically while a game is running<% end %>.</p>
+            <button type="button" class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+          </div>
+        </div>
+        <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
+      </div>
+    </div>
+
+    <div class="save-row">
+      <%= submit_tag "Save connection", class: "btn btn-primary", form: "connect-form" %>
+    </div>
   </div>
-  <div class="embed-preview"><%= @newsletter_block.to_html %></div>
-  <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
-  <p class="small muted" style="margin-top: .75rem;">Paste it once — it never changes.
-    <% unless @publication.issue_cadence? %>Today's word is drawn in automatically while a game is running.<% end %></p>
 </div>
 
-<div data-controller="brand-preview">
-  <div class="grid-2" style="margin-top: 1.25rem;">
+<div data-tabs-target="pane" data-pane="branding" hidden>
+  <div class="grid-2" data-controller="brand-preview">
     <div class="card">
-      <div class="card-head"><h2>3 · Branding</h2></div>
       <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
+        <%= hidden_field_tag :pane, "branding" %>
         <div class="swatch-grid">
           <div class="field">
             <%= form.label :primary_color, "Primary" %>
@@ -136,7 +161,6 @@
     </div>
 
     <div class="card">
-      <div class="card-head"><h2>Preview</h2></div>
       <div class="brand-preview-frame" data-brand-preview-target="preview" style="<%= brand_style(@publication) %>">
         <div class="preview-card">
           <div class="preview-eyebrow">TODAY&rsquo;S BINGO</div>
@@ -154,28 +178,51 @@
           <% end %>
         </div>
       </div>
-      <p class="small muted" style="margin-top: .75rem;">Your readers' board and the email block both use these colors.
-        Card surfaces adapt to dark backgrounds after you save.</p>
+      <p class="small muted" style="margin-top: .75rem;">Live preview — readers' boards and the email block
+        both use these colors. Card surfaces adapt to dark backgrounds after you save.</p>
     </div>
   </div>
 </div>
 
-<div class="card" style="margin-top: 1.25rem;">
-  <div class="card-head"><h2>4 · Publication</h2></div>
-  <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
-    <div class="field">
-      <%= form.label :name, "Publication name" %>
-      <%= form.text_field :name %>
+<div data-tabs-target="pane" data-pane="general" hidden>
+  <div class="card">
+    <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
+      <%= hidden_field_tag :pane, "general" %>
+      <div class="field">
+        <%= form.label :name, "Publication name" %>
+        <%= form.text_field :name %>
+      </div>
+      <div class="field">
+        <%= form.label :timezone %>
+        <%= form.select :timezone, options_for_select(timezone_options, @publication.timezone) %>
+        <div class="hint">Game days follow this timezone.</div>
+      </div>
+      <%= form.submit "Save", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <div class="card switch-card">
+    <div class="switch-row">
+      <div>
+        <b><%= @publication.active? ? "Accepting claims" : "Paused" %></b>
+        <p class="muted small" style="margin: .15rem 0 0;">
+          <% if @publication.active? %>
+            Readers can claim today's word and view their boards.
+          <% else %>
+            Claim links in your emails don't work and boards are hidden until you turn this back on.
+          <% end %>
+        </p>
+      </div>
+      <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
+        <%= hidden_field_tag :pane, "general" %>
+        <label class="toggle" aria-label="Accepting claims">
+          <%# autocomplete off: the browser must not restore a stale checked
+              state over the server-rendered one on refresh %>
+          <%= form.check_box :active, onchange: "this.form.requestSubmit();", autocomplete: "off" %>
+          <span class="slider"></span>
+        </label>
+      <% end %>
     </div>
-    <div class="field">
-      <%= form.label :timezone %>
-      <%= form.select :timezone, options_for_select(timezone_options, @publication.timezone) %>
-      <div class="hint">Game days follow this timezone.</div>
-    </div>
-    <div class="field">
-      <label><%= form.check_box :active %> Active (readers can claim and view boards)</label>
-    </div>
-    <%= form.submit "Save settings", class: "btn btn-primary" %>
-  <% end %>
+  </div>
 </div>
 </div>

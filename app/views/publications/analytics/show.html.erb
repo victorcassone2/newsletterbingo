@@ -1,55 +1,117 @@
-<div class="page-head">
-  <h1>Analytics</h1>
-  <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
-</div>
-
-<div class="stat-tiles" style="margin-bottom: 1.25rem;">
-  <div class="stat-tile"><strong><%= @analytics.total_participants %></strong><span>Total participants</span></div>
-  <div class="stat-tile"><strong><%= @analytics.claims_today %></strong><span>Claims today</span></div>
-  <div class="stat-tile"><strong><%= @analytics.claims_last_7_days %></strong><span>Claims, 7 days</span></div>
-  <div class="stat-tile"><strong><%= @analytics.claims_last_30_days %></strong><span>Claims, 30 days</span></div>
-</div>
-
 <% if @game %>
-  <div class="card" style="margin-bottom: 1.25rem;">
-    <h2>Current game: Day <%= @game.days_elapsed %> of <%= Game::DAYS %></h2>
-    <div class="stat-tiles" style="margin: .75rem 0 1.25rem;">
-      <div class="stat-tile"><strong><%= @analytics.game_participants(@game) %></strong><span>Players</span></div>
-      <div class="stat-tile"><strong><%= @analytics.participation_rate_today(@game) %>%</strong><span>Claimed today</span></div>
-      <div class="stat-tile"><strong><%= @analytics.perfect_participation_count(@game) %></strong><span>Perfect so far</span></div>
-      <div class="stat-tile"><strong><%= @analytics.bingo_winners(@game) %></strong><span>Bingo winners</span></div>
-      <div class="stat-tile"><strong><%= @analytics.line_prizes_awarded(@game) %></strong><span>Line prizes</span></div>
-      <div class="stat-tile"><strong><%= @analytics.blackout_prizes_awarded(@game) %></strong><span>Blackout prizes</span></div>
-    </div>
+  <% players = @analytics.game_participants(@game) %>
+  <% current_call = @publication.current_call %>
+  <% called = @game.days_elapsed %>
 
-    <h3>Claims per day</h3>
-    <table class="simple">
-      <thead><tr><th>Day</th><th>Word</th><th>Claims</th></tr></thead>
-      <tbody>
+  <div class="page-head">
+    <div>
+      <h1>Day <%= called %> of <%= Game::DAYS %></h1>
+      <p class="cockpit-sub" style="margin-bottom: 0;">
+        Current game · <%= game_label(@game) %>
+        <% if current_call %> · word today: <strong><%= current_call.label %></strong><% end %>
+      </p>
+    </div>
+    <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
+  </div>
+
+  <div class="gameticks stretch" role="img" aria-label="Game progress: <%= called %> of <%= Game::DAYS %> days played">
+    <% (1..Game::DAYS).each do |day| %>
+      <i class="<%= "on" if day < called %><%= "now" if day == called %>"></i>
+    <% end %>
+  </div>
+
+  <div class="stat-trio">
+    <div class="stat-tile">
+      <strong><%= players %></strong>
+      <span class="stat-key">Players this game</span>
+      <span class="stat-desc">of <%= @analytics.total_participants %> all-time participants</span>
+    </div>
+    <div class="stat-tile">
+      <strong><%= @analytics.claims_today %> <em>of <%= players %></em></strong>
+      <span class="stat-key">Claimed today</span>
+      <span class="stat-desc">
+        <% if current_call %><%= current_call.label %> is today's word<% else %>No word goes out today<% end %>
+      </span>
+    </div>
+    <div class="stat-tile">
+      <strong><%= @analytics.perfect_participation_count(@game) %> <em>of <%= players %></em></strong>
+      <span class="stat-key">Perfect attendance</span>
+      <span class="stat-desc">claimed all <%= called %> <%= "word".pluralize(called) %> so far</span>
+    </div>
+  </div>
+
+  <div class="card claims-card">
+    <div class="claims-head">
+      <h2>Claims by word</h2>
+      <span class="muted small">each bar is one game day · <%= @game.days_remaining %> days remaining</span>
+    </div>
+    <div class="claims-chart">
+      <% unless players.zero? %>
+        <div class="refline"><b>All <%= players %> players</b></div>
+      <% end %>
+      <div class="bars">
         <% @analytics.claims_per_day(@game).each do |call, count| %>
-          <% next unless call.called? %>
-          <tr>
-            <td>Word <%= call.position %> · <%= call.call_on.strftime("%-m/%-d") %></td>
-            <td><%= call.label %></td>
-            <td><%= count %></td>
-          </tr>
+          <% if call.called? %>
+            <div class="bar-slot <%= "today-slot" if call == current_call %>"
+                 title="<%= call.label %> · Day <%= call.position %> · <%= call.call_on.strftime("%b %-d") %> — <%= count %> of <%= players %> claimed">
+              <% if call == current_call %>
+                <span class="toplabel">today</span>
+              <% elsif count == players && players.positive? %>
+                <span class="toplabel"><%= count %></span>
+              <% end %>
+              <div class="fill" style="height: <%= players.positive? ? (count * 100.0 / players).round : 0 %>%;"></div>
+            </div>
+          <% else %>
+            <div class="bar-slot"><div class="future"></div></div>
+          <% end %>
         <% end %>
-      </tbody>
-    </table>
+      </div>
+    </div>
+    <div class="chart-x">
+      <% (1..Game::DAYS).each do |day| %><span><%= day %></span><% end %>
+    </div>
+  </div>
+
+  <div class="metric-strip">
+    <span class="cap">This game</span>
+    <span><b><%= @analytics.bingo_winners(@game) %></b> <%= "bingo".pluralize(@analytics.bingo_winners(@game)) %></span>
+    <span><b><%= @analytics.line_prizes_awarded(@game) %></b> line <%= "prize".pluralize(@analytics.line_prizes_awarded(@game)) %> sent</span>
+    <span><b><%= @analytics.blackout_winners(@game) %></b> blackouts</span>
+  </div>
+<% else %>
+  <div class="page-head">
+    <h1>Analytics</h1>
+    <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
+  </div>
+  <div class="card empty-state">
+    <p class="muted">No game is running. Game-by-game analytics resume when the next one launches.</p>
+    <%= link_to "Go to games", account_publication_games_path(publication_id: @publication.id), class: "btn btn-quiet" %>
   </div>
 <% end %>
 
-<% @completed_games.each do |game| %>
-  <% summary = @analytics.completed_game_summary(game) %>
-  <div class="card" style="margin-bottom: 1.25rem;">
-    <h2><%= game_label(game) %> <span class="badge badge-gray">Completed</span></h2>
-    <div class="stat-tiles" style="margin-top:.75rem;">
-      <div class="stat-tile"><strong><%= summary[:participants] %></strong><span>Players</span></div>
-      <div class="stat-tile"><strong><%= summary[:average_claimed_days] %></strong><span>Avg days claimed</span></div>
-      <div class="stat-tile"><strong><%= summary[:median_claimed_days] %></strong><span>Median days</span></div>
-      <div class="stat-tile"><strong><%= summary[:bingo_percent] %>%</strong><span>Reached bingo</span></div>
-      <div class="stat-tile"><strong><%= summary[:line_prizes] %></strong><span>Line prizes</span></div>
-      <div class="stat-tile"><strong><%= summary[:blackouts] %> (<%= summary[:blackout_percent] %>%)</strong><span>Blackouts</span></div>
-    </div>
+<div class="metric-strip">
+  <span class="cap">All-time</span>
+  <span><b><%= @analytics.total_participants %></b> participants</span>
+  <span><b><%= @analytics.claims_last_7_days %></b> claims, last 7 days</span>
+  <span><b><%= @analytics.claims_last_30_days %></b> claims, last 30 days</span>
+</div>
+
+<% if @completed_games.any? %>
+  <div class="past-games">
+    <h2>Completed games</h2>
+    <% @completed_games.each do |game| %>
+      <% summary = @analytics.completed_game_summary(game) %>
+      <div class="card past-row">
+        <div class="g">
+          <b><%= game_label(game) %></b>
+          <span><%= Game::DAYS %> words · completed</span>
+        </div>
+        <div class="m"><b><%= summary[:participants] %></b><span>players</span></div>
+        <div class="m"><b><%= summary[:average_claimed_days] %></b><span>avg days claimed</span></div>
+        <div class="m"><b><%= summary[:bingo_percent] %>%</b><span>reached bingo</span></div>
+        <div class="m"><b><%= summary[:blackouts] %></b><span><%= "blackout".pluralize(summary[:blackouts]) %></span></div>
+        <%= link_to "Details →", account_publication_game_path(publication_id: @publication.id, id: game.id), class: "back-link" %>
+      </div>
+    <% end %>
   </div>
 <% end %>

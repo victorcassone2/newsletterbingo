@@ -213,6 +213,10 @@ body.player {
 .celebration h2 { margin-bottom: .25rem; }
 .celebration p { margin: 0; font-size: .92rem; opacity: .92; }
 .celebration a { color: inherit; text-decoration: underline; font-weight: 700; }
+.celebration .prize-photo {
+  display: block; max-width: 100%; max-height: 9rem;
+  margin: .6rem auto .35rem; border-radius: 10px;
+}
 @keyframes celebrate-in {
   from { opacity: 0; transform: translateY(-6px) scale(.98); }
   to { opacity: 1; transform: none; }

@@ -34,7 +34,7 @@ class PublicationsController < ApplicationController
 
   def update
     if @publication.update(publication_params)
-      redirect_to edit_account_publication_path(id: @publication.id), notice: "Saved."
+      redirect_to edit_account_publication_path(id: @publication.id, anchor: params[:pane].presence), notice: "Saved."
     else
       @newsletter_block = NewsletterBlock.new(@publication)
       @preview_words = preview_words

@@ -216,7 +216,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
   test "setup gathers merge tag, embed, branding and settings on one page" do
     get edit_account_publication_path(account_id: @account_id, id: @publication.id)
     assert_response :success
-    assert_match "Connect your newsletter", response.body
+    assert_match "Where do you send from?", response.body
     assert_match "Branding", response.body
     assert_match @publication.public_code, response.body
     assert_select ".preview-grid .preview-square", 25

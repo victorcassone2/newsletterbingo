@@ -13,35 +13,28 @@
       <% end %>
     </div>
   </div>
-  <p class="small muted" style="margin: 0 0 .9rem;">
-    <% if prize.line? %>
-      Awarded once per player, the first time they complete any row, column, or diagonal.
-    <% else %>
-      Awarded once per player for claiming all <%= Game::DAYS %> squares — perfect participation,
-      the sponsorship headline.
-    <% end %>
-  </p>
-
   <% if defined?(@errored_prize) && @errored_prize == prize && prize.errors.any? %>
     <div class="errors"><%= prize.errors.full_messages.to_sentence %></div>
   <% end %>
 
   <div class="prize-grid">
     <div>
-      <% preview_color = prize.line? ? @publication.primary_color : @publication.accent_color %>
-      <div class="winner-card" style="background: <%= preview_color %>; color: <%= contrast_text_color(preview_color) %>;">
-        <h3><%= prize.line? ? "BINGO!" : "BLACKOUT!" %></h3>
-        <% if prize.enabled? %>
-          <p class="win-line"><%= prize.line? ? "You completed a line and won:" : "You won:" %>
-            <b><%= prize.name %></b></p>
-          <% if prize.instructions.present? %><p class="win-instr"><%= prize.instructions %></p><% end %>
-          <% if prize.link_url.present? %><span class="win-link"><%= prize.link_text.presence || "Claim your prize" %></span><% end %>
-        <% else %>
-          <p class="win-line"><%= prize.line? ? "You completed a full line. Nicely done!" : "Every single day, claimed. Incredible." %></p>
-          <p class="win-instr">No prize attached — enable one above to reward it.</p>
-        <% end %>
-      </div>
-      <div class="preview-caption">EXACTLY WHAT A WINNER SEES</div>
+      <% if prize.enabled? %>
+        <div class="prize-name"><%= prize.name %></div>
+        <p class="small muted" style="margin: .3rem 0 0;">
+          <% if prize.line? %>
+            For a player's first completed row, column, or diagonal — once each.
+          <% else %>
+            For claiming all <%= Game::DAYS %> squares — perfect participation, once each.
+          <% end %>
+        </p>
+      <% else %>
+        <div class="prize-name off">No prize attached</div>
+        <p class="small muted" style="margin: .3rem 0 0;">
+          Winners still get the <%= prize.line? ? "BINGO!" : "BLACKOUT!" %> banner —
+          flip the toggle to put a prize behind it.
+        </p>
+      <% end %>
     </div>
 
     <div class="prize-meta">

@@ -153,7 +153,7 @@
   <% if @calls&.any? %>
     <div class="card">
       <div class="card-head"><h2>Schedule</h2></div>
-      <%= render "schedule", calls: @calls, game: @game %>
+      <%= render "schedule", calls: @calls, game: @game, collapse: true %>
     </div>
   <% end %>
 <% end %>

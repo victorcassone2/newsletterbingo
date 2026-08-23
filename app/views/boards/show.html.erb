@@ -10,6 +10,10 @@
     <h2>BINGO!</h2>
     <% if @line_prize&.enabled? %>
       <p>You completed a line and won: <strong><%= @line_prize.name %></strong></p>
+      <% if @line_prize.image.attached? %>
+        <%= image_tag @line_prize.image, alt: @line_prize.name, class: "prize-photo" %>
+      <% end %>
+      <% if @line_prize.description.present? %><p class="small"><%= @line_prize.description %></p><% end %>
       <% if @line_prize.instructions.present? %><p class="small"><%= @line_prize.instructions %></p><% end %>
       <% if @line_prize.link_url.present? %>
         <p><%= link_to (@line_prize.link_text.presence || "Claim your prize"), prize_outbound_path(@publication.public_code, @line_prize.id) %></p>
@@ -24,6 +28,10 @@
     <p>Every single day, claimed. Incredible.</p>
     <% if @blackout_prize&.enabled? %>
       <p>You won: <strong><%= @blackout_prize.name %></strong></p>
+      <% if @blackout_prize.image.attached? %>
+        <%= image_tag @blackout_prize.image, alt: @blackout_prize.name, class: "prize-photo" %>
+      <% end %>
+      <% if @blackout_prize.description.present? %><p class="small"><%= @blackout_prize.description %></p><% end %>
       <% if @blackout_prize.instructions.present? %><p class="small"><%= @blackout_prize.instructions %></p><% end %>
       <% if @blackout_prize.link_url.present? %>
         <p><%= link_to (@blackout_prize.link_text.presence || "Claim your prize"), prize_outbound_path(@publication.public_code, @blackout_prize.id) %></p>
