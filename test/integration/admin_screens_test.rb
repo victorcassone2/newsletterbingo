@@ -31,11 +31,13 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_match game.next_call.label, response.body
     assert_select "ul.schedule li", Game::DAYS
     assert_select ".tabs a", text: "Next game"
-    refute_match "Players", response.body
+    assert_select ".pulse .pulse-num", text: "0" # the claims pulse, before any claims
+    assert_select ".ondeck", text: /On deck/
 
     get account_publication_today_path(account_id: @account_id, publication_id: @publication.id, tab: "next")
     assert_response :success
     assert_match "Next game", response.body
+    assert_match "What carries over", response.body
     assert_select "ul.schedule li", Game::DAYS # the on-deck game's editable reveal order
     assert_select "ul.schedule li[draggable=true]", Game::DAYS
   end

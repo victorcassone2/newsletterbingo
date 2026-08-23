@@ -30,6 +30,28 @@ module ApplicationHelper
     ActiveSupport::TimeZone.all.map { |zone| [ zone.to_s, zone.tzinfo.identifier ] }.uniq(&:last)
   end
 
+  # Inline SVG sparkline of recent per-word claim counts for the Today
+  # pulse. All coordinates are computed numbers, so the markup is safe.
+  def claim_sparkline(counts, width: 150, height: 36)
+    return "".html_safe if counts.size < 2
+
+    max = [ counts.max, 1 ].max
+    step = (width - 10.0) / (counts.size - 1)
+    points = counts.each_with_index.map do |count, index|
+      [ (5 + index * step).round(1), (height - 3 - (count.to_f / max) * (height - 10)).round(1) ]
+    end
+    line = points.each_with_index.map { |(x, y), i| "#{i.zero? ? "M" : "L"}#{x} #{y}" }.join(" ")
+    area = "#{line} L#{points.last[0]} #{height - 1} L#{points.first[0]} #{height - 1} Z"
+    <<~SVG.html_safe
+      <svg width="#{width}" height="#{height}" viewBox="0 0 #{width} #{height}" role="img" aria-label="Claims per word, recent words">
+        <line x1="0" y1="#{height - 1}" x2="#{width}" y2="#{height - 1}" stroke="#e2e8f0" stroke-width="1"/>
+        <path d="#{area}" fill="#059669" fill-opacity="0.12"/>
+        <path d="#{line}" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="#{points.last[0]}" cy="#{points.last[1]}" r="3.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+      </svg>
+    SVG
+  end
+
   private
     # White cards on light backgrounds; on dark backgrounds, a slightly
     # lifted shade of the background itself.

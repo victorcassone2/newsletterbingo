@@ -9,8 +9,8 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
   test "without a participant session the board shows a welcome, not data" do
     get board_path(@publication.public_code)
     assert_response :success
-    assert_select ".bingo-grid", count: 0
-    assert_match(/Open today/, response.body)
+    assert_select ".board-rows", count: 0
+    assert_match(/bingo button/, response.body)
   end
 
   test "the participant cookie is signed; a forged token gets nothing" do
@@ -18,7 +18,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     participant.board_for(@game)
     cookies["bingo_participant_#{@publication.id}"] = participant.public_token # unsigned
     get board_path(@publication.public_code)
-    assert_select ".bingo-grid", count: 0
+    assert_select ".board-rows", count: 0
   end
 
   test "a claim session only reveals your own board" do
@@ -69,7 +69,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert @game.reload.completed?
     assert @publication.active_game.present?, "rotation launched the successor"
-    assert_select ".bingo-grid"
+    assert_select ".board-rows"
     assert_match(/GAME COMPLETE/, response.body)
   end
 end

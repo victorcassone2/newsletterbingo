@@ -8,14 +8,14 @@
     </div>
   <% end %>
 <% else %>
-  <div class="tabs">
-    <%= link_to "Current game", account_publication_today_path(publication_id: @publication.id),
-          class: ("active" if @tab == :current) %>
-    <% if @next_game %>
+  <% if @next_game %>
+    <div class="tabs">
+      <%= link_to "Current game", account_publication_today_path(publication_id: @publication.id),
+            class: ("active" if @tab == :current) %>
       <%= link_to "Next game", account_publication_today_path(publication_id: @publication.id, tab: "next"),
             class: ("active" if @tab == :next) %>
-    <% end %>
-  </div>
+    </div>
+  <% end %>
 
   <% if @tab == :next %>
     <%= render "up_next", game: @next_game %>

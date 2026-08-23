@@ -93,7 +93,8 @@
   </div>
   <div class="embed-preview"><%= @newsletter_block.to_html %></div>
   <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
-  <p class="small muted" style="margin-top: .75rem;">Shows today's word when a game is running.</p>
+  <p class="small muted" style="margin-top: .75rem;">Paste it once — it never changes.
+    <% unless @publication.issue_cadence? %>Today's word is drawn in automatically while a game is running.<% end %></p>
 </div>
 
 <div data-controller="brand-preview">

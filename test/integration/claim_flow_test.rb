@@ -21,7 +21,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_select ".claim-check", text: /claimed/
+    assert_select ".receipt-status", text: /Claimed/
     assert_select ".square.claimed", count: 1
     assert_select "button", text: /Claim/, count: 0 # no second claim button anywhere
   end

@@ -3,17 +3,18 @@
 # claim. The ESP's merge tags are inserted verbatim into the claim URL and
 # replaced by the email platform at send time.
 #
-# Issue-cadence publications get an evergreen block (no word baked in) that
-# lives in a reusable template: the campaign-id merge tag stamps each send,
-# and the first click of a new send advances the game to its next word.
+# Both cadences get evergreen HTML, pasted once. Issue-cadence blocks
+# carry no word (the campaign-id merge tag stamps each send, and the first
+# click of a new send advances the game). Calendar blocks show today's
+# word through a dynamically served image (WordImage), so the HTML itself
+# never changes.
 class NewsletterBlock
   include ERB::Util
 
-  attr_reader :publication, :daily_call
+  attr_reader :publication
 
-  def initialize(publication, daily_call: nil)
+  def initialize(publication)
     @publication = publication
-    @daily_call = daily_call || publication.current_call
   end
 
   def claim_url(email_value = publication.email_merge_tag)
@@ -25,16 +26,8 @@ class NewsletterBlock
     end
   end
 
-  def word_label
-    daily_call&.label || "TODAY'S WORD"
-  end
-
   def sponsor_name
     publication.sponsor_name
-  end
-
-  def prize_call?
-    daily_call&.prize_call? || false
   end
 
   # Safe to render directly: every dynamic value below is escaped with +h+.
@@ -55,9 +48,9 @@ class NewsletterBlock
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="280" style="width:280px;max-width:100%;background-color:#{h publication.background_color};border:1px solid #{h publication.primary_color}22;border-radius:12px;">
                 <tr>
                   <td align="center" style="padding:16px 20px 14px;font-family:Helvetica,Arial,sans-serif;">
-                    <div style="font-size:11px;font-weight:bold;letter-spacing:2px;color:#{h publication.primary_color};">TODAY&#8217;S BINGO#{" &#127873;" if prize_call?}</div>
+                    <div style="font-size:11px;font-weight:bold;letter-spacing:2px;color:#{h publication.primary_color};">TODAY&#8217;S BINGO</div>
                     #{sponsor_row}
-                    <div style="font-size:22px;font-weight:bold;color:#{h publication.text_color};padding:10px 0 12px;">#{h word_label}</div>
+                    <img src="#{h word_image_url}" alt="Today&#8217;s bingo word" width="240" height="44" border="0" style="display:block;margin:6px auto 8px;max-width:100%;">
                     <a href="#{h claim_url}" style="display:inline-block;background-color:#{h publication.accent_color};color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:9px 18px;border-radius:8px;">Claim today&#8217;s spot &#8594;</a>
                   </td>
                 </tr>
@@ -66,6 +59,10 @@ class NewsletterBlock
           </tr>
         </table>
       HTML
+    end
+
+    def word_image_url
+      "#{DailyBingo.public_host}/c/#{publication.public_code}/word.png"
     end
 
     def evergreen_html

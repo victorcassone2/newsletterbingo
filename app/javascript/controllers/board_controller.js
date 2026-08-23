@@ -1,18 +1,26 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Tapping a claimed square reveals its detail card under the board.
+// Tapping a claimed square opens its detail card inside the square's own
+// row; the open square keeps an accent outline. One card open at a time.
 export default class extends Controller {
-  static targets = [ "detail" ]
+  static targets = [ "square", "detail" ]
 
   reveal(event) {
-    const key = event.currentTarget.dataset.squareKey
-    let shown = false
-    this.detailTargets.forEach(detail => {
-      const matches = detail.dataset.squareKey === key
-      const show = matches && detail.hidden
-      detail.hidden = !show
-      if (show) shown = detail
+    const button = event.currentTarget
+    const key = button.dataset.squareKey
+    const detail = this.detailTargets.find(d => d.dataset.squareKey === key)
+    const opening = detail.hidden
+
+    this.detailTargets.forEach(d => d.hidden = true)
+    this.squareTargets.forEach(s => {
+      s.classList.remove("open-sq")
+      s.setAttribute("aria-expanded", "false")
     })
-    if (shown) shown.scrollIntoView({ behavior: "smooth", block: "nearest" })
+
+    if (opening) {
+      detail.hidden = false
+      button.classList.add("open-sq")
+      button.setAttribute("aria-expanded", "true")
+    }
   }
 }

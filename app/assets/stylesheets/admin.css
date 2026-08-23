@@ -72,6 +72,68 @@
 @media (max-width: 44rem) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 .stack > * + * { margin-top: 1.25rem; }
 
+/* Today cockpit: one header shape for every state — position + status
+   left, the claims pulse right. */
+.cockpit-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.4rem;
+}
+.cockpit-sub { font-size: .88rem; color: var(--ink-soft); margin: 0 0 .55rem; }
+.cockpit-sub strong { color: var(--ink); }
+
+.gameticks { display: grid; grid-template-columns: repeat(24, 9px); gap: 3px; }
+.gameticks i { display: block; height: 6px; border-radius: 3px; background: var(--line); }
+.gameticks i.on { background: var(--brand); }
+.gameticks i.now { background: var(--ink); }
+
+.pulse {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: .85rem 1rem .8rem; min-width: 16rem; box-shadow: var(--shadow);
+}
+.pulse-top { display: flex; align-items: baseline; gap: .5rem; }
+.pulse-num {
+  font-size: 1.65rem; font-weight: 700; letter-spacing: -.01em;
+  line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.pulse-cap { font-size: .78rem; color: var(--ink-soft); }
+.pulse-sub { font-size: .76rem; color: var(--ink-soft); margin: .1rem 0 .45rem; }
+.pulse-row { display: flex; align-items: center; gap: .8rem; }
+.pulse-row svg { display: block; }
+.pulse-row a { font-size: .78rem; font-weight: 650; color: var(--brand); }
+
+.attention {
+  display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
+  background: var(--amber-bg); border: 1px solid var(--amber-line);
+  border-radius: var(--radius); color: var(--amber-ink);
+  font-size: .88rem; padding: .7rem 1rem; margin-bottom: 1.25rem;
+}
+.attention .btn { background: var(--amber-ink); color: #fff; }
+
+.next-card { border-color: var(--green-line); }
+.next-card .ticket-label { color: var(--green-ink); }
+.receipt-card .ticket-word { color: var(--ink-strong); }
+
+.ondeck {
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  background: var(--card); border: 1px dashed var(--ink-faint);
+  border-radius: var(--radius); padding: .85rem 1.1rem; margin-top: 1.25rem;
+}
+.ondeck .lead { flex: 1 1 16rem; }
+.ondeck .lead p { margin: .1rem 0 0; }
+.chips { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .5rem; }
+.chip {
+  font-size: .72rem; font-weight: 650; color: var(--ink-strong);
+  background: var(--tint); border: 1px solid var(--line); border-radius: 999px;
+  padding: .15rem .55rem;
+}
+.chip.more { color: var(--ink-faint); background: transparent; border-style: dashed; }
+
+.carryover { display: flex; gap: 1.4rem; flex-wrap: wrap; font-size: .88rem; }
+.carryover .co b {
+  display: block; font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: .1rem;
+}
+
 /* Today dashboard */
 .today-meta { display: flex; gap: 1.4rem; flex-wrap: wrap; margin: 1rem 0 0; }
 .today-meta .stat .eyebrow { margin-bottom: 0; }

@@ -5,10 +5,10 @@
       "note": "Intentional click-tracking redirect. The destination is the persisted DailyCall#link_url, validated at write time to be http(s) only (HttpUrlValidator); request params never influence the destination, and the link is only followed for participants who actually claimed the call."
     },
     {
-      "fingerprint": "c2311a1e82ee65335405a073d19bd659a975e3d4d3c3116ec7e3f97a2e129aa8",
+      "fingerprint": "4706b2dd6412397295920f0cfe940d7e4871825f2d2bfbfd35c77f04034244af",
       "note": "Intentional click-tracking redirect. The destination is the persisted Prize#link_url, validated at write time to be http(s) only; request params never influence the destination, and the link is only followed for participants who earned the prize."
     }
   ],
-  "updated": "2026-08-07",
+  "updated": "2026-08-23",
   "brakeman_version": "7.1.1"
 }

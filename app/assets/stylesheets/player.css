@@ -22,36 +22,73 @@ body.player {
   color: var(--brand-primary, var(--ink));
 }
 
-.today-card {
+/* Receipt: the arrival moment. Confirms the claim, shows where it landed,
+   advances the meter, credits the sponsor. */
+.receipt {
   background: var(--brand-surface, var(--card));
   color: var(--brand-on-surface, var(--ink));
   border: 1px solid rgba(127, 127, 127, .25);
   border-radius: 16px;
-  padding: 1.25rem 1.25rem 1.35rem;
+  padding: 1.15rem 1.1rem 1.2rem;
   text-align: center;
   box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
   margin-bottom: 1.5rem;
 }
-.today-eyebrow {
-  font-size: .72rem; font-weight: 800; letter-spacing: .16em;
+.receipt-eyebrow {
+  font-size: .68rem; font-weight: 800; letter-spacing: .16em;
   color: var(--brand-primary, var(--ink));
 }
-.today-sponsor { font-size: .8rem; opacity: .7; margin-top: .3rem; }
-.today-word-stub {
-  border: 2px dashed rgba(127, 127, 127, .4);
-  border-radius: 12px;
-  padding: .7rem .9rem .8rem;
-  margin: .7rem 0 .5rem;
-}
-.today-callword {
-  font-size: 1.7rem; font-weight: 800; letter-spacing: .04em;
+.receipt-word {
+  font-size: 1.85rem; font-weight: 800; letter-spacing: .03em;
+  margin: .35rem 0 .55rem;
   color: var(--brand-on-surface, var(--ink));
 }
-.claim-check {
-  display: inline-flex; align-items: center; gap: .35rem;
-  font-size: .9rem; font-weight: 650; color: var(--brand-accent, var(--green-ink));
+.receipt-status {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-size: .95rem; font-weight: 700; color: var(--brand-primary, var(--ink));
 }
-.today-desc { font-size: .95rem; margin: .8rem 0 .3rem; }
+.checkring {
+  width: 26px; height: 26px; border-radius: 50%; flex: none;
+  background: var(--brand-accent, var(--ink));
+  color: var(--brand-on-accent, #fff);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .85rem; font-weight: 800;
+}
+.arrive .checkring { animation: check-pop .45s cubic-bezier(.2, 1.4, .4, 1) .15s both; }
+@keyframes check-pop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* One tick per word in the game; today's tick in the primary color. */
+.meter {
+  display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px;
+  margin-top: .85rem;
+}
+.meter i {
+  display: block; height: 7px; border-radius: 4px;
+  background: rgba(127, 127, 127, .25);
+}
+.meter i.on { background: var(--brand-accent, var(--ink)); transform-origin: left center; }
+.meter i.today { background: var(--brand-primary, var(--ink)); }
+.arrive .meter i.on { animation: tick-in .3s ease-out both; }
+@keyframes tick-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.meter-label {
+  display: flex; justify-content: space-between;
+  font-size: .66rem; font-weight: 700; letter-spacing: .06em;
+  opacity: .65; margin-top: .4rem; font-variant-numeric: tabular-nums;
+}
+
+.receipt-story {
+  border-top: 1px solid rgba(127, 127, 127, .2);
+  margin-top: .9rem; padding-top: .55rem; text-align: left;
+}
+.receipt-story .today-desc { margin: .3rem 0; }
+.sponsor-line { font-size: .74rem; opacity: .7; margin: .8rem 0 0; }
+.sponsor-line b { font-weight: 700; }
+.receipt-sub { font-size: .8rem; opacity: .65; margin: .5rem 0 0; }
+
+.today-desc { font-size: .92rem; margin: .8rem 0 .3rem; }
 .today-link {
   display: inline-block; margin-top: .5rem;
   font-weight: 700; color: var(--brand-accent, var(--ink));
@@ -75,7 +112,8 @@ body.player {
   color: var(--brand-primary, var(--ink)); opacity: .85;
 }
 
-.bingo-grid {
+.board-rows { display: flex; flex-direction: column; gap: 6px; }
+.board-row {
   display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
 }
 .square {
@@ -84,7 +122,7 @@ body.player {
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   padding: 4px;
-  font-size: clamp(.5rem, 2.4vw, .68rem);
+  font-size: clamp(.6875rem, 2.6vw, .74rem);
   font-weight: 700;
   line-height: 1.15;
   text-align: center;
@@ -110,53 +148,56 @@ body.player {
   font-size: .6rem; letter-spacing: .12em;
 }
 .square.in-line { outline: 3px solid var(--brand-primary, var(--ink)); outline-offset: -1px; }
+.square.open-sq { outline: 2.5px solid var(--brand-accent, var(--ink)); outline-offset: -1px; }
 .square .check {
   position: absolute; top: 3px; right: 5px; font-size: .55rem; opacity: .85;
 }
-.square .gift { position: absolute; top: 2px; left: 5px; font-size: .6rem; }
+.square .gift { position: absolute; top: 2px; left: 4px; font-size: .8rem; }
 
-@keyframes square-pop {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.12); }
-  100% { transform: scale(1); }
+/* Today's square lands on the board after the receipt settles. */
+.square.just-claimed { z-index: 1; }
+.arrive .square.just-claimed {
+  animation: square-land 1s cubic-bezier(.2, 1.2, .4, 1) 1.15s both;
 }
-.square.just-claimed { animation: square-pop .6s ease-out .3s 1 both; }
-@media (prefers-reduced-motion: reduce) {
-  .square.just-claimed { animation: none; }
+@keyframes square-land {
+  0% { transform: scale(.4); opacity: 0; box-shadow: 0 0 0 0 var(--brand-accent, var(--ink)); }
+  55% { transform: scale(1.14); opacity: 1; }
+  75% { box-shadow: 0 0 0 9px transparent; }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
 }
 
-/* Square detail cards */
+/* Detail cards open inside the tapped square's row, full width. */
 .square-detail {
+  grid-column: 1 / -1;
   background: var(--brand-surface, var(--card));
   color: var(--brand-on-surface, var(--ink));
-  border: 1px solid rgba(127, 127, 127, .25);
+  border: 1.5px solid var(--brand-accent, var(--ink));
   border-radius: 12px;
-  padding: 1rem 1.1rem;
-  margin-top: .9rem;
+  padding: .8rem .95rem .85rem;
+  margin: 1px 0 2px;
   text-align: left;
-  box-shadow: 0 4px 14px rgba(0,0,0,.06);
 }
 .square-detail[hidden] { display: none; }
-.square-detail h3 { color: var(--brand-primary, var(--ink)); }
-.square-detail .sponsor-line { font-size: .8rem; opacity: .7; margin-top: .5rem; }
+.square-detail h3 { color: var(--brand-primary, var(--ink)); margin-bottom: .15rem; }
+.square-detail p { font-size: .85rem; margin: 0 0 .35rem; }
 
-/* How to play + bookmark hint */
-.board-help { margin-top: 1.5rem; font-size: .85rem; text-align: center; }
-.board-help .bookmark-hint { opacity: .75; margin-bottom: .6rem; }
-.board-rules {
-  background: var(--brand-surface, var(--card));
-  color: var(--brand-on-surface, var(--ink));
-  border: 1px solid rgba(127, 127, 127, .25);
-  border-radius: 12px;
-  padding: .7rem 1rem;
-  text-align: left;
+/* Quiet footer: the key line and rules are helper text, not cards. */
+.board-help { margin-top: 1.4rem; font-size: .85rem; text-align: center; }
+.keyline { font-size: .8rem; opacity: .8; margin: 0 auto .5rem; max-width: 26rem; }
+.keyline b { font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .arrive .checkring,
+  .arrive .meter i.on,
+  .arrive .square.just-claimed { animation: none; }
 }
+.board-rules { text-align: left; max-width: 26rem; margin: 0 auto; }
 .board-rules summary {
-  cursor: pointer; font-weight: 700; font-size: .8rem;
-  letter-spacing: .08em; text-transform: uppercase; opacity: .8;
-  list-style-position: inside;
+  cursor: pointer; font-weight: 700; font-size: .74rem;
+  letter-spacing: .08em; text-transform: uppercase; opacity: .65;
+  list-style-position: inside; text-align: center;
 }
-.board-rules p { margin: .6rem 0 0; font-size: .88rem; }
+.board-rules p { margin: .6rem 0 0; font-size: .85rem; opacity: .85; }
 
 /* Celebration */
 .celebration {
@@ -180,16 +221,25 @@ body.player {
   .celebration { animation: none; }
 }
 
+/* One card for both standing prizes; rows split by a hairline. */
 .prize-note {
   background: var(--brand-surface, var(--card));
   color: var(--brand-on-surface, var(--ink));
   border: 1px solid rgba(127, 127, 127, .25);
   border-radius: 12px;
-  padding: .9rem 1.1rem;
+  padding: .25rem 1.1rem;
   margin-top: 1.25rem;
   font-size: .9rem;
   text-align: center;
 }
+.prize-row { padding: .65rem 0; }
+.prize-row + .prize-row { border-top: 1px solid rgba(127, 127, 127, .18); }
+.prize-kind {
+  display: inline-block; font-size: .68rem; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; opacity: .6;
+  margin-right: .35rem;
+}
+.prize-row a { font-weight: 700; color: var(--brand-accent, var(--ink)); }
 
 .powered-by {
   text-align: center;

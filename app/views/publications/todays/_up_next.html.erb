@@ -3,13 +3,26 @@
     <div class="eyebrow">On deck</div>
     <h1>Next game <span class="badge badge-amber">Draft</span></h1>
     <p class="small muted" style="margin: .3rem 0 0;">
-      Launches automatically when the current game ends. Prizes and the sponsor stay on from game
-      to game; manage them on the Sponsors &amp; Prizes tab.
+      Launches automatically when the current game ends.
       <% if @publication.calendar_cadence? && game.starts_on > @publication.local_date %>
         Day 1 is expected around <%= game.starts_on.strftime("%B %-d") %>.
       <% end %>
     </p>
   </div>
+</div>
+
+<div class="card" style="margin-bottom: 1.25rem;">
+  <div class="card-head">
+    <h2>What carries over</h2>
+    <%= link_to "Sponsors & Prizes →", account_publication_prizes_path(publication_id: @publication.id), class: "small" %>
+  </div>
+  <div class="carryover">
+    <div class="co"><b>Sponsor</b> <%= @publication.sponsor_name.presence || "None yet" %></div>
+    <div class="co"><b>Line prize</b> <%= @publication.line_prize&.enabled? ? @publication.line_prize.name : "Off" %></div>
+    <div class="co"><b>Blackout prize</b> <%= @publication.blackout_prize&.enabled? ? @publication.blackout_prize.name : "Off" %></div>
+  </div>
+  <p class="small muted" style="margin: .4rem 0 0;">These follow the publication, not the game —
+    change them any time and the next game picks them up.</p>
 </div>
 
 <%= render "word_list", game: game %>

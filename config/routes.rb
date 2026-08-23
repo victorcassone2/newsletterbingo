@@ -35,6 +35,7 @@ Rails.application.routes.draw do
 
   # Public player experience. The newsletter link itself performs the claim.
   get "c/:public_code/today", to: "claims#create", as: :claim
+  get "c/:public_code/word.png", to: "word_images#show", as: :word_image, format: false
   get "p/:public_code/board", to: "boards#show", as: :board
   get "p/:public_code/out/call/:id", to: "outbound_clicks#call", as: :call_outbound
   get "p/:public_code/out/prize/:id", to: "outbound_clicks#prize", as: :prize_outbound

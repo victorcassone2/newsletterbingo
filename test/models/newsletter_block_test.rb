@@ -21,14 +21,16 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "email=|EMAIL|"
   end
 
-  test "today's word is present" do
-    assert_includes NewsletterBlock.new(@publication).to_html, @call.label
+  test "the word arrives as a dynamic image, never baked into the HTML" do
+    html = NewsletterBlock.new(@publication).to_html
+    assert_includes html, "/c/#{@publication.public_code}/word.png"
+    assert_not_includes html, @call.label
   end
 
-  test "gift icon appears only on prize calls" do
-    assert_not_includes NewsletterBlock.new(@publication).to_html, "&#127873;"
+  test "the block is identical from day to day: no per-call state leaks in" do
+    html = NewsletterBlock.new(@publication).to_html
     @call.update!(prize_call: true)
-    assert_includes NewsletterBlock.new(@publication).to_html, "&#127873;"
+    assert_equal html, NewsletterBlock.new(@publication).to_html
   end
 
   test "sponsored by line appears only when the publication has a sponsor name" do
