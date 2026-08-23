@@ -31,19 +31,9 @@
         <b>On the claim receipt</b>
         <span class="sim">Today&rsquo;s game is brought to you by <span class="accent" data-sponsor-preview-target="name"><%= sponsor %></span></span>
       </div>
-      <div class="fp">
-        <b>On winner cards</b>
-        <span class="sim">
-          <% if @line_prize&.enabled? %>
-            You won: <span class="accent"><%= @line_prize.name %></span>
-          <% else %>
-            Name the prize after the sponsor and every win says their name.
-          <% end %>
-        </span>
-      </div>
     </div>
-    <p class="small muted" style="margin: .7rem 0 0;">Every reader touchpoint, in one glance.
-      The first two follow the sponsor name automatically; winner cards carry whatever the prize is named.</p>
+    <p class="small muted" style="margin: .7rem 0 0;">Both follow the sponsor name automatically.
+      To put the sponsor on winner cards too, name the prizes below after them.</p>
   </div>
 
   <%= render "prize", prize: @line_prize %>
