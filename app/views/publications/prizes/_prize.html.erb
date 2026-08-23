@@ -5,7 +5,9 @@
       <% if prize.enabled? %><span class="badge badge-green">Enabled</span><% else %><span class="badge badge-gray">Off</span><% end %>
       <%= form_with model: prize, url: account_publication_prize_path(publication_id: @publication.id, id: prize.id), method: :patch do |form| %>
         <label class="toggle" aria-label="Enable <%= prize.kind %> prize">
-          <%= form.check_box :enabled, onchange: "this.form.requestSubmit();" %>
+          <%# autocomplete off: the browser must not restore a stale checked
+              state over the server-rendered one on refresh %>
+          <%= form.check_box :enabled, onchange: "this.form.requestSubmit();", autocomplete: "off" %>
           <span class="slider"></span>
         </label>
       <% end %>
