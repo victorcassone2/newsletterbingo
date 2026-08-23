@@ -134,6 +134,63 @@
   text-transform: uppercase; color: var(--ink-soft); margin-bottom: .1rem;
 }
 
+/* Sponsorship page: footprint previews, winner's-eye prize cards. */
+.sponsor-row { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+.sponsor-row .field { margin-bottom: 0; }
+.footprint { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: .8rem; margin-top: 1rem; }
+.fp {
+  border: 1px solid var(--line-soft); background: var(--paper); border-radius: 8px;
+  padding: .7rem .8rem; font-size: .78rem; color: var(--ink-soft);
+}
+.fp b {
+  display: block; font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: .35rem;
+}
+.fp .sim { color: var(--ink-strong); }
+.fp .sim .accent { color: var(--brand); font-weight: 650; }
+
+.card-head .head-right { display: flex; align-items: center; gap: .7rem; }
+
+.prize-grid { display: grid; grid-template-columns: minmax(0, 1fr) 12rem; gap: 1.2rem; align-items: start; }
+@media (max-width: 44rem) { .prize-grid { grid-template-columns: 1fr; } }
+.winner-card { border-radius: 12px; padding: 1.1rem 1.2rem; text-align: center; }
+.winner-card h3 { margin: 0 0 .2rem; font-size: 1.2rem; letter-spacing: .02em; color: inherit; }
+.winner-card .win-line { font-size: .9rem; opacity: .92; margin: 0 0 .3rem; }
+.winner-card .win-line b { font-weight: 750; }
+.winner-card .win-instr { font-size: .78rem; opacity: .8; margin: 0 0 .4rem; }
+.winner-card .win-link { display: inline-block; font-size: .8rem; font-weight: 700; text-decoration: underline; }
+.preview-caption {
+  font-size: .68rem; color: var(--ink-faint); text-align: center; margin-top: .45rem;
+  font-family: var(--mono); letter-spacing: .06em;
+}
+.prize-meta { display: flex; flex-direction: column; gap: .8rem; font-size: .85rem; }
+.prize-meta .stat b {
+  font-size: 1.3rem; font-weight: 700; display: block; line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.prize-meta .stat span { font-size: .76rem; color: var(--ink-soft); }
+
+.toggle { position: relative; display: inline-block; width: 40px; height: 24px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider {
+  position: absolute; inset: 0; border-radius: 999px; background: #cbd5e1;
+  transition: background .15s ease; cursor: pointer;
+}
+.toggle .slider::before {
+  content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; top: 3px; left: 3px; transition: transform .15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .25);
+}
+.toggle input:checked + .slider { background: var(--brand); }
+.toggle input:checked + .slider::before { transform: translateX(16px); }
+.toggle input:focus-visible + .slider { outline: 2px solid var(--ink-soft); outline-offset: 2px; }
+
+.edit-details { margin-top: 1rem; }
+.edit-details summary { list-style: none; width: fit-content; }
+.edit-details summary::-webkit-details-marker { display: none; }
+.edit-details[open] summary { margin-bottom: 1rem; }
+.edit-details form { border-top: 1px solid var(--line-soft); padding-top: 1rem; }
+
 /* Today dashboard */
 .today-meta { display: flex; gap: 1.4rem; flex-wrap: wrap; margin: 1rem 0 0; }
 .today-meta .stat .eyebrow { margin-bottom: 0; }

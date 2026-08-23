@@ -146,9 +146,11 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
   test "sponsors and prizes are standing setup, edited on their own page" do
     get account_publication_prizes_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
-    assert_match "Sponsors &amp; Prizes", response.body
+    assert_match "Sponsorship", response.body
     assert_match "Line prize", response.body
     assert_match "Blackout prize", response.body
+    assert_match "In the email block", response.body # the sponsor footprint
+    assert_match "awarded this game", response.body  # award counts on each prize
 
     patch account_publication_sponsor_path(account_id: @account_id, publication_id: @publication.id),
       params: { publication: { sponsor_name: "Midtown Market" } }
