@@ -165,6 +165,26 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_equal "$25 Gift Card", prize.name
   end
 
+  test "the enable toggle swaps just the prize card, no page reload" do
+    prize = @publication.line_prize
+    prize.update!(enabled: true, name: "$25 Gift Card")
+
+    patch account_publication_prize_path(account_id: @account_id, publication_id: @publication.id, id: prize.id),
+      params: { prize: { enabled: "0" } }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %(target="#{ActionView::RecordIdentifier.dom_id(prize)}"), response.body
+    assert_not prize.reload.enabled?
+
+    # Enabling a prize with no name fails in place, with the error in the card
+    prize.update!(name: nil)
+    patch account_publication_prize_path(account_id: @account_id, publication_id: @publication.id, id: prize.id),
+      params: { prize: { enabled: "1" } }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_response :unprocessable_entity
+    assert_match "Name can", response.body
+    assert_not prize.reload.enabled?
+  end
+
   test "setup gathers merge tag, embed, branding and settings on one page" do
     get edit_account_publication_path(account_id: @account_id, id: @publication.id)
     assert_response :success

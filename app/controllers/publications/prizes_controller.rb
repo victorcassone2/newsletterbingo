@@ -6,15 +6,28 @@ class Publications::PrizesController < Publications::BaseController
     load_page
   end
 
+  # Saves land as a Turbo Stream that swaps just the prize's card, so the
+  # enable toggles and edit forms update in place without a page jump.
   def update
     prize = @publication.prizes.find(params[:id])
     if prize.update(prize_params)
-      redirect_to account_publication_prizes_path(publication_id: @publication.id),
-        notice: "#{prize.kind.capitalize} prize saved."
+      respond_to do |format|
+        format.turbo_stream do
+          load_page
+          render_card(prize)
+        end
+        format.html do
+          redirect_to account_publication_prizes_path(publication_id: @publication.id),
+            notice: "#{prize.kind.capitalize} prize saved."
+        end
+      end
     else
       load_page
       @errored_prize = prize
-      render :index, status: :unprocessable_entity
+      respond_to do |format|
+        format.turbo_stream { render_card(prize, status: :unprocessable_entity) }
+        format.html { render :index, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -24,6 +37,11 @@ class Publications::PrizesController < Publications::BaseController
       @blackout_prize = @publication.blackout_prize
       @game = @publication.active_game
       @prize_calls = @game ? @game.daily_calls.where(prize_call: true).includes(:game_word) : DailyCall.none
+    end
+
+    def render_card(prize, status: :ok)
+      render turbo_stream: turbo_stream.replace(prize, partial: "prize", locals: { prize: prize }),
+        status: status
     end
 
     def prize_params
