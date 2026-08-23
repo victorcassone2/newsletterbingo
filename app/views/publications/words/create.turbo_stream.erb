@@ -1,0 +1,7 @@
+<%= turbo_stream.update "word-errors", "" %>
+<%= turbo_stream.prepend "ready-cloud" do %>
+  <%= render "chip", word: @word, uses: 0 %>
+<% end %>
+<%= turbo_stream.replace "word-goal" do %>
+  <%= render "goal" %>
+<% end %>

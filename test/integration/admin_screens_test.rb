@@ -137,10 +137,38 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_select "span.badge-amber", text: "Draft"
   end
 
-  test "the library lists the word pool" do
+  test "the library lists the word pool with the custom-word goal" do
     get account_publication_words_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
-    assert_match "Library", response.body
+    assert_match "Make the game yours", response.body
+    assert_select "#word-goal"
+    assert_select "#ready-cloud"
+  end
+
+  test "quick-adding a word streams the chip and goal, no reload" do
+    post account_publication_words_path(account_id: @account_id, publication_id: @publication.id),
+      params: { word: { label: "gene leahy" } }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_match %(action="prepend" target="ready-cloud"), response.body
+    assert_match "GENE LEAHY", response.body
+    assert @publication.words.exists?(label: "GENE LEAHY")
+
+    # A duplicate streams the error into place instead of adding a chip
+    post account_publication_words_path(account_id: @account_id, publication_id: @publication.id),
+      params: { word: { label: "Gene Leahy" } }, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_match %(target="word-errors"), response.body
+    assert_match "already in the word library", response.body
+    assert_equal 1, @publication.words.where(label: "GENE LEAHY").count
+  end
+
+  test "archiving a word swaps its chip in place" do
+    word = @publication.words.create!(label: "OLD MARKET")
+    post account_publication_word_archival_path(account_id: @account_id, publication_id: @publication.id, word_id: word.id),
+      headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    assert_response :success
+    assert_match %(target="#{ActionView::RecordIdentifier.dom_id(word)}"), response.body
+    assert word.reload.archived?
   end
 
   test "sponsors and prizes are standing setup, edited on their own page" do

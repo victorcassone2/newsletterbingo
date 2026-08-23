@@ -1,0 +1,25 @@
+<%# The library's mission: enough custom words that games need no system
+    fill. One tick per word toward the Game::DAYS goal. %>
+<% count = @publication.words.active.count %>
+<div id="word-goal" class="goal-head">
+  <div>
+    <div class="eyebrow">Word library</div>
+    <h1>Make the game yours</h1>
+    <p class="goal-sub">
+      <% if count >= Game::DAYS %>
+        <b><%= count %></b> custom words — every game now draws only your words
+      <% else %>
+        <b><%= count %></b> custom <%= "word".pluralize(count) %> —
+        add <b><%= Game::DAYS - count %></b> more and every game is 100% yours
+      <% end %>
+    </p>
+    <div class="gameticks" aria-hidden="true">
+      <% Game::DAYS.times do |index| %>
+        <i class="<%= "on" if index < count %>"></i>
+      <% end %>
+    </div>
+  </div>
+  <% if count >= Game::DAYS %>
+    <span class="goal-done">✓ Fully yours — keep adding for variety</span>
+  <% end %>
+</div>

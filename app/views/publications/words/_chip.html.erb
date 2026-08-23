@@ -1,0 +1,20 @@
+<%
+  uses = local_assigns.fetch(:uses, 0)
+  in_game = local_assigns.fetch(:in_game, false)
+%>
+<span class="wchip <%= "ingame" if in_game %> <%= "archived" if word.archived? %> <%= "sys" if word.system? %>"
+      id="<%= dom_id word %>" data-cloud-filter-target="chip" data-label="<%= word.label %>"
+      <% if uses.positive? %>title="Used in <%= pluralize(uses, "game") %>"<% end %>>
+  <% if in_game %><span class="dot"></span><% end %>
+  <%= word.label %>
+  <% if uses.positive? && !word.system? %><span class="use"><%= uses %>×</span><% end %>
+  <% unless word.system? || in_game %>
+    <% if word.archived? %>
+      <%= button_to "↺", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id),
+            method: :delete, class: "x", title: "Restore #{word.label}" %>
+    <% else %>
+      <%= button_to "×", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id),
+            method: :post, class: "x", title: "Archive #{word.label}" %>
+    <% end %>
+  <% end %>
+</span>

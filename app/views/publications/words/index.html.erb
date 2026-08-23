@@ -1,55 +1,85 @@
-<div class="page-head">
-  <h1>Library</h1>
+<%= render "goal" %>
+
+<div class="card quickadd" data-controller="word-add">
+  <%= form_with model: @word, url: account_publication_words_path(publication_id: @publication.id),
+        data: { action: "turbo:submit-end->word-add#reset" } do |form| %>
+    <%= form.text_field :label, placeholder: "Add a word and press Enter — it lands in the pool instantly",
+          maxlength: 40, autocomplete: "off", autofocus: @filter == "custom",
+          data: { word_add_target: "input" } %>
+  <% end %>
+  <div id="word-errors"></div>
+  <div class="qa-hints">
+    <span>Need ideas?</span>
+    <% { "Neighborhoods" => "e.g. DUNDEE, BENSON, FLORENCE…",
+         "Rival teams" => "e.g. JAYHAWKS, CYCLONES…",
+         "Local legends" => "the names only your readers know",
+         "Annual events" => "e.g. TACO RIDE, COLLEGE WORLD SERIES…",
+         "Inside jokes" => "the words only your readers get" }.each do |category, prompt| %>
+      <button type="button" class="qa-hint" data-action="word-add#hint"
+              data-word-add-placeholder-param="<%= prompt %>"><%= category %></button>
+    <% end %>
+  </div>
 </div>
 
+<div data-controller="cloud-filter">
+  <div class="filter-row">
+    <div class="tabs" style="margin: 0;">
+      <%= link_to "My words (#{@publication.words.active.count})",
+            account_publication_words_path(publication_id: @publication.id),
+            class: ("active" if @filter == "custom") %>
+      <%= link_to "System library (#{Word.system.active.count})",
+            account_publication_words_path(publication_id: @publication.id, filter: "system"),
+            class: ("active" if @filter == "system") %>
+    </div>
+    <input type="search" placeholder="Filter as you type…" autocomplete="off"
+           data-action="input->cloud-filter#filter">
+    <span class="count-note" data-cloud-filter-target="count"></span>
+  </div>
 
-<div class="tabs">
-  <%= link_to "Custom (#{@publication.words.active.count})", account_publication_words_path(publication_id: @publication.id, filter: "custom", q: params[:q]), class: ("active" if @filter == "custom") %>
-  <%= link_to "System library (#{Word.system.active.count})", account_publication_words_path(publication_id: @publication.id, filter: "system", q: params[:q]), class: ("active" if @filter == "system") %>
-</div>
+  <% if @filter == "system" %>
+    <div class="cloud-group">
+      <h3>Fill in when your custom pool runs short — custom words are always picked first</h3>
+      <div class="cloud">
+        <%= render partial: "chip", collection: @words, as: :word %>
+      </div>
+    </div>
+  <% else %>
+    <% in_game, rest = @words.partition { |word| @in_game_ids.include?(word.id) } %>
+    <% archived, ready = rest.partition(&:archived?) %>
 
-<div class="grid-2">
-  <div class="card">
-    <%= form_with url: account_publication_words_path(publication_id: @publication.id), method: :get, data: { turbo_frame: "_top" } do %>
-      <%= hidden_field_tag :filter, @filter %>
-      <div class="field" style="display:flex; gap:.5rem; margin-bottom: 1rem;">
-        <%= text_field_tag :q, params[:q], placeholder: "Search words…" %>
-        <%= submit_tag "Search", class: "btn btn-quiet" %>
+    <% if in_game.any? %>
+      <div class="cloud-group">
+        <h3>In the current game</h3>
+        <div class="cloud">
+          <% in_game.each do |word| %>
+            <%= render "chip", word: word, in_game: true, uses: @use_counts.fetch(word.id, 0) %>
+          <% end %>
+        </div>
       </div>
     <% end %>
 
-    <% if @words.any? %>
-      <ul class="list">
-        <% @words.each do |word| %>
-          <li class="word-chip-row">
-            <span>
-              <strong><%= word.label %></strong>
-              <% if word.archived? %><span class="badge badge-gray">Archived</span><% end %>
-              <% if word.in_open_game? %><span class="badge badge-green">In current game</span><% end %>
-            </span>
-            <% unless word.system? %>
-              <% if word.archived? %>
-                <%= button_to "Restore", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id), method: :delete, class: "link-button small" %>
-              <% else %>
-                <%= button_to "Archive", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id), method: :post, class: "link-button small" %>
-              <% end %>
-            <% end %>
-          </li>
+    <div class="cloud-group">
+      <h3>Ready for future games</h3>
+      <div class="cloud" id="ready-cloud">
+        <% ready.each do |word| %>
+          <%= render "chip", word: word, uses: @use_counts.fetch(word.id, 0) %>
         <% end %>
-      </ul>
-    <% else %>
-      <p class="muted">No words<%= " match “#{params[:q]}”" if params[:q].present? %>.</p>
-    <% end %>
-  </div>
-
-  <div class="card">
-    <div class="card-head"><h2>Add a custom word</h2></div>
-    <p class="small muted">Local words make the game yours: neighborhoods, teams, landmarks, events. They're only used by this publication and get picked before system words.</p>
-    <%= form_with model: @word, url: account_publication_words_path(publication_id: @publication.id) do |form| %>
-      <div class="field">
-        <%= form.text_field :label, placeholder: "FARMERS MARKET" %>
+        <% if ready.empty? %>
+          <p class="small muted" style="margin: 0;">Your pool is empty — add the words only your
+            readers would recognize, and games start feeling like yours.</p>
+        <% end %>
       </div>
-      <%= form.submit "Add word", class: "btn btn-primary" %>
+    </div>
+
+    <% if archived.any? %>
+      <div class="cloud-group">
+        <h3>Archived — never picked for games</h3>
+        <div class="cloud">
+          <% archived.each do |word| %>
+            <%= render "chip", word: word, uses: @use_counts.fetch(word.id, 0) %>
+          <% end %>
+        </div>
+      </div>
     <% end %>
-  </div>
+  <% end %>
 </div>
