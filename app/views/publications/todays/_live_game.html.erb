@@ -11,7 +11,7 @@
       <div class="card">
         <h2>The first word arrives with your next newsletter</h2>
         <p class="small muted">Nothing to schedule. When your next issue goes out, the first reader's click
-          draws word 1 of <%= Game::DAYS %> and claims their square — you'll see it appear here.</p>
+          draws word 1 of <%= Game::DAYS %> and claims their square. You'll see it appear here.</p>
         <p class="small muted">Make sure the embed block below is in your email template and your campaign
           merge tag is set in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
       </div>
@@ -23,7 +23,7 @@
         </div>
         <div class="embed-preview"><%= @newsletter_block.to_html %></div>
         <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
-        <p class="small muted" style="margin-top: .75rem;">Evergreen — paste it into your reusable template once.</p>
+        <p class="small muted" style="margin-top: .75rem;">Evergreen: paste it into your reusable template once.</p>
       </div>
     </div>
 
@@ -38,7 +38,7 @@
         <% if !@game.started? %>
           The game begins <%= @game.starts_on.strftime("%A, %B %-d") %>.
         <% else %>
-          There's no word scheduled today — the game continues on your next send day.
+          There's no word scheduled today. The game continues on your next send day.
         <% end %>
       </p>
     </div>
@@ -71,34 +71,23 @@
         <div class="ticket-word"><%= @call.label %></div>
       </div>
 
-      <div class="today-meta">
-        <div class="stat">
-          <div class="eyebrow"><%= @publication.issue_cadence? ? "Claims this issue" : "Claims today" %></div>
-          <strong><%= @claims_today %></strong>
-        </div>
-      </div>
-
-      <% if @call.description.present? %>
-        <p class="small" style="margin-top: .9rem;"><%= @call.description %></p>
-      <% end %>
-      <% if @call.link? %>
-        <p class="small muted"><%= @call.link_text %> → <%= @call.link_url %></p>
-      <% end %>
+      <p class="small muted" style="margin-top: .9rem;">
+        <% if @call.word_changeable? %>
+          Word can still change.
+        <% elsif @publication.issue_cadence? %>
+          Word locked: sent with this issue.
+        <% else %>
+          Word locked<%= ": already claimed" if @call.daily_claims.any? %>.
+        <% end %>
+      </p>
 
       <div class="today-actions">
         <%= link_to "Edit this call", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), class: "btn btn-primary btn-small" %>
-        <% if @call.word_changeable? %>
-          <span class="badge badge-amber">Word can still change</span>
-        <% elsif @publication.issue_cadence? %>
-          <% if @current_issue&.rollbackable? %>
-            <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @current_issue.id),
-                  method: :delete, class: "btn btn-quiet btn-small",
-                  form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
-          <% else %>
-            <span class="badge badge-gray">Word locked — sent with this issue</span>
-          <% end %>
-        <% else %>
-          <span class="badge badge-gray">Word locked<%= " — already claimed" if @call.daily_claims.any? %></span>
+        <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id), target: "_blank", class: "btn btn-quiet btn-small" %>
+        <% if !@call.word_changeable? && @publication.issue_cadence? && @current_issue&.rollbackable? %>
+          <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @current_issue.id),
+                method: :delete, class: "btn btn-quiet btn-small",
+                form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
         <% end %>
       </div>
     </div>
@@ -123,9 +112,10 @@
         </p>
         <div class="today-actions">
           <%= link_to "Edit this call", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @next_call.id), class: "btn btn-quiet btn-small" %>
+          <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id, word: "next"), target: "_blank", class: "btn btn-quiet btn-small" %>
         </div>
       <% else %>
-        <p class="small muted" style="margin-top: .9rem;">That was the last word — the next game takes over automatically.</p>
+        <p class="small muted" style="margin-top: .9rem;">That was the last word. The next game takes over automatically.</p>
       <% end %>
     </div>
   </div>

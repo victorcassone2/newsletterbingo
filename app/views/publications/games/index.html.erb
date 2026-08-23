@@ -1,6 +1,6 @@
 <div class="page-head">
   <h1>Games</h1>
-  <span class="small muted">Games run continuously — set up the next one from <%= link_to "Today", account_publication_today_path(publication_id: @publication.id) %>.</span>
+  <span class="small muted">Games run continuously. Set up the next one from <%= link_to "Today", account_publication_today_path(publication_id: @publication.id) %>.</span>
 </div>
 
 <% if @games.any? %>
@@ -11,7 +11,7 @@
           <div>
             <% game_path = game.completed? ? account_publication_game_path(publication_id: @publication.id, id: game.id) : account_publication_today_path(publication_id: @publication.id) %>
             <%= link_to game_label(game), game_path %>
-            <% if game.active? %><span class="badge badge-green">Live — Word <%= game.days_elapsed %> of <%= Game::DAYS %></span>
+            <% if game.active? %><span class="badge badge-green">Live: Word <%= game.days_elapsed %> of <%= Game::DAYS %></span>
             <% elsif game.draft? %><span class="badge badge-amber">Draft</span>
             <% else %><span class="badge badge-gray">Completed</span><% end %>
           </div>
@@ -23,7 +23,7 @@
 <% else %>
   <div class="empty-state">
     <h2>No games yet</h2>
-    <p>A game runs exactly 24 days — one word per day, one click per reader.</p>
+    <p>A game runs exactly 24 days: one word per day, one click per reader.</p>
     <%= link_to "Set up your first game", account_publication_today_path(publication_id: @publication.id), class: "btn btn-primary" %>
   </div>
 <% end %>

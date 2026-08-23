@@ -29,9 +29,11 @@
       <% if @publication&.persisted? %>
         <nav class="pubnav">
           <div class="pubnav-inner">
+            <%= link_to "&larr;".html_safe, account_publications_path(account_id: Current.account.id),
+                  class: "pubnav-back", "aria-label": "Back to publications" %>
             <span class="pubnav-name"><%= @publication.name %></span>
             <div class="pubnav-links">
-              <%= nav_link_to "Today", account_publication_today_path(publication_id: @publication.id),
+              <%= nav_link_to "Games", account_publication_today_path(publication_id: @publication.id),
                     active: controller_name == "todays" || controller_path.include?("games") %>
               <%= nav_link_to "Sponsors & Prizes", account_publication_prizes_path(publication_id: @publication.id),
                     active: controller_path == "publications/prizes" || controller_path == "publications/sponsors" %>

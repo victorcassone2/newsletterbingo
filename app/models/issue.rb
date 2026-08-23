@@ -10,7 +10,7 @@ class Issue < ApplicationRecord
   validates :token, presence: true, uniqueness: { scope: :game_id }
   validates :called_on, presence: true
 
-  # A token that looks like a real campaign id — not blank, not an
+  # A token that looks like a real campaign id: not blank, not an
   # unreplaced merge tag ({{campaign_id}}, *|CAMPAIGN_UID|*, …).
   def self.plausible_token?(token)
     token.present? && token.length <= 120 && !token.match?(/[{}|\[\]%*\s]/)

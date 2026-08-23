@@ -1,6 +1,6 @@
 class Publications::TodaysController < Publications::BaseController
   # The publisher's home: the live game plus the on-deck draft. Before
-  # the first launch there is no live game — just the draft to review.
+  # the first launch there is no live game, just the draft to review.
   def show
     @publication.rotate_games
     @game = @publication.active_game

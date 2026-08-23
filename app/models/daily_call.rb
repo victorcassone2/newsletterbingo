@@ -53,7 +53,7 @@ class DailyCall < ApplicationRecord
     position
   end
 
-  # Once a word is out — called, claimed, or sent with an issue — it keeps
+  # Once a word is out (called, claimed, or sent with an issue) it keeps
   # its place in game history. Draft calls are always still on the table.
   def word_changeable?
     if game.draft?
@@ -67,7 +67,7 @@ class DailyCall < ApplicationRecord
 
   # Moves this call's word to another slot in the upcoming schedule; the
   # words between the two slots shift by one to make room. Calls keep
-  # their positions and dates — only the word assignments rotate, so
+  # their positions and dates. Only the word assignments rotate, so
   # issued history is never rewritten.
   def move_word_to(new_position)
     affected = game.daily_calls.where(position: [ position, new_position ].min..[ position, new_position ].max).to_a

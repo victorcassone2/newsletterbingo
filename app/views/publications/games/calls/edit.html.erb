@@ -20,7 +20,7 @@
 <div class="grid-2">
   <div class="card">
     <div class="card-head"><h2>Call content</h2></div>
-    <p class="small muted">Shown to readers <em>after</em> they claim — never in the email itself.</p>
+    <p class="small muted">Shown to readers <em>after</em> they claim, never in the email itself.</p>
     <%= form_with model: @call, url: account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), method: :patch do |form| %>
       <% if @call.errors.any? %>
         <div class="errors"><%= @call.errors.full_messages.to_sentence %></div>
@@ -41,7 +41,7 @@
         </div>
       </div>
       <div class="field">
-        <label><%= form.check_box :prize_call %> Prize call — show a 🎁 in the newsletter block</label>
+        <label><%= form.check_box :prize_call %> Prize call: show a 🎁 in the newsletter block</label>
       </div>
       <div class="field">
         <%= form.label :prize_description, "Prize call description (optional)" %>
@@ -66,7 +66,7 @@
               <option value="<%= word.label %>"></option>
             <% end %>
           </datalist>
-          <div class="hint">Matches the library as you type — a word not in it yet is added.
+          <div class="hint">Matches the library as you type. A word not in it yet is added.
             Swaps the new word into every player's board in this square's place.</div>
         </div>
         <%= submit_tag "Replace word", class: "btn btn-quiet" %>

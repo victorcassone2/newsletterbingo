@@ -2,7 +2,7 @@ class Publications::Games::LaunchesController < Publications::Games::BaseControl
   def create
     @game.launch
     notice = @publication.issue_cadence? ?
-      "Your game is live — the first word goes out with your next send." :
+      "Your game is live. The first word goes out with your next send." :
       "Your game is live. Day 1 is #{@game.starts_on.strftime("%B %-d")}."
     back_to_game notice: notice
   rescue Game::NotLaunchable => error

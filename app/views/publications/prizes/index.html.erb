@@ -1,13 +1,13 @@
 <div class="page-head">
   <div>
-    <div class="eyebrow">Always on — applies to the current game and every game after it</div>
+    <div class="eyebrow">Always on: applies to the current game and every game after it</div>
     <h1>Sponsors &amp; Prizes</h1>
   </div>
 </div>
 
 <div class="card">
   <div class="card-head"><h2>Sponsor</h2></div>
-  <p class="small muted">Shown as &ldquo;Brought to you by &hellip;&rdquo; in the newsletter block. Leave blank for none.</p>
+  <p class="small muted">Shown as &ldquo;Sponsored by &hellip;&rdquo; in the newsletter block. Leave blank for none.</p>
   <%= form_with model: @publication, url: account_publication_sponsor_path(publication_id: @publication.id), method: :patch do |form| %>
     <div class="field" style="max-width: 24rem;">
       <%= form.label :sponsor_name, "Sponsor name" %>

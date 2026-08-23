@@ -4,7 +4,7 @@
     <h1>Next game <span class="badge badge-amber">Draft</span></h1>
     <p class="small muted" style="margin: .3rem 0 0;">
       Launches automatically when the current game ends. Prizes and the sponsor stay on from game
-      to game — manage them on the Sponsors &amp; Prizes tab.
+      to game; manage them on the Sponsors &amp; Prizes tab.
       <% if @publication.calendar_cadence? && game.starts_on > @publication.local_date %>
         Day 1 is expected around <%= game.starts_on.strftime("%B %-d") %>.
       <% end %>

@@ -5,8 +5,8 @@ import { Controller } from "@hotwired/stimulus"
 // the background; a rejected move reloads to resync with the server.
 //
 // Modes mirror the server's semantics:
-// * "rows"  (draft reveal order) — the whole row moves and slots renumber.
-// * "words" (live schedule) — word labels rotate among fixed slots, which
+// * "rows"  (draft reveal order): the whole row moves and slots renumber.
+// * "words" (live schedule): word labels rotate among fixed slots, which
 //   keep their dates, sponsors, and prize badges.
 export default class extends Controller {
   dragstart(event) {

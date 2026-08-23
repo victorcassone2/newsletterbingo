@@ -8,7 +8,7 @@ class Publications::Games::IssuesController < Publications::Games::BaseControlle
       issue.rollback
       back_to_game notice: "#{label} is back in the queue."
     else
-      back_to_game alert: "That word can't be re-queued — readers have already claimed it."
+      back_to_game alert: "That word can't be re-queued. Readers have already claimed it."
     end
   end
 end

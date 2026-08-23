@@ -154,10 +154,10 @@ class GameTest < ActiveSupport::TestCase
   test "no call can exist beyond the 24-day window" do
     game = create_running_game(@publication, starts_on: Date.new(2026, 8, 1))
     # The (game, game_word) constraint is deferred for swaps, so force it
-    # immediate here — transactional tests never reach COMMIT.
+    # immediate here; transactional tests never reach COMMIT.
     ActiveRecord::Base.connection.execute("SET CONSTRAINTS daily_calls_game_word_unique IMMEDIATE")
     assert_raises(ActiveRecord::RecordNotUnique) do
-      # Day 25 would need to reuse one of the 24 words — blocked.
+      # Day 25 would need to reuse one of the 24 words, so it's blocked.
       game.daily_calls.create!(game_word: game.game_words.first, call_on: Date.new(2026, 8, 25), position: 25)
     end
   end

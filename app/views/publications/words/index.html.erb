@@ -44,7 +44,7 @@
 
   <div class="card">
     <div class="card-head"><h2>Add a custom word</h2></div>
-    <p class="small muted">Local words make the game yours — neighborhoods, teams, landmarks, events. They're only used by this publication and get picked before system words.</p>
+    <p class="small muted">Local words make the game yours: neighborhoods, teams, landmarks, events. They're only used by this publication and get picked before system words.</p>
     <%= form_with model: @word, url: account_publication_words_path(publication_id: @publication.id) do |form| %>
       <div class="field">
         <%= form.text_field :label, placeholder: "FARMERS MARKET" %>

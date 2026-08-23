@@ -20,8 +20,44 @@
   max-width: 62rem; margin: 0 auto; padding: .5rem 1.25rem;
   display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
 }
+.pubnav-back { text-decoration: none; color: inherit; opacity: .55; margin-right: -.75rem; }
+.pubnav-back:hover { opacity: 1; }
 .pubnav-name { font-weight: 650; font-size: .95rem; }
+
+/* Setup page: cards span the full page, so cap text inputs at half width.
+   Full width again on narrow screens. */
+.setup-page input[type="text"], .setup-page input[type="url"],
+.setup-page input[type="email"], .setup-page select { width: 50%; }
+@media (max-width: 40rem) {
+  .setup-page input[type="text"], .setup-page input[type="url"],
+  .setup-page input[type="email"], .setup-page select { width: 100%; }
+}
 .pubnav-links { display: flex; gap: .95rem; font-size: .88rem; flex-wrap: wrap; }
+
+/* Choice cards: radio options presented as selectable cards. The whole
+   card is the tap target; the checked state carries the emphasis. */
+.choice-cards { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .4rem; }
+@media (max-width: 44rem) { .choice-cards { grid-template-columns: 1fr; } }
+.choice-card {
+  display: flex; gap: .6rem; align-items: flex-start; cursor: pointer;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: .8rem .9rem; margin-bottom: 0; font-weight: 400;
+  transition: border-color .12s ease, background-color .12s ease;
+}
+.choice-card:hover { border-color: var(--ink-faint); }
+.choice-card:has(input:checked) { border-color: var(--ink-strong); background: var(--tint); }
+.choice-card:has(input:focus-visible) { outline: 2px solid var(--ink-soft); outline-offset: 1px; }
+.choice-card input { margin-top: .2rem; accent-color: var(--ink); }
+.choice-card-body { display: block; }
+.choice-card-title {
+  display: flex; align-items: center; gap: .45rem; flex-wrap: wrap;
+  font-weight: 600; color: var(--ink); font-size: .9rem;
+}
+.choice-card-hint { display: block; font-size: .8rem; color: var(--ink-soft); margin-top: .25rem; }
+.choice-card-platforms {
+  display: block; font-size: .72rem; font-weight: 600; letter-spacing: .02em;
+  color: var(--ink-faint); margin-top: .5rem;
+}
 
 .admin-main { max-width: 62rem; margin: 0 auto; padding: 1.75rem 1.25rem 4rem; }
 

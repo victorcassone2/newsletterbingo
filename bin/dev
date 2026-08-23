@@ -1,2 +1,3 @@
 #!/usr/bin/env ruby
+require_relative "ruby_guard"
 exec "./bin/rails", "server", *ARGV

@@ -12,7 +12,7 @@
 
 <% if @game %>
   <div class="card" style="margin-bottom: 1.25rem;">
-    <h2>Current game — Day <%= @game.days_elapsed %> of <%= Game::DAYS %></h2>
+    <h2>Current game: Day <%= @game.days_elapsed %> of <%= Game::DAYS %></h2>
     <div class="stat-tiles" style="margin: .75rem 0 1.25rem;">
       <div class="stat-tile"><strong><%= @analytics.game_participants(@game) %></strong><span>Players</span></div>
       <div class="stat-tile"><strong><%= @analytics.participation_rate_today(@game) %>%</strong><span>Claimed today</span></div>

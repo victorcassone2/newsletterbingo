@@ -14,7 +14,9 @@ day's square on their own persistent 5×5 bingo board for the current 24-day Gam
 - **Jobs/Cache/Cable:** Solid Queue / Solid Cache / Solid Cable
 - **IDs:** UUID primary keys everywhere (see `config/initializers/generators.rb`)
 
-Ruby environment note: rvm's old Ruby 3.0 shadows the Homebrew Ruby. Run commands as:
+Ruby environment note: rvm's old Ruby 3.0 shadows the Homebrew Ruby. The `bin/` binstubs
+self-correct via `bin/ruby_guard.rb` (re-exec under Homebrew Ruby), so `bin/dev`,
+`bin/rails`, etc. work in any shell. For bare `ruby`/`bundle`/`gem` commands, first run:
 `unset GEM_HOME GEM_PATH; export PATH=/usr/local/opt/ruby/bin:/usr/local/lib/ruby/gems/3.3.0/bin:$PATH`
 
 ## Architecture

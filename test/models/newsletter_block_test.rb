@@ -31,16 +31,16 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes NewsletterBlock.new(@publication).to_html, "&#127873;"
   end
 
-  test "brought to you by line appears only when the publication has a sponsor name" do
-    assert_not_includes NewsletterBlock.new(@publication).to_html, "Brought to you by"
+  test "sponsored by line appears only when the publication has a sponsor name" do
+    assert_not_includes NewsletterBlock.new(@publication).to_html, "Sponsored by"
     @publication.update!(sponsor_name: "Midtown Market")
-    assert_includes NewsletterBlock.new(@publication).to_html, "Brought to you by Midtown Market"
+    assert_includes NewsletterBlock.new(@publication).to_html, "Sponsored by Midtown Market"
   end
 
   test "the evergreen block carries the sponsor line" do
     @publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
     @publication.update!(sponsor_name: "Midtown Market")
-    assert_includes NewsletterBlock.new(@publication).to_html, "Brought to you by Midtown Market"
+    assert_includes NewsletterBlock.new(@publication).to_html, "Sponsored by Midtown Market"
   end
 
   test "description and destination link stay out of the email" do

@@ -6,7 +6,7 @@ class Publications::Games::BaseController < Publications::BaseController
       @game = @publication.games.find(params[:game_id])
     end
 
-    # The open game is managed from Today — drafts on its "next" tab —
+    # The open game is managed from Today (drafts on its "next" tab)
     # while finished games keep their own page.
     def back_to_game(**options)
       if @game.completed?

@@ -85,7 +85,7 @@
       %>
       <% if square.claimed? && !square.free? %>
         <button type="button" class="<%= classes %>" data-action="board#reveal" data-square-key="<%= square.position %>"
-                aria-label="<%= square.label %>, claimed — show details">
+                aria-label="<%= square.label %>, claimed. Show details">
           <% if call&.prize_call? %><span class="gift">🎁</span><% end %>
           <span class="check">✓</span>
           <%= square.label %>
@@ -143,12 +143,12 @@
   <% end %>
 
   <div class="board-help">
-    <p class="bookmark-hint">📌 Bookmark this page — your card lives here for the whole game.</p>
+    <p class="bookmark-hint">📌 Bookmark this page. Your card lives here for the whole game.</p>
     <details class="board-rules">
       <summary>How to play</summary>
       <p>A new word drops with every <%= @publication.name %> email. Tap the bingo link in the email to claim
-        its square — it&rsquo;s the only way to fill your card.</p>
-      <p>Five claimed squares in a row — across, down, or diagonal — is a <strong>bingo</strong>.
+        its square. It&rsquo;s the only way to fill your card.</p>
+      <p>Five claimed squares in a row (across, down, or diagonal) is a <strong>bingo</strong>.
         Claim all <%= Game::DAYS %> words for a <strong>blackout</strong>. The center square is free.</p>
       <p>Tap any claimed square to see what it was about.</p>
     </details>

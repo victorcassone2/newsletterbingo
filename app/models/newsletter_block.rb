@@ -1,5 +1,5 @@
 # Builds the tiny email-safe HTML block a publication pastes into its
-# email. Table-based, inline CSS, no JavaScript — the click itself is the
+# email. Table-based, inline CSS, no JavaScript. The click itself is the
 # claim. The ESP's merge tags are inserted verbatim into the claim URL and
 # replaced by the email platform at send time.
 #
@@ -56,9 +56,9 @@ class NewsletterBlock
                 <tr>
                   <td align="center" style="padding:16px 20px 14px;font-family:Helvetica,Arial,sans-serif;">
                     <div style="font-size:11px;font-weight:bold;letter-spacing:2px;color:#{h publication.primary_color};">TODAY&#8217;S BINGO#{" &#127873;" if prize_call?}</div>
+                    #{sponsor_row}
                     <div style="font-size:22px;font-weight:bold;color:#{h publication.text_color};padding:10px 0 12px;">#{h word_label}</div>
                     <a href="#{h claim_url}" style="display:inline-block;background-color:#{h publication.accent_color};color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:9px 18px;border-radius:8px;">Claim today&#8217;s spot &#8594;</a>
-                    #{sponsor_row}
                   </td>
                 </tr>
               </table>
@@ -77,9 +77,8 @@ class NewsletterBlock
                 <tr>
                   <td align="center" style="padding:16px 20px 14px;font-family:Helvetica,Arial,sans-serif;">
                     <div style="font-size:11px;font-weight:bold;letter-spacing:2px;color:#{h publication.primary_color};">TODAY&#8217;S BINGO</div>
-                    <div style="font-size:14px;color:#{h publication.text_color};padding:10px 0 12px;">A new word drops with this issue &#8212; claim your square.</div>
-                    <a href="#{h claim_url}" style="display:inline-block;background-color:#{h publication.accent_color};color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:9px 18px;border-radius:8px;">Claim today&#8217;s spot &#8594;</a>
                     #{sponsor_row}
+                    <div style="padding-top:12px;"><a href="#{h claim_url}" style="display:inline-block;background-color:#{h publication.accent_color};color:#ffffff;text-decoration:none;font-size:14px;font-weight:bold;padding:9px 18px;border-radius:8px;">Claim today&#8217;s spot &#8594;</a></div>
                   </td>
                 </tr>
               </table>
@@ -91,7 +90,7 @@ class NewsletterBlock
 
     def sponsor_row
       if sponsor_name.present?
-        %(<div style="font-size:11px;color:#{h publication.text_color};opacity:0.7;padding-top:10px;">Brought to you by #{h sponsor_name}</div>)
+        %(<div style="font-size:11px;color:#{h publication.text_color};opacity:0.7;padding-top:4px;">Sponsored by #{h sponsor_name}</div>)
       else
         ""
       end

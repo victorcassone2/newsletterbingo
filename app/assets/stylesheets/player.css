@@ -2,7 +2,7 @@
    --brand-primary, --brand-accent, --brand-background, --brand-text,
    --brand-on-accent, --brand-on-primary, --brand-surface, --brand-on-surface.
    Cards sit on --brand-surface (computed server-side to stay readable on
-   light or dark backgrounds) — never on hardcoded white. Mobile-first. */
+   light or dark backgrounds), never on hardcoded white. Mobile-first. */
 
 body.player {
   background: var(--brand-background, var(--paper));

@@ -76,7 +76,7 @@ class Publication < ApplicationRecord
 
   # Keeps the games carousel turning: finished games complete, the
   # on-deck draft launches in their place, and a fresh draft goes on
-  # deck. Idempotent and safe to run concurrently — the partial unique
+  # deck. Idempotent and safe to run concurrently: the partial unique
   # indexes on games referee every race. The first-ever game is only
   # drafted, never auto-launched; the publisher reviews and launches it.
   def rotate_games

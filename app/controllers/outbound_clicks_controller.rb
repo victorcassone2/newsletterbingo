@@ -1,4 +1,4 @@
-# Records a click, then redirects to the persisted, validated URL — never
+# Records a click, then redirects to the persisted, validated URL, never
 # to anything supplied in the request, so open redirects are impossible.
 # Content stays locked unless this participant actually earned it.
 class OutboundClicksController < PublicController

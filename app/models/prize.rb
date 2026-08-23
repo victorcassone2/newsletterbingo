@@ -12,7 +12,7 @@ class Prize < ApplicationRecord
   def line? = kind == "line"
   def blackout? = kind == "blackout"
 
-  # At most one award per participant, game, and kind — enforced by the
+  # At most one award per participant, game, and kind, enforced by the
   # unique index, so simultaneous wins converge on a single award. The
   # prize name is snapshotted: this row is standing configuration, but
   # the award records what was actually won.

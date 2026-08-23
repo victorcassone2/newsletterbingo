@@ -12,6 +12,7 @@ Rails.application.routes.draw do
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
+        resource :board_preview, only: %i[ show ]
         resource :analytics, only: %i[ show ]
         resources :words, only: %i[ index create ] do
           resource :archival, only: %i[ create destroy ], module: :words

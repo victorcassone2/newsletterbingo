@@ -1,5 +1,5 @@
 class Publications::SponsorsController < Publications::BaseController
-  # The publication's standing "Brought to you by" line, managed from the
+  # The publication's standing "Sponsored by" line, managed from the
   # Sponsors & Prizes page.
   def update
     @publication.update!(sponsor_name: params.dig(:publication, :sponsor_name))

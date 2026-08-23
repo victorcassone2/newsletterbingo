@@ -31,6 +31,23 @@ class BingoBoard < ApplicationRecord
     find_by!(participant: participant, game: game)
   end
 
+  # An unsaved board for publisher previews: the game's words in a stable
+  # shuffled arrangement, with every word already out (through the given
+  # call) marked claimed. Nothing is persisted and no participant exists.
+  def self.sample_for(game, through: game.current_call)
+    board = new(game: game)
+    shuffled = game.game_words.includes(:daily_call).to_a
+      .shuffle(random: Random.new(game.id.delete("-").to_i(16)))
+    board.bingo_squares.build(position: CENTER, game_word: nil)
+    ((0..24).to_a - [ CENTER ]).each_with_index do |position, index|
+      word = shuffled[index]
+      claimed = through && word.daily_call && word.daily_call.position <= through.position
+      board.bingo_squares.build(position: position, game_word: word,
+        claimed_at: (Time.current if claimed))
+    end
+    board
+  end
+
   def square_at(position)
     bingo_squares.detect { |square| square.position == position }
   end

@@ -9,7 +9,7 @@
       <div class="field">
         <%= form.label :starts_on, "Day 1" %>
         <%= form.date_field :starts_on %>
-        <p class="small muted">The game launches automatically once the current one ends — no earlier than this date.</p>
+        <p class="small muted">The game launches automatically once the current one ends, no earlier than this date.</p>
       </div>
     <% elsif @publication.calendar_cadence? %>
       <p class="small muted">Dates are locked after launch (<%= @game.starts_on.strftime("%b %-d") %> – <%= @game.ends_on.strftime("%b %-d") %>).</p>
