@@ -1,5 +1,9 @@
 class Game < ApplicationRecord
-  DAYS = 24
+  # The two game formats, chosen on the publication and snapshotted here
+  # at draft time: board size => how many words the game calls. Every
+  # pool word gets called, but each card holds only board_cells of them,
+  # so some calls miss some cards — that's what makes it bingo.
+  FORMATS = { 5 => 30, 3 => 12 }
   # Issue cadence: minimum gap between word advances, and how long the
   # final word stays claimable before the game completes.
   ISSUE_INTERVAL_FLOOR = 12.hours
@@ -24,34 +28,46 @@ class Game < ApplicationRecord
 
   validates :starts_on, presence: true
   validates :status, inclusion: { in: %w[ draft active completed ] }
+  validates :board_size, inclusion: { in: FORMATS.keys }
+  validates :pool_size, presence: true
 
+  before_validation :assign_format, on: :create
   before_validation :align_ends_on
 
   delegate :issue_cadence?, :calendar_cadence?, to: :publication
 
-  # Picks 24 words for a new game: the publication's own words first,
-  # topped up with system words, in random order. Custom words win label
-  # collisions with system words. Words in `avoiding` (typically the
-  # previous game's) sort behind fresh ones within each tier, so repeats
-  # only happen when a tier's pool runs short.
-  def self.random_word_selection(publication, avoiding: [])
+  # Picks `count` words for a new game: the publication's own words
+  # first, topped up with system words, in random order. Custom words win
+  # label collisions with system words. Words in `avoiding` (typically
+  # the previous game's) sort behind fresh ones within each tier, so
+  # repeats only happen when a tier's pool runs short.
+  def self.random_word_selection(publication, count:, avoiding: [])
     avoided = avoiding.to_set
     fresh, recent = publication.words.active.to_a.shuffle(random: SecureRandom)
       .partition { |word| avoided.exclude?(word.id) }
-    custom = (fresh + recent).first(DAYS)
-    return custom if custom.size == DAYS
+    custom = (fresh + recent).first(count)
+    return custom if custom.size == count
 
     taken_labels = custom.map { |w| w.label.downcase }
     pool = Word.system.active
     pool = pool.where.not("lower(label) IN (?)", taken_labels) if taken_labels.any?
     fresh, recent = pool.to_a.shuffle(random: SecureRandom)
       .partition { |word| avoided.exclude?(word.id) }
-    custom + (fresh + recent).first(DAYS - custom.size)
+    custom + (fresh + recent).first(count - custom.size)
+  end
+
+  def self.pool_size_for(board_size)
+    FORMATS.fetch(board_size)
   end
 
   def draft? = status == "draft"
   def active? = status == "active"
   def completed? = status == "completed"
+
+  # Squares on a card, excluding the FREE center.
+  def board_cells
+    board_size * board_size - 1
+  end
 
   # Replaces the draft game's word set. Labels are snapshotted so later
   # edits to the library never rewrite game history. Each word gets an
@@ -59,7 +75,7 @@ class Game < ApplicationRecord
   # reorder the schedule before launch, exactly like a live game.
   def assign_words(words)
     raise NotLaunchable, "words are locked once a game launches" unless draft?
-    raise ArgumentError, "a game needs exactly #{DAYS} unique words" unless words.map(&:id).uniq.size == DAYS
+    raise ArgumentError, "a game needs exactly #{pool_size} unique words" unless words.map(&:id).uniq.size == pool_size
 
     transaction do
       daily_calls.destroy_all
@@ -72,7 +88,8 @@ class Game < ApplicationRecord
   end
 
   def regenerate_words
-    assign_words(self.class.random_word_selection(publication, avoiding: publication.recent_word_ids))
+    assign_words(self.class.random_word_selection(publication, count: pool_size,
+      avoiding: publication.recent_word_ids))
   end
 
   # Launching fixes the draft's call order as the calling order. Calendar
@@ -86,7 +103,7 @@ class Game < ApplicationRecord
       # the loser sees "active" and backs off.
       locked_status = self.class.lock.find(id).status
       raise NotLaunchable, "game is already #{locked_status}" unless locked_status == "draft"
-      raise NotLaunchable, "a game needs exactly #{DAYS} words" unless game_words.count == DAYS
+      raise NotLaunchable, "a game needs exactly #{pool_size} words" unless game_words.count == pool_size
 
       update!(status: "active")
       ensure_calls_drafted
@@ -95,7 +112,7 @@ class Game < ApplicationRecord
         daily_calls.reload.each_with_index { |call, index| call.update!(call_on: dates[index]) }
         update!(starts_on: dates.first, ends_on: dates.last)
       else
-        update!(starts_on: publication.local_date, ends_on: publication.local_date + DAYS - 1)
+        update!(starts_on: publication.local_date, ends_on: publication.local_date + pool_size - 1)
       end
     end
   end
@@ -203,7 +220,7 @@ class Game < ApplicationRecord
   end
 
   def days_remaining(date = publication.local_date)
-    DAYS - days_elapsed(date)
+    pool_size - days_elapsed(date)
   end
 
   def call_for(date)
@@ -219,16 +236,24 @@ class Game < ApplicationRecord
   end
 
   private
+    # New drafts inherit the publication's chosen format; both numbers
+    # are snapshotted so a later settings change never reshapes a game
+    # already in front of readers.
+    def assign_format
+      self.board_size ||= publication&.board_size || FORMATS.keys.first
+      self.pool_size ||= FORMATS[board_size]
+    end
+
     # Drafts carry an estimated end date; launch replaces it with the real
     # schedule's last day, which later saves must not clobber.
     def align_ends_on
-      self.ends_on = starts_on + (DAYS - 1) if starts_on.present? && draft?
+      self.ends_on = starts_on + (pool_size - 1) if starts_on.present? && pool_size.present? && draft?
     end
 
     # Drafts carry their undated calls from assign_words; rebuild them for
     # drafts that predate calls existing at draft time.
     def ensure_calls_drafted
-      return if daily_calls.count == DAYS
+      return if daily_calls.count == pool_size
 
       daily_calls.destroy_all
       game_words.each { |game_word| daily_calls.create!(game_word: game_word, position: game_word.position) }
@@ -236,7 +261,7 @@ class Game < ApplicationRecord
 
     # The next `count` dates on the publication's send days, starting no
     # earlier than `from`.
-    def scheduled_dates(from: starts_on, count: DAYS)
+    def scheduled_dates(from: starts_on, count: pool_size)
       wdays = publication.sending_wdays
       dates = []
       date = from

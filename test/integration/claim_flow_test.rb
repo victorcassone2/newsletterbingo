@@ -8,6 +8,9 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "the newsletter click itself performs the claim and redirects to a clean URL" do
+    participant = Participant.locate_or_register(@publication, "reader@example.com")
+    ensure_on_card(participant.board_for(@game), @call)
+
     get claim_path(@publication.public_code, email: "reader@example.com")
 
     assert_redirected_to board_path(@publication.public_code)
@@ -38,7 +41,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_equal 1, participant.daily_claims.count
   end
 
-  test "two subscribers get different boards over the same words" do
+  test "two subscribers get different cards dealt from the same pool" do
     get claim_path(@publication.public_code, email: "amy@example.com")
     get claim_path(@publication.public_code, email: "ben@example.com")
 
@@ -46,8 +49,29 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     ben = @publication.participants.find_by(email: "ben@example.com").board_for(@game)
     assert_not_equal amy.bingo_squares.sort_by(&:position).map(&:game_word_id),
       ben.bingo_squares.sort_by(&:position).map(&:game_word_id)
-    assert_equal amy.bingo_squares.filter_map(&:game_word_id).sort,
-      ben.bingo_squares.filter_map(&:game_word_id).sort
+
+    pool = @game.game_words.pluck(:id)
+    [ amy, ben ].each do |board|
+      dealt = board.bingo_squares.filter_map(&:game_word_id)
+      assert_equal @game.board_cells, dealt.size
+      assert_empty dealt - pool
+    end
+  end
+
+  test "a claim whose word is off the card counts but marks no square" do
+    participant = Participant.locate_or_register(@publication, "reader@example.com")
+    board = participant.board_for(@game)
+    ensure_off_card(board, @call)
+
+    get claim_path(@publication.public_code, email: "reader@example.com")
+    assert_redirected_to board_path(@publication.public_code)
+    assert_equal 1, participant.daily_claims.count
+    assert_equal 0, board.reload.claimed_word_count
+
+    follow_redirect!
+    assert_response :success
+    assert_select ".receipt-status.off-card", text: /not on your card/i
+    assert_select ".square.claimed", count: 0
   end
 
   test "missing email shows a friendly error" do
@@ -121,8 +145,9 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
   test "celebration flash fires when the claim completes a bingo line" do
     participant = Participant.locate_or_register(@publication, "reader@example.com")
     board = participant.board_for(@game)
+    ensure_on_card(board, @call)
     todays_square = board.square_for(@call.game_word)
-    line = BingoBoard::LINES.detect { |l| l.include?(todays_square.position) && !l.include?(12) }
+    line = board.lines.detect { |l| l.include?(todays_square.position) && !l.include?(board.center) }
     (line - [ todays_square.position ]).each do |position|
       board.square_at(position).update!(claimed_at: 1.day.ago)
     end

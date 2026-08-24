@@ -5,10 +5,10 @@
     <div class="eyebrow">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>
     <h1>
       <% if @call %>
-        <%= @publication.issue_cadence? ? "Word" : "Day" %> <%= @call.position %> of <%= Game::DAYS %>
+        <%= @publication.issue_cadence? ? "Word" : "Day" %> <%= @call.position %> of <%= @game.pool_size %>
         <span class="badge badge-green">Live</span>
       <% elsif @publication.issue_cadence? %>
-        Word 1 of <%= Game::DAYS %> <span class="badge badge-amber">Waiting</span>
+        Word 1 of <%= @game.pool_size %> <span class="badge badge-amber">Waiting</span>
       <% elsif !@game.started? %>
         Starts soon <span class="badge badge-amber">Waiting</span>
       <% else %>
@@ -29,7 +29,7 @@
     </p>
     <div class="gameticks" aria-hidden="true">
       <% done = @game.days_elapsed %>
-      <% Game::DAYS.times do |index| %>
+      <% @game.pool_size.times do |index| %>
         <i class="<%= @call && index == @call.position - 1 ? "now" : ("on" if index < done) %>"></i>
       <% end %>
     </div>
@@ -54,9 +54,9 @@
   </div>
 </div>
 
-<% if @next_game && @next_game.game_words.count < Game::DAYS %>
+<% if @next_game && @next_game.game_words.count < @next_game.pool_size %>
   <div class="attention">
-    <span>⚠️ Your next game has only <%= @next_game.game_words.count %> of <%= Game::DAYS %> words —
+    <span>⚠️ Your next game has only <%= @next_game.game_words.count %> of <%= @next_game.pool_size %> words —
       the word pool ran short. Add words so it can launch.</span>
     <%= link_to "Add words", account_publication_words_path(publication_id: @publication.id), class: "btn btn-small" %>
   </div>
@@ -117,7 +117,7 @@
     <div class="card-head">
       <h2><%= @publication.issue_cadence? ? "Reveal order" : "Schedule" %></h2>
       <% if @publication.issue_cadence? %>
-        <span class="small muted"><%= Game::DAYS - @game.issued_calls.count %> words waiting</span>
+        <span class="small muted"><%= @game.pool_size - @game.issued_calls.count %> words waiting</span>
       <% end %>
     </div>
     <%= render "schedule", calls: @calls, game: @game, collapse: true %>
@@ -128,7 +128,7 @@
     <div class="card">
       <h2>The first word arrives with your next newsletter</h2>
       <p class="small muted">Nothing to schedule. When your next issue goes out, the first reader's click
-        draws word 1 of <%= Game::DAYS %> and claims their square — and the claims counter above starts moving.</p>
+        draws word 1 of <%= @game.pool_size %> and claims their square — and the claims counter above starts moving.</p>
       <p class="small muted">Make sure the embed block below is in your email template and your campaign
         merge tag is set in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
     </div>
@@ -158,17 +158,17 @@
   <% end %>
 <% end %>
 
-<% if @next_game && @next_game.game_words.count == Game::DAYS %>
+<% if @next_game && @next_game.game_words.count == @next_game.pool_size %>
   <div class="ondeck">
     <div class="lead">
       <div class="ticket-label">On deck · next game <span class="badge badge-amber">Draft</span></div>
-      <p class="small muted"><%= Game::DAYS %> words drafted · launches automatically when this game
+      <p class="small muted"><%= @next_game.pool_size %> words drafted · launches automatically when this game
         ends · sponsor &amp; prizes carry over</p>
       <div class="chips">
         <% @next_game.game_words.first(5).each do |game_word| %>
           <span class="chip"><%= game_word.label %></span>
         <% end %>
-        <span class="chip more">+<%= Game::DAYS - 5 %> more</span>
+        <span class="chip more">+<%= @next_game.pool_size - 5 %> more</span>
       </div>
     </div>
     <%= link_to "Review next game", account_publication_today_path(publication_id: @publication.id, tab: "next"), class: "btn btn-quiet btn-small" %>

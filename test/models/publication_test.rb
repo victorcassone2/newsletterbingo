@@ -61,7 +61,25 @@ class PublicationTest < ActiveSupport::TestCase
     draft = publication.on_deck_game
     assert draft.present?
     assert_nil publication.active_game
-    assert_equal 24, draft.game_words.count
+    assert_equal 30, draft.game_words.count
+  end
+
+  test "changing the format reshapes the on-deck draft but never a game in progress" do
+    publication = publications(:omaha)
+    game = create_running_game(publication)
+    publication.rotate_games
+    draft = publication.on_deck_game
+    assert_equal 30, draft.game_words.count
+
+    publication.update!(board_size: 3)
+
+    draft.reload
+    assert_equal 3, draft.board_size
+    assert_equal 12, draft.pool_size
+    assert_equal 12, draft.game_words.count
+    game.reload
+    assert_equal 5, game.board_size
+    assert_equal 30, game.game_words.count
   end
 
   test "rotation leaves a healthy in-flight game alone" do

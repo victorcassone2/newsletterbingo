@@ -7,12 +7,32 @@ class BingoBoardTest < ActiveSupport::TestCase
     @participant = Participant.locate_or_register(@publication, "reader@example.com")
   end
 
-  test "a board is a 5x5 grid with a FREE center and the game's 24 words exactly once" do
+  test "a classic board is a 5x5 grid with a FREE center and 24 of the game's 30 words" do
     board = @participant.board_for(@game)
     assert_equal 25, board.bingo_squares.count
     assert board.square_at(12).free?
     assert_equal "FREE", board.square_at(12).label
-    assert_equal @game.game_words.pluck(:id).sort, board.bingo_squares.filter_map(&:game_word_id).sort
+
+    dealt = board.bingo_squares.filter_map(&:game_word_id)
+    assert_equal 24, dealt.size
+    assert_equal 24, dealt.uniq.size
+    assert_empty dealt - @game.game_words.pluck(:id)
+  end
+
+  test "a quick board is a 3x3 grid with a FREE center and 8 of the game's 12 words" do
+    publication = publications(:lincoln)
+    publication.update!(board_size: 3)
+    game = create_running_game(publication)
+    participant = Participant.locate_or_register(publication, "reader@example.com")
+    board = participant.board_for(game)
+
+    assert_equal 9, board.bingo_squares.count
+    assert board.square_at(4).free?
+
+    dealt = board.bingo_squares.filter_map(&:game_word_id)
+    assert_equal 8, dealt.size
+    assert_empty dealt - game.game_words.pluck(:id)
+    assert_equal 12, game.game_words.count
   end
 
   test "one board per participant per game" do
@@ -60,9 +80,17 @@ class BingoBoardTest < ActiveSupport::TestCase
   test "only the center can be FREE" do
     board = @participant.board_for(@game)
     BingoSquare.where(bingo_board: board, position: 3).delete_all
-    assert_raises(ActiveRecord::StatementInvalid) do
-      BingoSquare.new(bingo_board: board, position: 3, game_word: nil).save!(validate: false)
-    end
+    square = BingoSquare.new(bingo_board: board, position: 3, game_word: nil)
+    assert_not square.valid?
+    assert square.errors[:game_word].any?
+  end
+
+  test "line geometry adapts to the board size" do
+    assert_equal 12, BingoBoard.lines_for(5).size
+    assert_includes BingoBoard.lines_for(5), [ 0, 6, 12, 18, 24 ]
+    assert_equal 8, BingoBoard.lines_for(3).size
+    assert_includes BingoBoard.lines_for(3), [ 0, 4, 8 ]
+    assert_includes BingoBoard.lines_for(3), [ 2, 4, 6 ]
   end
 
   test "rows, columns, and both diagonals complete a bingo, with FREE counting" do
@@ -88,14 +116,25 @@ class BingoBoardTest < ActiveSupport::TestCase
     assert_not board.bingo?
   end
 
-  test "blackout requires all 24 playable squares" do
+  test "blackout requires every playable square on the card" do
     board = fresh_board
     playable = board.bingo_squares.reject(&:free?)
-    playable.first(23).each { |square| square.update!(claimed_at: Time.current) }
+    playable.first(playable.size - 1).each { |square| square.update!(claimed_at: Time.current) }
     assert_not board.blackout?
 
     playable.last.update!(claimed_at: Time.current)
     assert board.blackout?
+  end
+
+  test "a call whose word is off the card registers nothing but stays safe" do
+    board = @participant.board_for(@game)
+    dealt = board.bingo_squares.filter_map(&:game_word_id).to_set
+    off_card_call = @game.daily_calls.detect { |call| dealt.exclude?(call.game_word_id) }
+    assert off_card_call, "a 24-cell board of a 30-word pool always misses some words"
+    assert_not board.covers?(off_card_call.game_word)
+
+    board.register_claim(off_card_call)
+    assert_equal 0, board.claimed_word_count
   end
 
   test "refresh_achievements records first bingo exactly once" do

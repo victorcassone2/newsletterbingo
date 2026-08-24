@@ -313,6 +313,11 @@ table.simple tr:last-child td { border-bottom: none; }
   color: var(--ink-soft); font-weight: 500; text-decoration: underline;
 }
 .link-button:hover { color: var(--ink); }
+.link-button.with-icon {
+  display: inline-flex; align-items: center; gap: .4rem; text-decoration: none;
+}
+.link-button.with-icon span { text-decoration: underline; }
+.link-button.with-icon svg { width: 14px; height: 14px; flex: none; }
 
 /* Draft word grid: tap a chip to replace its word. */
 .chip-grid {
@@ -386,7 +391,7 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 }
 .brand-preview-frame .preview-word { font-size: 1.35rem; font-weight: 800; margin-top: .3rem; }
 .brand-preview-frame .preview-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;
+  display: grid; grid-template-columns: repeat(var(--board-cols, 5), 1fr); gap: 5px;
   max-width: 18rem; margin: 0 auto;
 }
 .brand-preview-frame .preview-square {

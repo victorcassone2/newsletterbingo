@@ -25,6 +25,7 @@ class Publication < ApplicationRecord
   validates :public_code, presence: true, uniqueness: true
   validates :email_merge_tag, presence: true
   validates :cadence, inclusion: { in: CADENCES }
+  validates :board_size, inclusion: { in: Game::FORMATS.keys }
   validates :campaign_merge_tag, presence: true, if: :issue_cadence?
   validates :primary_color, :accent_color, :background_color, :text_color,
     format: { with: COLOR_FORMAT, message: "must be a hex color like #1A2B3C" }
@@ -33,6 +34,7 @@ class Publication < ApplicationRecord
   before_validation :assign_public_code, on: :create
   after_create :create_default_prizes
   after_update :reschedule_active_game, if: :saved_change_to_cadence?
+  after_update :reformat_draft_game, if: :saved_change_to_board_size?
 
   def issue_cadence?
     cadence == "issues"
@@ -40,6 +42,16 @@ class Publication < ApplicationRecord
 
   def calendar_cadence?
     cadence == "calendar"
+  end
+
+  # Words per game under the publication's chosen format.
+  def pool_size
+    Game.pool_size_for(board_size)
+  end
+
+  # Squares on a card under the chosen format, excluding the FREE center.
+  def board_cells
+    board_size * board_size - 1
   end
 
   # Weekdays a calendar-cadence publication sends on; empty means every day.
@@ -133,6 +145,21 @@ class Publication < ApplicationRecord
 
     def reschedule_active_game
       active_game&.reschedule_for_cadence
+    end
+
+    # A format change applies to the next game, never one in progress:
+    # the on-deck draft picks up the new shape and redraws its words.
+    def reformat_draft_game
+      game = games.draft.first
+      return if game.nil?
+
+      game.update!(board_size: board_size, pool_size: pool_size)
+      begin
+        game.regenerate_words
+      rescue ArgumentError
+        # Word pool too small for the new format; the Today screen flags
+        # the short draft for the publisher.
+      end
     end
 
     def launch_on_deck_game

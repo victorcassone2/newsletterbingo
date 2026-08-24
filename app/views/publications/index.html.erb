@@ -13,7 +13,7 @@
             <% unless publication.active? %><span class="badge badge-gray">Inactive</span><% end %>
             <div class="small muted">
               <% if (game = publication.games.active.first) %>
-                Word <%= game.days_elapsed %> of <%= Game::DAYS %>
+                Word <%= game.days_elapsed %> of <%= game.pool_size %>
               <% else %>
                 No game running
               <% end %>

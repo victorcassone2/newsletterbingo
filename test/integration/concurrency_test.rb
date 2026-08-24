@@ -35,7 +35,7 @@ class ConcurrencyTest < ActiveSupport::TestCase
   end
 
   test "simultaneous rotations produce one active successor and one draft" do
-    @game.update_columns(starts_on: @publication.local_date - 40, ends_on: @publication.local_date - 17)
+    @game.update_columns(starts_on: @publication.local_date - 46, ends_on: @publication.local_date - 17)
 
     threads = 4.times.map do
       Thread.new do
@@ -47,7 +47,7 @@ class ConcurrencyTest < ActiveSupport::TestCase
     assert @game.reload.completed?
     assert_equal 1, @publication.games.active.count
     assert_equal 1, @publication.games.draft.count
-    assert_equal 24, @publication.active_game.daily_calls.count
+    assert_equal 30, @publication.active_game.daily_calls.count
   end
 
   test "simultaneous award attempts produce a single prize award" do

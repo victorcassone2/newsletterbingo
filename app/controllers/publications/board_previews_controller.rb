@@ -15,6 +15,7 @@ class Publications::BoardPreviewsController < Publications::BaseController
     @board = BingoBoard.sample_for(@game, through: @todays_call)
     @squares = @board.bingo_squares.sort_by(&:position)
     @claimed_today = @todays_call.present?
+    @on_card_today = @todays_call && @board.covers?(@todays_call.game_word)
     @claimed_count = @board.claimed_word_count
     @completed_lines = @board.completed_lines
     @line_prize = @publication.line_prize

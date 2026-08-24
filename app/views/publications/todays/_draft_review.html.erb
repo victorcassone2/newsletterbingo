@@ -20,11 +20,11 @@
 <div class="card">
   <h2>What launch does</h2>
   <% if @publication.issue_cadence? %>
-    <p class="small muted">Launching locks these <%= Game::DAYS %> words into the reveal order below.
+    <p class="small muted">Launching locks these <%= game.pool_size %> words into the reveal order below.
       A new word goes live automatically each time you send. The first click of each issue draws it.
       Nothing happens between sends.</p>
   <% else %>
-    <p class="small muted">Launching locks these <%= Game::DAYS %> words into a daily schedule in the
+    <p class="small muted">Launching locks these <%= game.pool_size %> words into a daily schedule in the
       order below, starting <%= game.starts_on.strftime("%B %-d") %>. You can still tweak any
       not-yet-called day afterward.</p>
   <% end %>

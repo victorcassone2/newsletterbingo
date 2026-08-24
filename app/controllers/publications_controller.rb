@@ -49,17 +49,17 @@ class PublicationsController < ApplicationController
 
     def publication_params
       params.require(:publication).permit(:name, :timezone, :email_merge_tag, :active,
-        :cadence, :campaign_merge_tag, :primary_color, :accent_color, :background_color,
-        :text_color, :logo, send_days: [])
+        :cadence, :campaign_merge_tag, :board_size, :primary_color, :accent_color,
+        :background_color, :text_color, :logo, send_days: [])
     end
 
     # Real words for the branding preview: the current game's board if
     # there is one, otherwise a slice of the library.
     def preview_words
       if (game = @publication.active_game || @publication.on_deck_game)
-        game.game_words.map(&:label).first(24)
+        game.game_words.map(&:label).first(@publication.board_cells)
       else
-        @publication.eligible_words.order(:label).limit(24).map(&:label)
+        @publication.eligible_words.order(:label).limit(@publication.board_cells).map(&:label)
       end
     end
 end

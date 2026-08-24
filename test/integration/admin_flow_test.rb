@@ -27,19 +27,19 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert publication.present?
     assert_match(/\Apub_/, publication.public_code)
 
-    # Visiting Today drafts the first game automatically: 24 words, prizes
+    # Visiting Today drafts the first game automatically: 30 words, prizes
     get account_publication_today_path(account_id: account_id, publication_id: publication.id)
     assert_response :success
     assert_match "Your first game", response.body
     game = publication.games.first
-    assert_equal 24, game.game_words.count
+    assert_equal 30, game.game_words.count
     assert game.draft?
     assert_equal 2, publication.prizes.count
 
     # Launch with issue cadence (the default): calls exist but stay undated
     post account_publication_game_launch_path(account_id: account_id, publication_id: publication.id, game_id: game.id)
     assert game.reload.active?
-    assert_equal 24, game.daily_calls.count
+    assert_equal 30, game.daily_calls.count
     assert_equal 0, game.issued_calls.count
 
     # Today dashboard waits for the first send

@@ -11,7 +11,7 @@
           <div>
             <% game_path = game.completed? ? account_publication_game_path(publication_id: @publication.id, id: game.id) : account_publication_today_path(publication_id: @publication.id) %>
             <%= link_to game_label(game), game_path %>
-            <% if game.active? %><span class="badge badge-green">Live: Word <%= game.days_elapsed %> of <%= Game::DAYS %></span>
+            <% if game.active? %><span class="badge badge-green">Live: Word <%= game.days_elapsed %> of <%= game.pool_size %></span>
             <% elsif game.draft? %><span class="badge badge-amber">Draft</span>
             <% else %><span class="badge badge-gray">Completed</span><% end %>
           </div>

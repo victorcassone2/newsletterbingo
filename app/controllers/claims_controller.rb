@@ -37,7 +37,8 @@ class ClaimsController < PublicController
       flash[:celebrate] =
         if !had_blackout && board.blackout_achieved? then "blackout"
         elsif !had_bingo && board.bingo_achieved? then "bingo"
-        else "claimed"
+        elsif board.covers?(call.game_word) then "claimed"
+        else "off_card"
         end
     end
 

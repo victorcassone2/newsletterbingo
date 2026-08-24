@@ -15,6 +15,7 @@ class BoardsController < PublicController
     @todays_call = @game.current_call
     @claimed_today = @todays_call &&
       current_participant.daily_claims.exists?(daily_call_id: @todays_call.id)
+    @on_card_today = @todays_call && @board.covers?(@todays_call.game_word)
     @claimed_count = @board.claimed_word_count
     @completed_lines = @board.completed_lines
     @line_prize = @publication.line_prize

@@ -45,17 +45,18 @@ publication.blackout_prize.update!(enabled: true, name: "$250 Midtown Market Sho
   instructions: "We'll contact you to arrange your spree.",
   link_url: "https://example.com/midtown-market", link_text: "About Midtown Market")
 
-# Active game, currently on Day 9 of 24.
+# Active game, currently on Day 9 of 30.
 today = publication.local_date
 starts_on = today - 8
 
 GAME_WORDS = [
   "COFFEE", "UMBRELLA", "PIZZA", "DUNDEE", "BASEBALL", "BRIDGE", "PARK", "OMAHA ZOO",
   "FARMERS MARKET", "CAMERA", "POPCORN", "GARDEN", "AKSARBEN", "BICYCLE", "SUNSHINE",
-  "LIBRARY", "DONUT", "RIVER", "MOVIE", "PICNIC", "BACKPACK", "COOKIE", "FLOWER", "TRAIN"
+  "LIBRARY", "DONUT", "RIVER", "MOVIE", "PICNIC", "BACKPACK", "COOKIE", "FLOWER", "TRAIN",
+  "SUNRISE", "LEMONADE", "GUITAR", "CAMPFIRE", "WAFFLE", "FIREWORKS"
 ]
 
-game = publication.games.create!(starts_on: starts_on, ends_on: starts_on + Game::DAYS - 1, status: "active")
+game = publication.games.create!(starts_on: starts_on, ends_on: starts_on + GAME_WORDS.size - 1, status: "active")
 game_words = GAME_WORDS.each_with_index.map do |label, index|
   word = publication.eligible_words.find_by!("lower(label) = ?", label.downcase)
   game.game_words.create!(word: word, label: word.label, position: index + 1)
@@ -96,8 +97,8 @@ def seed_claims(game, participant, days)
     call = game.daily_calls.find_by!(call_on: game.starts_on + day_index)
     claimed_at = (game.starts_on + day_index).in_time_zone(game.publication.tz).change(hour: 8)
     DailyClaim.create!(participant: participant, daily_call: call, game: game, claimed_at: claimed_at)
-    square = board.square_for(call.game_word)
-    square.update!(claimed_at: claimed_at)
+    # Cards hold a subset of the pool, so some called words miss this board.
+    board.square_for(call.game_word)&.update!(claimed_at: claimed_at)
   end
   board.refresh_achievements
   board
@@ -129,11 +130,16 @@ row.each_with_index do |position, index|
   source = dave_board.square_for(called_words[index])
   next if source == target
   ActiveRecord::Base.transaction do
-    source_word, target_word = source.game_word, target.game_word
-    source_position = source.position
-    source.destroy!
-    target.update!(game_word: source_word)
-    BingoSquare.create!(bingo_board: dave_board, position: source_position, game_word: target_word)
+    if source
+      source_word, target_word = source.game_word, target.game_word
+      source_position = source.position
+      source.destroy!
+      target.update!(game_word: source_word)
+      BingoSquare.create!(bingo_board: dave_board, position: source_position, game_word: target_word)
+    else
+      # The called word wasn't dealt to Dave's card; deal it into place.
+      target.update!(game_word: called_words[index])
+    end
   end
 end
 seed_claims(game, dave, called_days)

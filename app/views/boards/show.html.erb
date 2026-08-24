@@ -46,21 +46,25 @@
       <div class="receipt-eyebrow">TODAY&rsquo;S BINGO <% if @todays_call.prize_call? %><span class="prize-flag">🎁</span><% end %></div>
       <div class="receipt-word"><%= @todays_call.label %></div>
 
-      <% if @claimed_today %>
-        <span class="receipt-status"><span class="checkring">✓</span> Claimed — word <%= @todays_call.position %> of <%= Game::DAYS %></span>
+      <% if @claimed_today && @on_card_today %>
+        <span class="receipt-status"><span class="checkring">✓</span> Claimed — word <%= @todays_call.position %> of <%= @game.pool_size %></span>
+      <% elsif @claimed_today %>
+        <span class="receipt-status off-card">Called — not on your card</span>
+        <p class="today-desc muted small">Your card holds <%= @game.board_cells %> of the game&rsquo;s
+          <%= @game.pool_size %> words, and this wasn&rsquo;t one of yours. The next one might be.</p>
       <% else %>
         <p class="today-desc muted small">Tap the bingo link in today&rsquo;s email to claim this spot.</p>
       <% end %>
 
       <div class="meter" aria-hidden="true">
-        <% Game::DAYS.times do |index| %>
+        <% @game.board_cells.times do |index| %>
           <% on = index < @claimed_count %>
-          <i class="<%= class_names(on: on, today: on && @claimed_today && index == @claimed_count - 1) %>"
+          <i class="<%= class_names(on: on, today: on && @claimed_today && @on_card_today && index == @claimed_count - 1) %>"
              <% if on %>style="animation-delay: <%= 0.4 + index * 0.045 %>s"<% end %>></i>
         <% end %>
       </div>
       <div class="meter-label">
-        <span><%= @claimed_count %> CLAIMED</span><span><%= Game::DAYS - @claimed_count %> TO GO</span>
+        <span><%= @claimed_count %> CLAIMED</span><span><%= @game.board_cells - @claimed_count %> TO GO</span>
       </div>
 
       <% if @claimed_today %>
@@ -82,7 +86,7 @@
       <% if @publication.sponsor_name.present? %>
         <p class="sponsor-line">Today&rsquo;s game is brought to you by <b><%= @publication.sponsor_name %></b></p>
       <% end %>
-      <% if @celebrate.present? %>
+      <% if @celebrate.present? && @celebrate != "off_card" %>
         <p class="receipt-sub">Landed on your card below ↓</p>
       <% end %>
     </div>
@@ -93,16 +97,18 @@
     </div>
   <% end %>
 
-  <section class="board-section" data-controller="board">
+  <section class="board-section" data-controller="board" style="--board-cols: <%= @game.board_size %>;">
     <div class="board-eyebrow">YOUR BINGO CARD</div>
 
-    <div class="bingo-header" aria-hidden="true">
-      <% %w[B I N G O].each do |letter| %><span><%= letter %></span><% end %>
-    </div>
+    <% if @game.board_size == 5 %>
+      <div class="bingo-header" aria-hidden="true">
+        <% %w[B I N G O].each do |letter| %><span><%= letter %></span><% end %>
+      </div>
+    <% end %>
 
     <% line_positions = @completed_lines.flatten.to_set %>
     <div class="board-rows">
-      <% @squares.each_slice(5) do |row| %>
+      <% @squares.each_slice(@game.board_size) do |row| %>
         <div class="board-row">
           <% row.each do |square| %>
             <%
@@ -187,8 +193,11 @@
         <summary>How to play</summary>
         <p>A new word drops with every <%= @publication.name %> email. Tap the bingo link in the email to claim
           its square. It&rsquo;s the only way to fill your card.</p>
-        <p>Five claimed squares in a row (across, down, or diagonal) is a <strong>bingo</strong>.
-          Claim all <%= Game::DAYS %> words for a <strong>blackout</strong>. The center square is free.</p>
+        <p>Your card holds <%= @game.board_cells %> of the game&rsquo;s <%= @game.pool_size %> words, dealt
+          just for you — so some days the word won&rsquo;t be on your card. Claiming still counts: every
+          word lands on someone&rsquo;s.</p>
+        <p><%= @game.board_size %> claimed squares in a row (across, down, or diagonal) is a <strong>bingo</strong>.
+          Claim every word on your card for a <strong>blackout</strong>. The center square is free.</p>
         <p>Tap any claimed square to see what it was about.</p>
       </details>
     </div>

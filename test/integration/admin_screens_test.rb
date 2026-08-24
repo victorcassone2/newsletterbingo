@@ -14,11 +14,11 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Your first game", response.body
     assert_match "Launch game", response.body
-    assert_select "ul.schedule li", Game::DAYS
+    assert_select "ul.schedule li", @publication.pool_size
 
     game = @publication.on_deck_game
     assert game.present?
-    assert_equal 24, game.game_words.count
+    assert_equal 30, game.game_words.count
     assert_nil @publication.active_game
   end
 
@@ -29,7 +29,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match game.call_for(@publication.local_date).label, response.body
     assert_match game.next_call.label, response.body
-    assert_select "ul.schedule li", Game::DAYS
+    assert_select "ul.schedule li", game.pool_size
     assert_select ".tabs a", text: "Next game"
     assert_select ".pulse .pulse-num", text: "0" # the claims pulse, before any claims
     assert_select ".ondeck", text: /On deck/
@@ -38,8 +38,8 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Next game", response.body
     assert_match "What carries over", response.body
-    assert_select "ul.schedule li", Game::DAYS # the on-deck game's editable reveal order
-    assert_select "ul.schedule li[draggable=true]", Game::DAYS
+    assert_select "ul.schedule li", game.pool_size # the on-deck game's editable reveal order
+    assert_select "ul.schedule li[draggable=true]", game.pool_size
   end
 
   test "the schedule collapses all but the last two previous words" do
@@ -47,7 +47,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
 
     get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
-    assert_select "ul.schedule li", Game::DAYS + 1 # 24 words plus the reveal trigger
+    assert_select "ul.schedule li", @publication.pool_size + 1 # 30 words plus the reveal trigger
     assert_select "ul.schedule li[hidden]", 8 # words 1-8 collapsed; 9 and 10 stay visible
     assert_select ".schedule .link-button", text: "View all previous words"
   end

@@ -69,6 +69,31 @@
           </div>
 
           <div class="field" style="margin-top: 1rem;">
+            <label>Game format</label>
+            <div class="choice-cards">
+              <label class="choice-card">
+                <%= form.radio_button :board_size, 5 %>
+                <span class="choice-card-body">
+                  <span class="choice-card-title">Classic</span>
+                  <span class="choice-card-hint">5×5 card · 30-word game. The full arc —
+                    made for daily or near-daily sends.</span>
+                </span>
+              </label>
+              <label class="choice-card">
+                <%= form.radio_button :board_size, 3 %>
+                <span class="choice-card-body">
+                  <span class="choice-card-title">Quick</span>
+                  <span class="choice-card-hint">3×3 card · 12-word game. A tighter arc —
+                    made for weekly-ish sends.</span>
+                </span>
+              </label>
+            </div>
+            <div class="hint">Each card gets a random hand of the game&rsquo;s words, so not every
+              word lands on every card. Takes effect with your next game — a game in progress
+              never changes shape.</div>
+          </div>
+
+          <div class="field" style="margin-top: 1rem;">
             <%= form.label :email_merge_tag, "Subscriber email tag" %>
             <%= form.text_field :email_merge_tag, data: { platform_target: "emailTag" } %>
             <div class="hint">The tag your platform swaps for each subscriber's address.
@@ -109,7 +134,12 @@
             <p class="hint" style="margin: 0 0 .8rem;">Plain email-safe tables, no JavaScript. Each subscriber
               gets a personalized claim link<% unless @publication.issue_cadence? %>, and today's word is drawn
               in automatically while a game is running<% end %>.</p>
-            <button type="button" class="btn btn-primary btn-small" data-action="clipboard#copy" data-clipboard-target="button">Copy HTML</button>
+            <button type="button" class="link-button with-icon" data-action="clipboard#copy">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <rect x="5.5" y="5.5" width="9" height="9" rx="1.5"/>
+                <path d="M3.5 10.5h-1a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v1"/>
+              </svg><span data-clipboard-target="button">Copy HTML</span>
+            </button>
           </div>
         </div>
         <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
@@ -166,13 +196,14 @@
           <div class="preview-eyebrow">TODAY&rsquo;S BINGO</div>
           <div class="preview-word"><%= @preview_words.first || "FARMERS MARKET" %></div>
         </div>
-        <div class="preview-grid">
-          <% board = @preview_words.first(24) %>
-          <% (0..24).each do |position| %>
-            <% if position == 12 %>
+        <div class="preview-grid" style="--board-cols: <%= @publication.board_size %>;">
+          <% board = @preview_words.first(@publication.board_cells) %>
+          <% center = BingoBoard.center_for(@publication.board_size) %>
+          <% (0...@publication.board_size**2).each do |position| %>
+            <% if position == center %>
               <div class="preview-square free">FREE</div>
             <% else %>
-              <% word_index = position < 12 ? position : position - 1 %>
+              <% word_index = position < center ? position : position - 1 %>
               <div class="preview-square <%= word_index % 3 == 0 ? "claimed" : "unclaimed" %>"><%= board[word_index] %></div>
             <% end %>
           <% end %>

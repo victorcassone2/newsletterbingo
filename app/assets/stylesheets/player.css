@@ -47,6 +47,7 @@ body.player {
   display: inline-flex; align-items: center; gap: .5rem;
   font-size: .95rem; font-weight: 700; color: var(--brand-primary, var(--ink));
 }
+.receipt-status.off-card { opacity: .7; }
 .checkring {
   width: 26px; height: 26px; border-radius: 50%; flex: none;
   background: var(--brand-accent, var(--ink));
@@ -104,7 +105,7 @@ body.player {
 .board-progress { font-size: .85rem; opacity: .75; margin-bottom: .9rem; }
 
 .bingo-header {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(var(--board-cols, 5), 1fr); gap: 6px;
   margin-bottom: 6px;
 }
 .bingo-header span {
@@ -114,7 +115,7 @@ body.player {
 
 .board-rows { display: flex; flex-direction: column; gap: 6px; }
 .board-row {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  display: grid; grid-template-columns: repeat(var(--board-cols, 5), 1fr); gap: 6px;
 }
 .square {
   position: relative;

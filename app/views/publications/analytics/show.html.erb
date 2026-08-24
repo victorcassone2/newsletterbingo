@@ -5,7 +5,7 @@
 
   <div class="page-head">
     <div>
-      <h1>Day <%= called %> of <%= Game::DAYS %></h1>
+      <h1>Day <%= called %> of <%= @game.pool_size %></h1>
       <p class="cockpit-sub" style="margin-bottom: 0;">
         Current game · <%= game_label(@game) %>
         <% if current_call %> · word today: <strong><%= current_call.label %></strong><% end %>
@@ -14,8 +14,8 @@
     <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
   </div>
 
-  <div class="gameticks stretch" role="img" aria-label="Game progress: <%= called %> of <%= Game::DAYS %> days played">
-    <% (1..Game::DAYS).each do |day| %>
+  <div class="gameticks stretch" role="img" aria-label="Game progress: <%= called %> of <%= @game.pool_size %> days played">
+    <% (1..@game.pool_size).each do |day| %>
       <i class="<%= "on" if day < called %><%= "now" if day == called %>"></i>
     <% end %>
   </div>
@@ -68,7 +68,7 @@
       </div>
     </div>
     <div class="chart-x">
-      <% (1..Game::DAYS).each do |day| %><span><%= day %></span><% end %>
+      <% (1..@game.pool_size).each do |day| %><span><%= day %></span><% end %>
     </div>
   </div>
 
@@ -104,7 +104,7 @@
       <div class="card past-row">
         <div class="g">
           <b><%= game_label(game) %></b>
-          <span><%= Game::DAYS %> words · completed</span>
+          <span><%= game.pool_size %> words · completed</span>
         </div>
         <div class="m"><b><%= summary[:participants] %></b><span>players</span></div>
         <div class="m"><b><%= summary[:average_claimed_days] %></b><span>avg days claimed</span></div>

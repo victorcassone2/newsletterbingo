@@ -5,12 +5,12 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     @publication = publications(:omaha)
     @publication.update!(cadence: "issues")
     @game = @publication.games.create!(starts_on: @publication.local_date)
-    @game.assign_words(Game.random_word_selection(@publication))
+    @game.assign_words(Game.random_word_selection(@publication, count: @game.pool_size))
     @game.launch
   end
 
   test "launching an issue-cadence game leaves all calls undated" do
-    assert_equal 24, @game.daily_calls.count
+    assert_equal @game.pool_size, @game.daily_calls.count
     assert_equal 0, @game.issued_calls.count
     assert_nil @game.current_call
   end
@@ -125,7 +125,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
   test "the next send after the last word rolls into a new game and claims its first square" do
     issue_every_word
 
-    travel (Game::DAYS * 13).hours do
+    travel (@game.pool_size * 13).hours do
       get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-next")
       assert_redirected_to board_path(@publication.public_code)
     end
@@ -141,7 +141,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
 
   test "an old game's token after rollover reaches the board but claims nothing" do
     issue_every_word
-    travel (Game::DAYS * 13).hours do
+    travel (@game.pool_size * 13).hours do
       get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-next")
 
       get claim_path(@publication.public_code, email: "late@example.com", issue: "camp-3")
@@ -172,11 +172,11 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
 
   private
     def issue_every_word
-      Game::DAYS.times do |index|
+      @game.pool_size.times do |index|
         travel((index * 13).hours) do
           get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-#{index}")
         end
       end
-      assert_equal Game::DAYS, @game.issues.count
+      assert_equal @game.pool_size, @game.issues.count
     end
 end
