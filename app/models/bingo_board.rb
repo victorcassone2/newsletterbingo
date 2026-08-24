@@ -88,7 +88,7 @@ class BingoBoard < ApplicationRecord
   end
 
   # Marks the square for a claimed call and re-evaluates bingo/blackout.
-  # A call whose word isn't on this card marks nothing — the claim still
+  # A call whose word isn't on this card marks nothing; the claim still
   # counts as attendance, the card just didn't get lucky today. Safe to
   # run repeatedly.
   def register_claim(daily_call)

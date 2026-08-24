@@ -24,13 +24,13 @@
         <div class="platform-chips">
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-email="{{email}}" data-campaign="{{campaign_id}}" data-cadence="issues"
-            data-hint="beehiiv supports campaign tags — your merge tags are filled in below.">beehiiv</button>
+            data-hint="beehiiv supports campaign tags, so your merge tags are filled in below.">beehiiv</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-email="*|EMAIL|*" data-campaign="*|CAMPAIGN_UID|*" data-cadence="issues"
-            data-hint="Mailchimp supports campaign tags — your merge tags are filled in below.">Mailchimp</button>
+            data-hint="Mailchimp supports campaign tags, so your merge tags are filled in below.">Mailchimp</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-email="{{ subscriber.email_address }}" data-campaign="{{ broadcast.id }}" data-cadence="issues"
-            data-hint="Kit supports campaign tags — your merge tags are filled in below.">Kit</button>
+            data-hint="Kit supports campaign tags, so your merge tags are filled in below.">Kit</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-email="{{email}}" data-cadence="calendar"
             data-hint="Substack has no campaign-id tag, so words go out on a fixed schedule instead.">Substack</button>
@@ -54,7 +54,7 @@
               <%= form.radio_button :cadence, "issues", data: { cadence_target: "choice", action: "cadence#update" } %>
               <span class="choice-card-body">
                 <span class="choice-card-title">Match my sends</span>
-                <span class="choice-card-hint">Every issue you send reveals the next word — daily, weekly,
+                <span class="choice-card-hint">Every issue you send reveals the next word: daily, weekly,
                   or whenever inspiration strikes.</span>
               </span>
             </label>
@@ -75,7 +75,7 @@
                 <%= form.radio_button :board_size, 5 %>
                 <span class="choice-card-body">
                   <span class="choice-card-title">Classic</span>
-                  <span class="choice-card-hint">5×5 card · 30-word game. The full arc —
+                  <span class="choice-card-hint">5×5 card · 30-word game. The full arc,
                     made for daily or near-daily sends.</span>
                 </span>
               </label>
@@ -83,13 +83,13 @@
                 <%= form.radio_button :board_size, 3 %>
                 <span class="choice-card-body">
                   <span class="choice-card-title">Quick</span>
-                  <span class="choice-card-hint">3×3 card · 12-word game. A tighter arc —
+                  <span class="choice-card-hint">3×3 card · 12-word game. A tighter arc,
                     made for weekly-ish sends.</span>
                 </span>
               </label>
             </div>
             <div class="hint">Each card gets a random hand of the game&rsquo;s words, so not every
-              word lands on every card. Takes effect with your next game — a game in progress
+              word lands on every card. Takes effect with your next game; a game in progress
               never changes shape.</div>
           </div>
 
@@ -130,7 +130,7 @@
         <div class="embed-row">
           <div class="embed-preview"><%= @newsletter_block.to_html %></div>
           <div class="embed-aside">
-            <p class="small" style="margin: 0 0 .25rem;">Paste it once, near the bottom of your email — it never changes.</p>
+            <p class="small" style="margin: 0 0 .25rem;">Paste it once, near the bottom of your email. It never changes.</p>
             <p class="hint" style="margin: 0 0 .8rem;">Plain email-safe tables, no JavaScript. Each subscriber
               gets a personalized claim link<% unless @publication.issue_cadence? %>, and today's word is drawn
               in automatically while a game is running<% end %>.</p>
@@ -209,7 +209,7 @@
           <% end %>
         </div>
       </div>
-      <p class="small muted" style="margin-top: .75rem;">Live preview — readers' boards and the email block
+      <p class="small muted" style="margin-top: .75rem;">Live preview: readers' boards and the email block
         both use these colors. Card surfaces adapt to dark backgrounds after you save.</p>
     </div>
   </div>

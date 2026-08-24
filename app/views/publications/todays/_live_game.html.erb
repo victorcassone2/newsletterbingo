@@ -20,7 +20,7 @@
         <strong><%= @call.label %></strong>
         <%= @publication.issue_cadence? ? "went out #{@call.call_on.strftime("%A, %B %-d")}" : "is today's word" %>
       <% elsif @publication.issue_cadence? %>
-        Arrives with your next newsletter — the first reader's click draws it
+        Arrives with your next newsletter; the first reader's click draws it
       <% elsif !@game.started? %>
         The game begins <%= @game.starts_on.strftime("%A, %B %-d") %>
       <% else %>
@@ -56,7 +56,7 @@
 
 <% if @next_game && @next_game.game_words.count < @next_game.pool_size %>
   <div class="attention">
-    <span>⚠️ Your next game has only <%= @next_game.game_words.count %> of <%= @next_game.pool_size %> words —
+    <span>⚠️ Your next game has only <%= @next_game.game_words.count %> of <%= @next_game.pool_size %> words;
       the word pool ran short. Add words so it can launch.</span>
     <%= link_to "Add words", account_publication_words_path(publication_id: @publication.id), class: "btn btn-small" %>
   </div>
@@ -76,7 +76,7 @@
       </div>
 
       <% if @next_call %>
-        <p class="small muted" style="margin-top: .9rem;">Still changeable — swap the word here, or drag it in the schedule below.</p>
+        <p class="small muted" style="margin-top: .9rem;">Still changeable: swap the word here, or drag it in the schedule below.</p>
         <div class="today-actions">
           <%= link_to "Edit word", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @next_call.id), class: "btn btn-primary btn-small" %>
           <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id, word: "next"), target: "_blank", class: "btn btn-quiet btn-small" %>
@@ -96,7 +96,7 @@
         <% if @call.word_changeable? %>
           Word can still change.
         <% else %>
-          Locked<%= @publication.issue_cadence? ? " — sent with this issue" : (": already claimed" if @call.daily_claims.any?) %>.
+          Locked<%= @publication.issue_cadence? ? ": sent with this issue" : (": already claimed" if @call.daily_claims.any?) %>.
           The story readers see after claiming can still change.
         <% end %>
       </p>
@@ -128,7 +128,7 @@
     <div class="card">
       <h2>The first word arrives with your next newsletter</h2>
       <p class="small muted">Nothing to schedule. When your next issue goes out, the first reader's click
-        draws word 1 of <%= @game.pool_size %> and claims their square — and the claims counter above starts moving.</p>
+        draws word 1 of <%= @game.pool_size %> and claims their square, and the claims counter above starts moving.</p>
       <p class="small muted">Make sure the embed block below is in your email template and your campaign
         merge tag is set in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
     </div>

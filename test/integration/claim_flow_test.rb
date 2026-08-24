@@ -11,7 +11,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     participant = Participant.locate_or_register(@publication, "reader@example.com")
     ensure_on_card(participant.board_for(@game), @call)
 
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
 
     assert_redirected_to board_path(@publication.public_code)
     assert_no_match(/reader/, response.headers["Location"])
@@ -30,20 +30,20 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
   end
 
   test "the board page never contains the raw email" do
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     follow_redirect!
     assert_no_match(/reader@example\.com/, response.body)
   end
 
   test "repeat clicks are harmless" do
-    2.times { get claim_path(@publication.public_code, email: "reader@example.com") }
+    2.times { get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1") }
     participant = @publication.participants.find_by(email: "reader@example.com")
     assert_equal 1, participant.daily_claims.count
   end
 
   test "two subscribers get different cards dealt from the same pool" do
-    get claim_path(@publication.public_code, email: "amy@example.com")
-    get claim_path(@publication.public_code, email: "ben@example.com")
+    get claim_path(@publication.public_code, email: "amy@example.com", issue: "send-1")
+    get claim_path(@publication.public_code, email: "ben@example.com", issue: "send-1")
 
     amy = @publication.participants.find_by(email: "amy@example.com").board_for(@game)
     ben = @publication.participants.find_by(email: "ben@example.com").board_for(@game)
@@ -63,7 +63,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     board = participant.board_for(@game)
     ensure_off_card(board, @call)
 
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     assert_redirected_to board_path(@publication.public_code)
     assert_equal 1, participant.daily_claims.count
     assert_equal 0, board.reload.claimed_word_count
@@ -74,45 +74,113 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_select ".square.claimed", count: 0
   end
 
-  test "missing email shows a friendly error" do
-    get claim_path(@publication.public_code)
-    assert_response :unprocessable_entity
+  test "a tokenless link opens the board but claims nothing" do
+    get claim_path(@publication.public_code, email: "reader@example.com")
+
+    assert_redirected_to board_path(@publication.public_code)
+    participant = @publication.participants.find_by(email: "reader@example.com")
+    assert participant.present?, "the session is still established for viewing"
+    assert_equal 0, participant.daily_claims.count
+    assert_equal 0, @game.issues.count
+
+    follow_redirect!
+    assert_response :success
+    assert_select ".claim-notice", text: /earlier email/
+  end
+
+  test "yesterday's token opens the board with a notice but claims nothing today" do
+    @game.destroy!
+    @game = create_running_game(@publication, starts_on: @publication.local_date - 3)
+    yesterday = @publication.local_date - 1
+    @game.issues.create!(token: "send-old", daily_call: @game.call_for(yesterday), called_on: yesterday)
+
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-old")
+
+    assert_redirected_to board_path(@publication.public_code)
+    participant = @publication.participants.find_by(email: "reader@example.com")
+    assert_equal 0, participant.daily_claims.count
+
+    follow_redirect!
+    assert_select ".claim-notice", text: /earlier email/
+  end
+
+  test "a second fresh token the same day claims the same word" do
+    get claim_path(@publication.public_code, email: "amy@example.com", issue: "send-test")
+    get claim_path(@publication.public_code, email: "ben@example.com", issue: "send-real")
+
+    assert_equal 2, @game.issues.count
+    assert_equal [ @call.id ], @game.issues.map(&:daily_call_id).uniq
+    assert_equal 2, @call.daily_claims.count
+  end
+
+  test "a previous game's token never claims in the successor game" do
+    @game.issues.create!(token: "send-old-game", daily_call: @call, called_on: @publication.local_date)
+    @game.complete
+    @publication.rotate_games
+
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-old-game")
+
+    assert_redirected_to board_path(@publication.public_code)
+    participant = @publication.participants.find_by(email: "reader@example.com")
+    assert_equal 0, participant.daily_claims.count
+    assert_equal 0, @publication.active_game.issues.count
+  end
+
+  test "an unreplaced campaign merge tag shows a configuration hint and claims nothing" do
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "{{campaign_id}}")
+
+    assert_redirected_to board_path(@publication.public_code)
+    participant = @publication.participants.find_by(email: "reader@example.com")
+    assert_equal 0, participant.daily_claims.count
+
+    follow_redirect!
+    assert_select ".claim-notice", text: /fix their bingo link/
+  end
+
+  test "missing email lands on the welcome with a friendly notice" do
+    get claim_path(@publication.public_code, issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code)
+    follow_redirect!
+    assert_select ".claim-notice"
     assert_select ".unavailable-card"
   end
 
-  test "an unreplaced merge tag shows a configuration hint" do
-    get claim_path(@publication.public_code, email: "{{email}}")
-    assert_response :unprocessable_entity
+  test "an unreplaced email merge tag shows a configuration hint" do
+    get claim_path(@publication.public_code, email: "{{email}}", issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code)
+    follow_redirect!
     assert_match(/bingo link/, response.body)
   end
 
-  test "malformed email shows a friendly error" do
-    get claim_path(@publication.public_code, email: "not-an-email")
-    assert_response :unprocessable_entity
+  test "malformed email lands on the welcome without claiming" do
+    get claim_path(@publication.public_code, email: "not-an-email", issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code)
+    assert_equal 0, @publication.participants.count
   end
 
   test "unknown publication code 404s without Rails errors" do
-    get claim_path("pub_does_not_exist", email: "reader@example.com")
+    get claim_path("pub_does_not_exist", email: "reader@example.com", issue: "send-1")
     assert_response :not_found
     assert_select ".unavailable-card"
   end
 
   test "inactive publications do not accept claims" do
     @publication.update!(active: false)
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     assert_response :not_found
   end
 
   test "before the first launch there is no game to claim" do
     @game.destroy!
-    get claim_path(@publication.public_code, email: "reader@example.com")
-    assert_response :not_found
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code)
+    follow_redirect!
     assert_match(/no bingo game running/i, response.body)
   end
 
   test "a completed game rolls into a successor that accepts the claim" do
     @game.complete
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     assert_redirected_to board_path(@publication.public_code)
 
     successor = @publication.active_game
@@ -126,14 +194,15 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
   test "a game that hasn't started yet says so" do
     @game.destroy!
     create_running_game(@publication, starts_on: @publication.local_date + 3)
-    get claim_path(@publication.public_code, email: "reader@example.com")
-    assert_response :not_found
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code)
+    follow_redirect!
     assert_match(/starts/i, response.body)
   end
 
   test "a finished game completes itself and the claim lands on the successor" do
     @game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     assert_redirected_to board_path(@publication.public_code)
 
     assert @game.reload.completed?
@@ -152,7 +221,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
       board.square_at(position).update!(claimed_at: 1.day.ago)
     end
 
-    get claim_path(@publication.public_code, email: "reader@example.com")
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     follow_redirect!
     assert_select ".celebration", text: /BINGO/
   end

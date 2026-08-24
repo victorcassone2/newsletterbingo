@@ -9,7 +9,7 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
   end
 
   test "a claimed call's link redirects and counts the click" do
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     assert_difference -> { @call.reload.link_clicks_count } do
       get call_outbound_path(@publication.public_code, @call.id)
     end
@@ -24,14 +24,14 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
   test "an unclaimed call's link stays locked" do
     tomorrow = @game.call_for(@publication.local_date + 1)
     tomorrow.update!(link_url: "https://example.com/future", link_text: "Future")
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     get call_outbound_path(@publication.public_code, tomorrow.id)
     assert_redirected_to board_path(@publication.public_code)
     assert_equal 0, tomorrow.reload.link_clicks_count
   end
 
   test "the destination is never taken from request params" do
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     get call_outbound_path(@publication.public_code, @call.id, redirect: "https://evil.example.com")
     assert_redirected_to "https://example.com/market"
   end
@@ -40,7 +40,7 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
     prize = @publication.line_prize
     prize.update!(enabled: true, name: "Card",
       link_url: "https://example.com/prize", link_text: "Redeem")
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
 
     get prize_outbound_path(@publication.public_code, prize.id)
     assert_redirected_to board_path(@publication.public_code), "no bingo yet, no prize link"
@@ -58,7 +58,7 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
     rival_call = rival_game.call_for(publications(:rival).local_date)
     rival_call.update!(link_url: "https://example.com/rival", link_text: "X")
 
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     get call_outbound_path(@publication.public_code, rival_call.id)
     assert_response :not_found
   end

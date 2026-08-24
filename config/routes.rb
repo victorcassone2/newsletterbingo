@@ -45,6 +45,7 @@ Rails.application.routes.draw do
   get "c/:public_code/today", to: "claims#create", as: :claim
   get "c/:public_code/word.png", to: "word_images#show", as: :word_image, format: false
   get "p/:public_code/board", to: "boards#show", as: :board
+  post "p/:public_code/session", to: "participant_sessions#create", as: :participant_session
   get "p/:public_code/out/call/:id", to: "outbound_clicks#call", as: :call_outbound
   get "p/:public_code/out/prize/:id", to: "outbound_clicks#prize", as: :prize_outbound
 

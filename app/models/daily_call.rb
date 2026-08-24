@@ -5,7 +5,7 @@ class DailyCall < ApplicationRecord
   belongs_to :game
   belongs_to :game_word
   has_many :daily_claims, dependent: :destroy
-  has_one :issue, dependent: :destroy
+  has_many :issues, dependent: :destroy
   has_one :publication, through: :game
 
   scope :chronological, -> { order(:position) }

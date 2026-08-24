@@ -2,7 +2,7 @@ class Game < ApplicationRecord
   # The two game formats, chosen on the publication and snapshotted here
   # at draft time: board size => how many words the game calls. Every
   # pool word gets called, but each card holds only board_cells of them,
-  # so some calls miss some cards — that's what makes it bingo.
+  # so some calls miss some cards. That's what makes it bingo.
   FORMATS = { 5 => 30, 3 => 12 }
   # Issue cadence: minimum gap between word advances, and how long the
   # final word stays claimable before the game completes.
@@ -161,22 +161,31 @@ class Game < ApplicationRecord
     end
   end
 
-  # Resolves the claimable call for a newsletter's issue token, advancing
-  # to the next word the first time a plausible new token shows up. A
-  # token already recorded on an earlier game resolves to the word that
-  # email actually carried (no longer claimable), never a fresh advance.
-  def call_for_issue(token)
+  # Resolves the call a claim link's token authorizes, or nil when the
+  # token doesn't prove possession of the current send. The token gate
+  # is what separates playing from viewing: a bookmarked or stale link
+  # still opens the board, but only the current email's button claims.
+  # Issue cadence advances to the next word on a new token; calendar
+  # keeps the date-driven word and only records the token as freshness
+  # proof. Tokens already recorded on an earlier call or game are stale.
+  def claimable_call_for(token)
     token = token.to_s.strip
+    return nil unless Issue.plausible_token?(token)
+
     issue = issues.find_by(token: token)
     if issue
-      issue.daily_call
-    elsif (previous_call = publication.issued_call_for(token))
-      previous_call
-    elsif Issue.plausible_token?(token) && issue_floor_elapsed?
+      issue.daily_call if issue.daily_call == current_call
+    elsif publication.issued_call_for(token)
+      nil # an older send's token resolves to history, never a new claim
+    elsif issue_cadence?
       advance_to_next_word(token)
     else
-      current_call
+      register_todays_send(token)
     end
+  rescue ActiveRecord::RecordNotUnique
+    # Lost a same-token race: the winner recorded it, so resolve theirs.
+    issue = issues.find_by(token: token)
+    issue.daily_call if issue && issue.daily_call == current_call
   end
 
   def issued_calls
@@ -277,28 +286,49 @@ class Game < ApplicationRecord
       last.nil? || last.created_at <= ISSUE_INTERVAL_FLOOR.ago
     end
 
-    # A plausible new token with no words left to issue is the next send
-    # after the game's last word: it rolls the games over, and the same
-    # token draws word 1 of the successor.
+    # The first sight of a new send's token issues the next word. The
+    # game row lock serializes concurrent advances: a racing loser
+    # re-checks the interval floor, sees the winner's fresh issue, and
+    # backs off without claiming.
     def advance_to_next_word(token)
-      next_call = daily_calls.find_by(call_on: nil)
-      if next_call.nil?
-        complete
-        publication.rotate_games
-        successor = publication.active_game
-        if successor && successor != self
-          successor.call_for_issue(token)
-        else
-          current_call
+      advanced = nil
+      exhausted = false
+      transaction do
+        lock!
+        if issue_floor_elapsed?
+          advanced = daily_calls.find_by(call_on: nil)
+          if advanced
+            issues.create!(token: token, daily_call: advanced, called_on: publication.local_date)
+            advanced.update!(call_on: publication.local_date)
+          else
+            exhausted = true
+          end
         end
-      else
-        transaction do
-          issues.create!(token: token, daily_call: next_call, called_on: publication.local_date)
-          next_call.update!(call_on: publication.local_date)
-        end
-        next_call
       end
-    rescue ActiveRecord::RecordNotUnique
-      issues.find_by(token: token)&.daily_call || current_call
+      exhausted ? roll_into_successor(token) : advanced
+    end
+
+    # A plausible new token with no words left to issue is the next send
+    # after the game's last word: it completes this game, and the same
+    # token draws word 1 of the successor.
+    def roll_into_successor(token)
+      complete
+      publication.rotate_games
+      successor = publication.active_game
+      if successor && successor != self
+        successor.claimable_call_for(token)
+      end
+    end
+
+    # Calendar words are date-driven, so an unseen plausible token just
+    # proves the click came from a fresh send and maps to today's word.
+    # A day can carry several sends (test send, resend); each token is
+    # recorded so its links go stale once the day passes.
+    def register_todays_send(token)
+      call = call_for(publication.local_date)
+      if call
+        issues.create!(token: token, daily_call: call, called_on: call.call_on)
+        call
+      end
     end
 end

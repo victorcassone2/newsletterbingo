@@ -23,15 +23,15 @@
         <div class="prize-name"><%= prize.name %></div>
         <p class="small muted" style="margin: .3rem 0 0;">
           <% if prize.line? %>
-            For a player's first completed row, column, or diagonal — once each.
+            For a player's first completed row, column, or diagonal, once each.
           <% else %>
-            For claiming every word on their card — once each.
+            For claiming every word on their card, once each.
           <% end %>
         </p>
       <% else %>
         <div class="prize-name off">No prize attached</div>
         <p class="small muted" style="margin: .3rem 0 0;">
-          Winners still get the <%= prize.line? ? "BINGO!" : "BLACKOUT!" %> banner —
+          Winners still get the <%= prize.line? ? "BINGO!" : "BLACKOUT!" %> banner;
           flip the toggle to put a prize behind it.
         </p>
       <% end %>

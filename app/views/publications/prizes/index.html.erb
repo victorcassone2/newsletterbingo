@@ -41,7 +41,7 @@
 
   <div class="card">
     <div class="card-head">
-      <h2>🎁 Prize calls — this game</h2>
+      <h2>🎁 Prize calls · this game</h2>
       <span class="small muted">one-day giveaways on single words</span>
     </div>
     <% if @game.nil? %>
@@ -62,7 +62,7 @@
         <li>
           <span class="marker">○</span>
           <span class="small muted">Mark any upcoming word as a prize call from the
-            <%= link_to "schedule", account_publication_today_path(publication_id: @publication.id) %> —
+            <%= link_to "schedule", account_publication_today_path(publication_id: @publication.id) %>;
             it gets the 🎁 in the email and on readers&rsquo; boards.</span>
         </li>
       </ul>

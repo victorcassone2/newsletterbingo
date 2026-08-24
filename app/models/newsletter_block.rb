@@ -3,11 +3,12 @@
 # claim. The ESP's merge tags are inserted verbatim into the claim URL and
 # replaced by the email platform at send time.
 #
-# Both cadences get evergreen HTML, pasted once. Issue-cadence blocks
-# carry no word (the campaign-id merge tag stamps each send, and the first
-# click of a new send advances the game). Calendar blocks show today's
-# word through a dynamically served image (WordImage), so the HTML itself
-# never changes.
+# Both cadences get evergreen HTML, pasted once, and both carry the
+# campaign-id merge tag: the freshly stamped token is what proves a click
+# came from the current send, so stale bookmarks can look but not claim.
+# Issue-cadence blocks carry no word (the first click of a new send
+# advances the game). Calendar blocks show today's word through a
+# dynamically served image (WordImage), so the HTML itself never changes.
 class NewsletterBlock
   include ERB::Util
 
@@ -18,12 +19,7 @@ class NewsletterBlock
   end
 
   def claim_url(email_value = publication.email_merge_tag)
-    url = "#{DailyBingo.public_host}/c/#{publication.public_code}/today?email=#{email_value}"
-    if publication.issue_cadence?
-      url + "&issue=#{publication.campaign_merge_tag}"
-    else
-      url
-    end
+    "#{DailyBingo.public_host}/c/#{publication.public_code}/today?email=#{email_value}&issue=#{publication.campaign_merge_tag}"
   end
 
   def sponsor_name

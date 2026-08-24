@@ -34,12 +34,13 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     assert_equal 2, @game.current_call.daily_claims.count
   end
 
-  test "a new token within the interval floor claims the current word without advancing" do
+  test "a new token within the interval floor neither advances nor claims" do
     get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-001")
     get claim_path(@publication.public_code, email: "b@example.com", issue: "forged-immediately")
 
     assert_equal 1, @game.issues.count
-    assert_equal 2, @game.current_call.daily_claims.count
+    assert_equal 1, @game.current_call.daily_claims.count
+    assert_equal 0, @publication.participants.find_by(email: "b@example.com").daily_claims.count
   end
 
   test "a new token after the interval floor advances to the next word" do
@@ -65,7 +66,8 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
 
   test "before the first send, a tokenless click explains the game hasn't started" do
     get claim_path(@publication.public_code, email: "a@example.com")
-    assert_response :not_found
+    assert_redirected_to board_path(@publication.public_code)
+    follow_redirect!
     assert_match(/next newsletter/, response.body)
   end
 
@@ -96,7 +98,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
 
   test "a spurious advance can be rolled back until someone claims" do
     sign_in_as users(:one)
-    call = @game.call_for_issue("test-send-oops")
+    call = @game.claimable_call_for("test-send-oops")
     issue = @game.issues.sole
     assert issue.rollbackable?
 

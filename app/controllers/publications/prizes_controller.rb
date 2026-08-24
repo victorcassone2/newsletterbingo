@@ -1,5 +1,5 @@
 class Publications::PrizesController < Publications::BaseController
-  # The Sponsorship page: the sponsor's whole footprint — their name and
+  # The Sponsorship page: the sponsor's whole footprint: their name and
   # where it appears, the standing prizes with award counts, and the
   # current game's prize calls.
   def index

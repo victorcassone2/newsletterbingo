@@ -11,6 +11,29 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".board-rows", count: 0
     assert_match(/bingo button/, response.body)
+    assert_select ".board-lookup input[type=email]"
+  end
+
+  test "entering a known email opens the card without claiming anything" do
+    participant = Participant.locate_or_register(@publication, "me@example.com")
+    force_claim(@game.call_for(@publication.local_date - 1), participant)
+
+    post participant_session_path(@publication.public_code), params: { email: "Me@Example.com " }
+
+    assert_redirected_to board_path(@publication.public_code)
+    follow_redirect!
+    assert_select ".board-rows"
+    assert_equal 1, participant.daily_claims.count, "viewing claims nothing"
+  end
+
+  test "entering an unknown email explains that claims create cards, and registers nothing" do
+    post participant_session_path(@publication.public_code), params: { email: "stranger@example.com" }
+
+    assert_redirected_to board_path(@publication.public_code)
+    assert_equal 0, @publication.participants.count
+    follow_redirect!
+    assert_select ".board-rows", count: 0
+    assert_select ".claim-notice", text: /first time you tap the bingo button/
   end
 
   test "the participant cookie is signed; a forged token gets nothing" do
@@ -25,7 +48,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     other = Participant.locate_or_register(@publication, "other@example.com")
     force_claim(@game.call_for(@publication.local_date - 1), other)
 
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     follow_redirect!
     assert_response :success
     me = @publication.participants.find_by(email: "me@example.com")
@@ -38,7 +61,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     missed_call = @game.call_for(@publication.local_date - 1)
     missed_call.update!(description: "Missed-day secret", link_url: "https://example.com/x", link_text: "Go")
 
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     follow_redirect!
     assert_no_match(/Missed-day secret/, response.body)
   end
@@ -49,7 +72,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
     participant = Participant.locate_or_register(@publication, "me@example.com")
     force_claim(call, participant)
 
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     follow_redirect!
     assert_match(/Vendors and live music/, response.body)
   end
@@ -61,7 +84,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
   end
 
   test "a finished game's board stays visible until the reader joins the new game" do
-    get claim_path(@publication.public_code, email: "me@example.com")
+    get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
     @game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
     @game.daily_calls.update_all("call_on = call_on - 27")
 

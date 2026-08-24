@@ -72,7 +72,7 @@
 @media (max-width: 44rem) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 .stack > * + * { margin-top: 1.25rem; }
 
-/* Today cockpit: one header shape for every state — position + status
+/* Today cockpit: one header shape for every state: position + status
    left, the claims pulse right. */
 .cockpit-head {
   display: flex; justify-content: space-between; align-items: flex-start;

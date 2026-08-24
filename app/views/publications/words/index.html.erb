@@ -3,7 +3,7 @@
 <div class="card quickadd" data-controller="word-add">
   <%= form_with model: @word, url: account_publication_words_path(publication_id: @publication.id),
         data: { action: "turbo:submit-end->word-add#reset" } do |form| %>
-    <%= form.text_field :label, placeholder: "Add a word and press Enter — it lands in the pool instantly",
+    <%= form.text_field :label, placeholder: "Add a word and press Enter. It lands in the pool instantly",
           maxlength: 40, autocomplete: "off", autofocus: @filter == "custom",
           data: { word_add_target: "input" } %>
   <% end %>
@@ -38,7 +38,7 @@
 
   <% if @filter == "system" %>
     <div class="cloud-group">
-      <h3>Fill in when your custom pool runs short — custom words are always picked first</h3>
+      <h3>Fill in when your custom pool runs short; custom words are always picked first</h3>
       <div class="cloud">
         <%= render partial: "chip", collection: @words, as: :word %>
       </div>
@@ -65,7 +65,7 @@
           <%= render "chip", word: word, uses: @use_counts.fetch(word.id, 0) %>
         <% end %>
         <% if ready.empty? %>
-          <p class="small muted" style="margin: 0;">Your pool is empty — add the words only your
+          <p class="small muted" style="margin: 0;">Your pool is empty. Add the words only your
             readers would recognize, and games start feeling like yours.</p>
         <% end %>
       </div>
@@ -73,7 +73,7 @@
 
     <% if archived.any? %>
       <div class="cloud-group">
-        <h3>Archived — never picked for games</h3>
+        <h3>Archived: never picked for games</h3>
         <div class="cloud">
           <% archived.each do |word| %>
             <%= render "chip", word: word, uses: @use_counts.fetch(word.id, 0) %>

@@ -65,14 +65,14 @@
     <h2>Deactivate account</h2>
     <% if Current.account.deactivated? %>
       <p class="small muted" style="max-width: 36rem;">
-        This account is deactivated. Owners — including you — can still sign in;
+        This account is deactivated. Owners, including you, can still sign in;
         members are locked out until an owner reactivates it.
       </p>
       <%= button_to "Reactivate account", account_deactivation_path, method: :delete, class: "btn btn-quiet" %>
     <% else %>
       <p class="small muted" style="max-width: 36rem;">
         Puts the account on ice. Members lose access, but as an owner you keep yours
-        and can reactivate at any time — no need to hand off ownership first.
+        and can reactivate at any time; no need to hand off ownership first.
       </p>
       <%= button_to "Deactivate account", account_deactivation_path, method: :post, class: "btn btn-danger",
             form: { data: { turbo_confirm: "Deactivate #{Current.account.name}? Members will lose access until an owner reactivates it." } } %>

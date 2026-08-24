@@ -14,9 +14,10 @@ class DailyCallTest < ActiveSupport::TestCase
   end
 
   test "claiming today creates one claim and marks exactly one square" do
-    @today.claim_by(@participant)
     board = @participant.board_for(@game)
-    claimed = board.bingo_squares.reject(&:free?).select { |s| s.claimed_at.present? }
+    ensure_on_card(board, @today)
+    @today.claim_by(@participant)
+    claimed = board.reload.bingo_squares.reject(&:free?).select { |s| s.claimed_at.present? }
     assert_equal 1, claimed.size
     assert_equal @today.game_word_id, claimed.first.game_word_id
   end

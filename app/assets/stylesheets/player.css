@@ -260,3 +260,38 @@ body.player {
   border-radius: 16px; padding: 2rem 1.5rem; text-align: center;
   border: 1px solid rgba(127, 127, 127, .25); margin-top: 3rem;
 }
+
+/* Soft landing for links that can't claim: explain, never error. */
+.claim-notice {
+  background: var(--brand-surface, var(--card));
+  color: var(--brand-on-surface, var(--ink));
+  border: 1px solid rgba(127, 127, 127, .35);
+  border-left: 4px solid var(--brand-accent, var(--ink));
+  border-radius: 12px;
+  padding: .8rem 1rem;
+  margin-bottom: 1rem;
+  font-size: .9rem;
+  text-align: left;
+}
+
+/* Enter-your-email fallback on the welcome card. */
+.board-lookup {
+  display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap;
+  margin: 1.1rem 0 .9rem;
+}
+.board-lookup input[type="email"] {
+  flex: 1 1 12rem; min-width: 0;
+  font: inherit; font-size: .95rem;
+  padding: .55rem .75rem;
+  border: 1px solid rgba(127, 127, 127, .45);
+  border-radius: 8px;
+  background: var(--brand-background, var(--paper));
+  color: var(--brand-text, var(--ink));
+}
+.board-lookup input[type="submit"] {
+  font: inherit; font-size: .9rem; font-weight: 700;
+  padding: .55rem 1rem;
+  border: 0; border-radius: 8px; cursor: pointer;
+  background: var(--brand-accent, var(--ink));
+  color: var(--brand-on-accent, #fff);
+}

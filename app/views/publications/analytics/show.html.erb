@@ -53,7 +53,7 @@
         <% @analytics.claims_per_day(@game).each do |call, count| %>
           <% if call.called? %>
             <div class="bar-slot <%= "today-slot" if call == current_call %>"
-                 title="<%= call.label %> · Day <%= call.position %> · <%= call.call_on.strftime("%b %-d") %> — <%= count %> of <%= players %> claimed">
+                 title="<%= call.label %> · Day <%= call.position %> · <%= call.call_on.strftime("%b %-d") %> · <%= count %> of <%= players %> claimed">
               <% if call == current_call %>
                 <span class="toplabel">today</span>
               <% elsif count == players && players.positive? %>

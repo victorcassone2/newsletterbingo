@@ -49,7 +49,7 @@
 
     <main class="admin-main">
       <% if authenticated? && Current.account&.deactivated? %>
-        <div class="flash flash-alert">This account is deactivated — members can't access it. Reactivate it from the People page.</div>
+        <div class="flash flash-alert">This account is deactivated; members can't access it. Reactivate it from the People page.</div>
       <% end %>
       <% if notice %><div class="flash flash-notice"><%= notice %></div><% end %>
       <% if alert %><div class="flash flash-alert"><%= alert %></div><% end %>

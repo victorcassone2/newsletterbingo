@@ -26,7 +26,7 @@ class Publication < ApplicationRecord
   validates :email_merge_tag, presence: true
   validates :cadence, inclusion: { in: CADENCES }
   validates :board_size, inclusion: { in: Game::FORMATS.keys }
-  validates :campaign_merge_tag, presence: true, if: :issue_cadence?
+  validates :campaign_merge_tag, presence: true
   validates :primary_color, :accent_color, :background_color, :text_color,
     format: { with: COLOR_FORMAT, message: "must be a hex color like #1A2B3C" }
   validate :timezone_must_be_recognized

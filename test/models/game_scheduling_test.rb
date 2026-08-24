@@ -63,7 +63,7 @@ class GameSchedulingTest < ActiveSupport::TestCase
     game = publication.games.create!(starts_on: publication.local_date)
     game.assign_words(Game.random_word_selection(publication, count: game.pool_size))
     game.launch
-    first_call = game.call_for_issue("send-1")
+    first_call = game.claimable_call_for("send-1")
 
     publication.update!(cadence: "calendar", send_days: [])
 

@@ -47,9 +47,9 @@
       <div class="receipt-word"><%= @todays_call.label %></div>
 
       <% if @claimed_today && @on_card_today %>
-        <span class="receipt-status"><span class="checkring">✓</span> Claimed — word <%= @todays_call.position %> of <%= @game.pool_size %></span>
+        <span class="receipt-status"><span class="checkring">✓</span> Claimed · word <%= @todays_call.position %> of <%= @game.pool_size %></span>
       <% elsif @claimed_today %>
-        <span class="receipt-status off-card">Called — not on your card</span>
+        <span class="receipt-status off-card">Called, but not on your card</span>
         <p class="today-desc muted small">Your card holds <%= @game.board_cells %> of the game&rsquo;s
           <%= @game.pool_size %> words, and this wasn&rsquo;t one of yours. The next one might be.</p>
       <% else %>
@@ -161,7 +161,7 @@
         <% if @line_prize&.enabled? %>
           <div class="prize-row">
             <% if @board.bingo_achieved? %>
-              🎉 <strong><%= @line_prize.name %></strong> — yours! You&rsquo;ve got Bingo.
+              🎉 <strong><%= @line_prize.name %></strong> is yours! You&rsquo;ve got Bingo.
               <% if @line_prize.link_url.present? %>
                 <%= link_to (@line_prize.link_text.presence || "Details"), prize_outbound_path(@publication.public_code, @line_prize.id) %>
               <% end %>
@@ -173,7 +173,7 @@
         <% if @blackout_prize&.enabled? %>
           <div class="prize-row">
             <% if @board.blackout_achieved? %>
-              🏆 <strong><%= @blackout_prize.name %></strong> — blackout complete!
+              🏆 <strong><%= @blackout_prize.name %></strong> is yours! Blackout complete.
               <% if @blackout_prize.link_url.present? %>
                 <%= link_to (@blackout_prize.link_text.presence || "Details"), prize_outbound_path(@publication.public_code, @blackout_prize.id) %>
               <% end %>
@@ -187,14 +187,14 @@
 
     <div class="board-help">
       <p class="keyline">✉️ <b>The email link is your key.</b> Tap the bingo button in any
-        <%= @publication.name %> email and your card opens right here — today, tomorrow,
+        <%= @publication.name %> email and your card opens right here: today, tomorrow,
         any device. No account, no password.</p>
       <details class="board-rules">
         <summary>How to play</summary>
         <p>A new word drops with every <%= @publication.name %> email. Tap the bingo link in the email to claim
           its square. It&rsquo;s the only way to fill your card.</p>
         <p>Your card holds <%= @game.board_cells %> of the game&rsquo;s <%= @game.pool_size %> words, dealt
-          just for you — so some days the word won&rsquo;t be on your card. Claiming still counts: every
+          just for you, so some days the word won&rsquo;t be on your card. Claiming still counts: every
           word lands on someone&rsquo;s.</p>
         <p><%= @game.board_size %> claimed squares in a row (across, down, or diagonal) is a <strong>bingo</strong>.
           Claim every word on your card for a <strong>blackout</strong>. The center square is free.</p>

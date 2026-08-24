@@ -15,6 +15,13 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "email={{email}}"
   end
 
+  test "both cadences carry the campaign token that proves a click is from the current send" do
+    assert_includes NewsletterBlock.new(@publication).to_html, "issue={{campaign_id}}"
+
+    @publication.update!(cadence: "issues", campaign_merge_tag: "*|CAMPAIGN_UID|*")
+    assert_includes NewsletterBlock.new(@publication).to_html, "issue=*|CAMPAIGN_UID|*"
+  end
+
   test "a custom merge tag is inserted verbatim" do
     @publication.update!(email_merge_tag: "|EMAIL|")
     html = NewsletterBlock.new(@publication).to_html

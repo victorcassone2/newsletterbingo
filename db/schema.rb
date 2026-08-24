@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_125656) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -165,7 +165,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_000001) do
     t.uuid "game_id", null: false
     t.string "token", null: false
     t.datetime "updated_at", null: false
-    t.index ["daily_call_id"], name: "index_issues_on_daily_call_id", unique: true
+    t.index ["daily_call_id"], name: "index_issues_on_daily_call_id"
     t.index ["game_id", "token"], name: "index_issues_on_game_id_and_token", unique: true
     t.index ["game_id"], name: "index_issues_on_game_id"
   end

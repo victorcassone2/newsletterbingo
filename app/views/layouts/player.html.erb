@@ -13,6 +13,9 @@
 
   <body class="player" <% if @publication %>style="<%= brand_style(@publication) %>"<% end %>>
     <main class="player-main">
+      <% if flash[:claim_notice].present? %>
+        <div class="claim-notice"><%= flash[:claim_notice] %></div>
+      <% end %>
       <%= yield %>
     </main>
     <footer class="powered-by">

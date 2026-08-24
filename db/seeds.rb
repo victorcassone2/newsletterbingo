@@ -33,7 +33,7 @@ publication = account.publications.create!(
   publication.words.create!(label: label)
 end
 
-# The standing "Brought to you by" line and prize pair — always on,
+# The standing "Brought to you by" line and prize pair: always on,
 # whatever game is running.
 publication.update!(sponsor_name: "Dundee Coffee")
 publication.line_prize.update!(enabled: true, name: "$25 Dundee Coffee Gift Card",
@@ -77,7 +77,7 @@ end
 
 # Yesterday carried rich content; today is a prize call.
 game.call_for(today - 1).update!(
-  description: "Free refill day at Dundee Coffee — mention the newsletter.",
+  description: "Free refill day at Dundee Coffee. Mention the newsletter.",
   link_url: "https://example.com/dundee-coffee", link_text: "See the menu")
 game.call_for(today).update!(
   prize_call: true,
@@ -110,7 +110,7 @@ called_days = (0..8).to_a # Days 1–9 (today included)
 alice = Participant.locate_or_register(publication, "alice@example.com")
 seed_claims(game, alice, called_days)
 
-# Bob: missed Day 5 — that square stays blank forever.
+# Bob: missed Day 5; that square stays blank forever.
 bob = Participant.locate_or_register(publication, "bob@example.com")
 seed_claims(game, bob, called_days - [ 4 ])
 
@@ -118,7 +118,7 @@ seed_claims(game, bob, called_days - [ 4 ])
 carol = Participant.locate_or_register(publication, "carol@example.com")
 seed_claims(game, carol, called_days - [ 1, 4, 6 ])
 
-# Dave: board arranged so the 9 called words nearly fill row 2 + center —
+# Dave: board arranged so the 9 called words nearly fill row 2 + center;
 # he already has a bingo (and a line prize award).
 dave = Participant.locate_or_register(publication, "dave@example.com")
 dave_board = dave.board_for(game)

@@ -8,10 +8,10 @@
     <h1>Make the game yours</h1>
     <p class="goal-sub">
       <% if count >= goal %>
-        <b><%= count %></b> custom words — every game now draws only your words
+        <b><%= count %></b> custom words. Every game now draws only your words
       <% else %>
-        <b><%= count %></b> custom <%= "word".pluralize(count) %> —
-        add <b><%= goal - count %></b> more and every game is 100% yours
+        <b><%= count %></b> custom <%= "word".pluralize(count) %>.
+        Add <b><%= goal - count %></b> more and every game is 100% yours
       <% end %>
     </p>
     <div class="gameticks" aria-hidden="true">
@@ -21,6 +21,6 @@
     </div>
   </div>
   <% if count >= goal %>
-    <span class="goal-done">✓ Fully yours — keep adding for variety</span>
+    <span class="goal-done">✓ Fully yours. Keep adding for variety</span>
   <% end %>
 </div>
