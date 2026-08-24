@@ -94,6 +94,24 @@ class BillingTest < ActionDispatch::IntegrationTest
     assert publication.billing_active?
   end
 
+  test "publication pages carry a free-trial banner" do
+    # Stripe card-upfront trial: first-charge date.
+    @publication.update!(stripe_subscription_id: "sub_1", subscription_status: "trialing",
+      subscription_current_period_end: 20.days.from_now)
+    get account_publication_today_path(account_id: @account.id, publication_id: @publication.id)
+    assert_match "Free trial — your first charge of $29", response.body
+
+    # Legacy app-side trial: days left + confirm nudge.
+    lincoln = publications(:lincoln)
+    get account_publication_today_path(account_id: @account.id, publication_id: lincoln.id)
+    assert_match "Confirm billing", response.body
+
+    # No trial, no banner.
+    @publication.update!(subscription_status: "active")
+    get account_publication_today_path(account_id: @account.id, publication_id: @publication.id)
+    assert_no_match(/Free trial —/, response.body)
+  end
+
   test "confirming without a card bounces to hosted checkout with the trial attached" do
     gateway = FakeGateway.new
     Payments.stub(:platform, gateway) do

@@ -53,6 +53,9 @@
       <% if authenticated? && Current.account&.deactivated? %>
         <div class="flash flash-alert">This account is deactivated; members can't access it. Reactivate it from the People page.</div>
       <% end %>
+      <% if authenticated? && Current.account && @publication&.persisted? %>
+        <%= render "publications/trial_banner", publication: @publication %>
+      <% end %>
       <% if notice %><div class="flash flash-notice"><%= notice %></div><% end %>
       <% if alert %><div class="flash flash-alert"><%= alert %></div><% end %>
       <%= yield %>

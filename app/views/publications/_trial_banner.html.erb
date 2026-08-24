@@ -1,0 +1,17 @@
+<%# Rendered from the layout on every page of a publication in a free
+    trial: the Stripe card-upfront trial shows its first-charge date, a
+    legacy app-side trial nudges toward confirming billing. %>
+<% if publication.subscription_status == "trialing" && !publication.cancel_scheduled? %>
+  <div class="trial-banner">
+    <span>✨ Free trial — your first charge of $29 is
+      <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>.</span>
+    <%= link_to "Billing settings", edit_account_publication_path(id: publication.id, anchor: "billing") %>
+  </div>
+<% elsif publication.billing_state == :trialing %>
+  <% days_left = (publication.trial_ends_at.to_date - Date.current).to_i %>
+  <div class="trial-banner">
+    <span>✨ Free trial — <%= pluralize(days_left, "day") %> left. Confirm billing and games
+      keep rotating without interruption.</span>
+    <%= link_to "Confirm billing", new_account_publication_subscription_path(publication_id: publication.id) %>
+  </div>
+<% end %>

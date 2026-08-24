@@ -109,6 +109,16 @@
 }
 .attention .btn { background: var(--amber-ink); color: #fff; }
 
+/* Quiet, informational cousin of .attention: the free-trial strip that
+   rides along on every page of a trialing publication. */
+.trial-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: .7rem; flex-wrap: wrap;
+  background: var(--tint); border: 1px solid var(--line);
+  border-radius: var(--radius); color: var(--ink-soft);
+  font-size: .85rem; padding: .55rem 1rem; margin-bottom: 1.25rem;
+}
+.trial-banner a { font-weight: 650; color: var(--brand); }
+
 .next-card { border-color: var(--green-line); }
 .next-card .ticket-label { color: var(--green-ink); }
 .receipt-card .ticket-word { color: var(--ink-strong); }
