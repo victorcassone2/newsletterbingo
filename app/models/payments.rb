@@ -40,6 +40,22 @@ module Payments
       Stripe::Customer.create(params, { api_key: @api_key })
     end
 
+    def retrieve_customer(id)
+      Stripe::Customer.retrieve(id, { api_key: @api_key })
+    end
+
+    def list_payment_methods(customer_id)
+      Stripe::PaymentMethod.list({ customer: customer_id, type: "card" }, { api_key: @api_key })
+    end
+
+    def create_subscription(**params)
+      Stripe::Subscription.create(params, { api_key: @api_key })
+    end
+
+    def update_subscription(id, **params)
+      Stripe::Subscription.update(id, params, { api_key: @api_key })
+    end
+
     def create_checkout_session(**params)
       Stripe::Checkout::Session.create(params, { api_key: @api_key })
     end

@@ -264,34 +264,57 @@
       <b>On the house <span class="badge badge-green">Complimentary</span></b>
       <p class="muted small" style="margin: .35rem 0 0;">This publication runs free of charge. No card needed.</p>
     <% when :subscribed %>
-      <b>Subscribed <span class="badge badge-green">$29/month</span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">
-        Games rotate automatically<% if @publication.subscription_current_period_end %>; your next
-        renewal is <%= @publication.subscription_current_period_end.strftime("%B %-d, %Y") %><% end %>.
-        Update your card, view invoices, or cancel anytime from the billing portal.
-      </p>
-      <%= button_to "Manage billing", account_publication_subscription_portal_path(publication_id: @publication.id), class: "btn" %>
+      <% if @publication.cancel_scheduled? %>
+        <b>Cancellation scheduled
+          <span class="badge badge-amber">Ends <%= @publication.subscription_current_period_end&.strftime("%b %-d, %Y") %></span></b>
+        <p class="muted small" style="margin: .35rem 0 .8rem;">You're paid through then and games
+          run until the clock runs out; after that the next game won't start. Changed your mind?</p>
+        <%= button_to "Keep my subscription",
+              account_publication_subscription_cancellation_path(publication_id: @publication.id),
+              method: :delete, class: "btn btn-primary" %>
+      <% else %>
+        <% trialing = @publication.subscription_status == "trialing" %>
+        <b><%= trialing ? "Free trial" : "Subscribed" %> <span class="badge badge-green">$29/month</span></b>
+        <p class="muted small" style="margin: .35rem 0 .8rem;">
+          <% if trialing %>
+            Your first charge is <%= @publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>.
+          <% elsif @publication.subscription_current_period_end %>
+            Next renewal is <%= @publication.subscription_current_period_end.strftime("%B %-d, %Y") %>.
+          <% end %>
+          Your card and invoices live under <%= link_to "account billing", account_billing_path %>.
+        </p>
+        <%= button_to "Cancel subscription",
+              account_publication_subscription_cancellation_path(publication_id: @publication.id),
+              class: "btn",
+              data: { turbo_confirm: "Cancel this publication's subscription? Games stop rotating when the paid period ends." } %>
+      <% end %>
     <% when :past_due %>
       <b>Payment problem <span class="badge badge-amber">Past due</span></b>
       <p class="muted small" style="margin: .35rem 0 .8rem;">Your last payment didn't go through.
-        Stripe is retrying your card; update it in the billing portal to keep your games rotating.</p>
-      <%= button_to "Update card", account_publication_subscription_portal_path(publication_id: @publication.id), class: "btn btn-primary" %>
+        Stripe is retrying your card; update it under account billing to keep your games rotating.</p>
+      <%= button_to "Update card", account_billing_portal_path, class: "btn btn-primary" %>
     <% when :trialing %>
       <% days_left = (@publication.trial_ends_at.to_date - Date.current).to_i %>
       <b>Free trial <span class="badge badge-gray"><%= pluralize(days_left, "day") %> left</span></b>
       <p class="muted small" style="margin: .35rem 0 .8rem;">Everything is unlocked while you try
-        Newsletter Bingo. Subscribe for $29/month and your games keep rotating when the trial ends.</p>
-      <%= button_to "Subscribe — $29/month", account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+        Newsletter Bingo. Confirm billing and the trial simply rolls into $29/month — no
+        interruption to your games.</p>
+      <%= link_to "Confirm billing", new_account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
     <% when :canceled %>
       <b>Subscription ended <span class="badge badge-amber">Lapsed</span></b>
       <p class="muted small" style="margin: .35rem 0 .8rem;">Your running game finishes out, but the
-        next one won't start. Resubscribe to keep the streak going.</p>
-      <%= button_to "Resubscribe — $29/month", account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
-    <% else %>
+        next one won't start. Restart to keep the streak going.</p>
+      <%= link_to "Restart — $29/month", new_account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <% when :trial_expired %>
       <b>Trial ended <span class="badge badge-amber">Lapsed</span></b>
       <p class="muted small" style="margin: .35rem 0 .8rem;">Your running game finishes out, but the
         next one won't start. Subscribe to keep the streak going.</p>
-      <%= button_to "Subscribe — $29/month", account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+      <%= link_to "Subscribe — $29/month", new_account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <% else %>
+      <b>Billing not set up <span class="badge badge-amber">Needs billing</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Games can't launch until billing starts —
+        30 days free, then $29/month.</p>
+      <%= link_to "Start free trial", new_account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
     <% end %>
   </div>
 </div>

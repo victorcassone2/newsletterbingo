@@ -18,8 +18,8 @@ class PublicationsController < ApplicationController
   def create
     @publication = Current.account.publications.new(publication_params)
     if @publication.save
-      redirect_to edit_account_publication_path(id: @publication.id),
-        notice: "#{@publication.name} is ready. Set your merge tag and branding here, then create a game from Today."
+      redirect_to new_account_publication_subscription_path(publication_id: @publication.id),
+        notice: "#{@publication.name} is created. Start your free trial and it's ready to set up."
     else
       render :new, status: :unprocessable_entity
     end

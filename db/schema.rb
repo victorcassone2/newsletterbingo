@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_130002) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -251,6 +251,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_130002) do
     t.integer "send_days", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
     t.string "sponsor_name"
     t.string "stripe_subscription_id"
+    t.boolean "subscription_cancel_at_period_end", default: false, null: false
     t.datetime "subscription_current_period_end"
     t.string "subscription_status"
     t.string "text_color", default: "#111827", null: false

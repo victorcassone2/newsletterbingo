@@ -15,6 +15,8 @@
               <span class="badge badge-gray">Trial</span>
             <% when :trial_expired, :canceled %>
               <span class="badge badge-amber">Lapsed</span>
+            <% when :pending %>
+              <span class="badge badge-amber">Needs billing</span>
             <% end %>
             <div class="small muted">
               <% if (game = publication.games.active.first) %>

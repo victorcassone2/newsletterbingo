@@ -2,22 +2,33 @@ require "test_helper"
 require "ostruct"
 require "minitest/mock"
 
-# Subscription lifecycle end-to-end, with the Payments seam stubbed: checkout
-# redirect, sync-on-return, webhooks (idempotent, tenant-isolated), and the
-# game-rotation gate that lapsing closes and subscribing reopens.
+# Subscription lifecycle end-to-end, with the Payments seam stubbed: billing
+# starts at newsletter creation (confirm with the card on file, or hosted
+# Checkout to collect one), cancels in-app at period end, webhooks stay
+# idempotent and tenant-isolated, and lapsing gates game rotation.
 class BillingTest < ActionDispatch::IntegrationTest
   # Stands in for Payments::Gateway; records params so tests can assert on
   # what would have been sent to Stripe.
   class FakeGateway
-    attr_reader :checkout_params, :portal_params
+    attr_reader :checkout_params, :portal_params, :subscription_params, :update_args
 
-    def initialize(checkout: nil, subscription: nil)
+    def initialize(checkout: nil, subscription: nil, payment_methods: [])
       @checkout = checkout
       @subscription = subscription
+      @payment_methods = payment_methods
     end
 
     def create_customer(**params)
       OpenStruct.new(id: "cus_new_1")
+    end
+
+    def retrieve_customer(id)
+      OpenStruct.new(id: id,
+        invoice_settings: OpenStruct.new(default_payment_method: @payment_methods.first&.id))
+    end
+
+    def list_payment_methods(customer_id)
+      OpenStruct.new(data: @payment_methods)
     end
 
     def create_checkout_session(**params)
@@ -33,6 +44,16 @@ class BillingTest < ActionDispatch::IntegrationTest
       @subscription
     end
 
+    def create_subscription(**params)
+      @subscription_params = params
+      @subscription
+    end
+
+    def update_subscription(id, **params)
+      @update_args = [ id, params ]
+      @subscription
+    end
+
     def create_billing_portal_session(**params)
       @portal_params = params
       OpenStruct.new(url: "https://billing.stripe.test/portal")
@@ -45,7 +66,35 @@ class BillingTest < ActionDispatch::IntegrationTest
     @publication = publications(:omaha)
   end
 
-  test "subscribe creates the account's customer and bounces to hosted checkout" do
+  test "creating a newsletter routes through the billing confirm page, gated until confirmed" do
+    post account_publications_path(account_id: @account.id), params: {
+      publication: { name: "Card Upfront Weekly", timezone: "America/Chicago" }
+    }
+    publication = @account.publications.find_by(name: "Card Upfront Weekly")
+    assert_redirected_to new_account_publication_subscription_path(account_id: @account.id, publication_id: publication.id)
+    assert_equal :pending, publication.billing_state
+    assert_not publication.billing_active?, "no free ride for abandoned checkouts"
+  end
+
+  test "confirming with a card on file creates the subscription directly, trial included" do
+    @account.update!(stripe_customer_id: "cus_own")
+    publication = @account.publications.create!(name: "Fresh Daily")
+    gateway = FakeGateway.new(payment_methods: [ fake_card ],
+      subscription: stripe_subscription(id: "sub_new", status: "trialing", publication: publication))
+
+    Payments.stub(:platform, gateway) do
+      post account_publication_subscription_path(account_id: @account.id, publication_id: publication.id)
+    end
+
+    assert_redirected_to edit_account_publication_path(account_id: @account.id, id: publication.id)
+    assert_equal 30, gateway.subscription_params[:trial_period_days]
+    assert_equal "pm_1", gateway.subscription_params[:default_payment_method]
+    assert_equal publication.id, gateway.subscription_params[:metadata][:publication_id]
+    assert publication.reload.subscribed?
+    assert publication.billing_active?
+  end
+
+  test "confirming without a card bounces to hosted checkout with the trial attached" do
     gateway = FakeGateway.new
     Payments.stub(:platform, gateway) do
       post account_publication_subscription_path(account_id: @account.id, publication_id: @publication.id)
@@ -54,28 +103,68 @@ class BillingTest < ActionDispatch::IntegrationTest
     assert_redirected_to "https://checkout.stripe.test/pay"
     assert_equal "cus_new_1", @account.reload.stripe_customer_id
     assert_equal "subscription", gateway.checkout_params[:mode]
-    assert_equal "cus_new_1", gateway.checkout_params[:customer]
     assert_equal @publication.id, gateway.checkout_params[:subscription_data][:metadata][:publication_id]
-    assert_equal @account.id, gateway.checkout_params[:subscription_data][:metadata][:account_id]
+    assert_equal @publication.trial_ends_at.to_i, gateway.checkout_params[:subscription_data][:trial_end],
+      "a legacy publication carries its remaining app-side trial into Stripe"
     assert_includes gateway.checkout_params[:success_url], "session_id={CHECKOUT_SESSION_ID}"
+    assert_nil gateway.subscription_params
   end
 
-  test "an already-subscribed publication is not sent back to checkout" do
+  test "restarting a canceled subscription charges from day one" do
+    @account.update!(stripe_customer_id: "cus_own")
+    @publication.update!(trial_ends_at: 1.day.ago,
+      stripe_subscription_id: "sub_old", subscription_status: "canceled")
+    gateway = FakeGateway.new(payment_methods: [ fake_card ],
+      subscription: stripe_subscription(id: "sub_new", status: "active", publication: @publication))
+
+    Payments.stub(:platform, gateway) do
+      post account_publication_subscription_path(account_id: @account.id, publication_id: @publication.id)
+    end
+
+    assert_redirected_to edit_account_publication_path(account_id: @account.id, id: @publication.id, anchor: "billing")
+    assert_nil gateway.subscription_params[:trial_period_days]
+    assert_nil gateway.subscription_params[:trial_end]
+    assert @publication.reload.subscribed?
+  end
+
+  test "an already-subscribed publication is never re-billed" do
     @publication.update!(stripe_subscription_id: "sub_1", subscription_status: "active")
-    gateway = FakeGateway.new
+    gateway = FakeGateway.new(payment_methods: [ fake_card ])
     Payments.stub(:platform, gateway) do
       post account_publication_subscription_path(account_id: @account.id, publication_id: @publication.id)
     end
 
     assert_redirected_to edit_account_publication_path(account_id: @account.id, id: @publication.id, anchor: "billing")
     assert_nil gateway.checkout_params
+    assert_nil gateway.subscription_params
+  end
+
+  test "canceling schedules the end of the paid period, and can be undone" do
+    @publication.update!(stripe_subscription_id: "sub_1", subscription_status: "active")
+    gateway = FakeGateway.new(subscription: OpenStruct.new(id: "sub_1", status: "active",
+      customer: "cus_own", current_period_end: 20.days.from_now.to_i, cancel_at_period_end: true))
+
+    Payments.stub(:platform, gateway) do
+      post account_publication_subscription_cancellation_path(account_id: @account.id, publication_id: @publication.id)
+    end
+    assert_equal [ "sub_1", { cancel_at_period_end: true } ], gateway.update_args
+    assert @publication.reload.cancel_scheduled?
+    assert @publication.billing_active?, "paid through the period end"
+
+    undo = FakeGateway.new(subscription: OpenStruct.new(id: "sub_1", status: "active",
+      customer: "cus_own", current_period_end: 20.days.from_now.to_i, cancel_at_period_end: false))
+    Payments.stub(:platform, undo) do
+      delete account_publication_subscription_cancellation_path(account_id: @account.id, publication_id: @publication.id)
+    end
+    assert_equal [ "sub_1", { cancel_at_period_end: false } ], undo.update_args
+    assert_not @publication.reload.cancel_scheduled?
   end
 
   test "checkout return syncs the subscription without waiting for the webhook" do
     @account.update!(stripe_customer_id: "cus_own")
     gateway = FakeGateway.new(
       checkout: OpenStruct.new(customer: "cus_own", subscription: "sub_9"),
-      subscription: stripe_subscription(id: "sub_9", status: "active", publication: @publication)
+      subscription: stripe_subscription(id: "sub_9", status: "trialing", publication: @publication)
     )
     Payments.stub(:platform, gateway) do
       get account_publication_subscription_return_path(account_id: @account.id, publication_id: @publication.id,
@@ -102,13 +191,16 @@ class BillingTest < ActionDispatch::IntegrationTest
     assert_not @publication.subscribed?
   end
 
-  test "the portal hands out a one-time billing URL for the account's customer" do
+  test "the billing page and portal live at the account level" do
+    get account_billing_path(account_id: @account.id)
+    assert_response :success
+    assert_match "collected when you confirm", response.body
+
     @account.update!(stripe_customer_id: "cus_own")
     gateway = FakeGateway.new
     Payments.stub(:platform, gateway) do
-      post account_publication_subscription_portal_path(account_id: @account.id, publication_id: @publication.id)
+      post account_billing_portal_path(account_id: @account.id)
     end
-
     assert_redirected_to "https://billing.stripe.test/portal"
     assert_equal "cus_own", gateway.portal_params[:customer]
   end
@@ -190,10 +282,14 @@ class BillingTest < ActionDispatch::IntegrationTest
       game_id: game.id)
 
     assert game.reload.draft?
-    assert_match(/Subscribe/, flash[:alert])
+    assert_match(/billing/, flash[:alert])
   end
 
   private
+    def fake_card
+      OpenStruct.new(id: "pm_1", card: OpenStruct.new(brand: "visa", last4: "4242"))
+    end
+
     def stripe_subscription(id:, status:, publication:)
       OpenStruct.new(
         id: id, status: status, customer: "cus_hook",

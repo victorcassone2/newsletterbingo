@@ -1,0 +1,59 @@
+<div class="page-head">
+  <div>
+    <h1>Billing</h1>
+    <p class="muted small">One card covers every publication; each publication carries its own
+      $29/month subscription, managed from its Setup page.</p>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 1.25rem;">
+  <b>Payment method &amp; invoices</b>
+  <p class="muted small" style="margin: .35rem 0 .8rem;">
+    <% if Current.account.stripe_customer_id.present? %>
+      Update your card, change the billing email, or download invoices on Stripe's
+      secure billing portal.
+    <% else %>
+      Nothing on file yet — your card is collected when you confirm your first
+      publication's subscription.
+    <% end %>
+  </p>
+  <% if Current.account.stripe_customer_id.present? %>
+    <%= button_to "Manage billing info", account_billing_portal_path, class: "btn btn-primary" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <b>Subscriptions</b>
+  <ul class="list" style="margin-top: .6rem;">
+    <% @publications.each do |publication| %>
+      <li>
+        <div>
+          <%= link_to publication.name, edit_account_publication_path(id: publication.id, anchor: "billing") %>
+          <div class="small muted">
+            <% case publication.billing_state when :complimentary %>
+              Complimentary
+            <% when :subscribed %>
+              <% if publication.cancel_scheduled? %>
+                Cancels <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>
+              <% elsif publication.subscription_status == "trialing" %>
+                Free trial — first charge <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>
+              <% else %>
+                $29/month — renews <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>
+              <% end %>
+            <% when :past_due %>
+              Payment problem — update your card above
+            <% when :trialing %>
+              Free trial — <%= pluralize(((publication.trial_ends_at.to_date - Date.current).to_i), "day") %> left
+            <% when :canceled, :trial_expired %>
+              Lapsed — restart from its Setup page
+            <% else %>
+              Billing not set up
+            <% end %>
+          </div>
+        </div>
+        <%= link_to "Open →", edit_account_publication_path(id: publication.id, anchor: "billing"),
+              class: "btn btn-quiet btn-small" %>
+      </li>
+    <% end %>
+  </ul>
+</div>

@@ -1,0 +1,45 @@
+<% restart = @publication.stripe_subscription_id.present? %>
+<div class="page-head">
+  <div>
+    <h1><%= restart ? "Restart the subscription" : "Start your free trial" %></h1>
+    <p class="muted small">Each publication carries its own subscription; your card and invoices
+      live under <%= link_to "account billing", account_billing_path %>.</p>
+  </div>
+</div>
+
+<div class="card" style="max-width: 34rem;">
+  <b><%= @publication.name %></b>
+  <p class="muted small" style="margin: .35rem 0 .8rem;">
+    <% trial = @publication.stripe_trial_params %>
+    <% if trial[:trial_period_days] %>
+      30 days free — one full game arc — then $29/month. Cancel anytime and the
+      current game still plays out.
+    <% elsif trial[:trial_end] %>
+      Free until <%= @publication.trial_ends_at.strftime("%B %-d, %Y") %> (the rest of
+      your trial), then $29/month.
+    <% else %>
+      $29/month, starting today.
+    <% end %>
+  </p>
+
+  <% if @payment_method %>
+    <p class="muted small" style="margin: 0 0 .8rem;">
+      Bills to your card on file: <%= @payment_method.card.brand.capitalize %>
+      •••• <%= @payment_method.card.last4 %>.
+    </p>
+    <%= button_to restart ? "Confirm — $29/month" : "Confirm and start trial",
+          account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+  <% else %>
+    <p class="muted small" style="margin: 0 0 .8rem;">
+      You'll enter your card on Stripe's secure checkout page. It stays on file
+      for any newsletters you add later.
+    </p>
+    <%= button_to "Continue to checkout",
+          account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+  <% end %>
+
+  <p class="small" style="margin: .8rem 0 0;">
+    <%= link_to "Not now", edit_account_publication_path(id: @publication.id), class: "muted" %>
+    <span class="muted">— you can set up the publication, but games won't launch until billing starts.</span>
+  </p>
+</div>

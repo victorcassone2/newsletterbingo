@@ -19,6 +19,8 @@
           <nav class="topbar-nav">
             <%= nav_link_to "Publications", account_publications_path(account_id: Current.account.id),
                   active: controller_name == "publications" && controller_path == "publications" %>
+            <%= nav_link_to "Billing", account_billing_path(account_id: Current.account.id),
+                  active: controller_path == "billings" %>
             <%= nav_link_to "People", account_account_profile_path(account_id: Current.account.id),
                   active: controller_name == "account_profiles" %>
             <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>

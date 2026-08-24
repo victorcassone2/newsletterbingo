@@ -33,9 +33,15 @@ Elements, no publishable key needed in the UI. Gem: `gem "stripe", "~> 13.0"`.
    Subscription per Publication with `metadata: { publication_id:, account_id: }`.
    Independent subscribe/cancel per newsletter, and the portal shows all of an
    account's subscriptions in one place.
-3. **App-side free trial, no card required.** `trial_ends_at` set to 30 days at
-   publication creation (one full game arc). Billing state is
-   `trialing → subscribed / lapsed`. No Stripe involvement until checkout.
+3. **~~App-side free trial, no card required.~~ SUPERSEDED (2026-08-24):
+   card-upfront at creation.** Creating a newsletter routes through a billing
+   confirm page: card on file → confirm creates the subscription directly
+   (30-day Stripe trial for new publications); no card → hosted Checkout
+   collects one. Abandoners keep the publication but it's gated (`:pending`).
+   Cancellation is in-app at period end (undoable); restart via the same
+   confirm page, no trial. Billing info + invoices live on an account-level
+   Billing page (Stripe portal). Publications that predate this keep their
+   app-side `trial_ends_at` and carry any remainder into Stripe at confirm.
 4. **Readers are never punished mid-game.** Gating acts at game-rotation time,
    not claim time: a lapsed publication's active game plays out to its natural
    end; `rotate_games` simply won't launch the successor. Claim links then hit

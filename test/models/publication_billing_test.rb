@@ -7,12 +7,25 @@ class PublicationBillingTest < ActiveSupport::TestCase
     @publication = publications(:omaha)
   end
 
-  test "a new publication starts a 30-day trial automatically" do
+  test "a new publication starts pending: no trial until billing is confirmed" do
     publication = accounts(:publisher).publications.create!(name: "Fresh Daily")
-    assert_in_delta 30.days.from_now, publication.trial_ends_at, 1.minute
-    assert publication.in_trial?
-    assert publication.billing_active?
-    assert_equal :trialing, publication.billing_state
+    assert_nil publication.trial_ends_at
+    assert_equal :pending, publication.billing_state
+    assert_not publication.billing_active?, "games are gated until the subscription is confirmed"
+  end
+
+  test "trial params: full trial for a fresh publication, remainder for a legacy one, none for restarts" do
+    fresh = accounts(:publisher).publications.create!(name: "Fresh Daily")
+    assert_equal({ trial_period_days: 30 }, fresh.stripe_trial_params)
+
+    legacy = publications(:omaha)
+    assert_equal({ trial_end: legacy.trial_ends_at.to_i }, legacy.stripe_trial_params)
+
+    legacy.update!(trial_ends_at: 1.day.ago)
+    assert_equal({}, legacy.stripe_trial_params, "an expired trial pays from day one")
+
+    legacy.update!(trial_ends_at: nil, stripe_subscription_id: "sub_old", subscription_status: "canceled")
+    assert_equal({}, legacy.stripe_trial_params, "a restart pays from day one")
   end
 
   test "billing_state walks the whole ladder" do
@@ -105,6 +118,19 @@ class PublicationBillingTest < ActiveSupport::TestCase
     assert_in_delta Time.zone.at(period_end), @publication.subscription_current_period_end, 1.second
     assert_equal "cus_expanded", @publication.account.reload.stripe_customer_id,
       "an expanded customer object still lands as an id on the account"
+  end
+
+  test "sync records a scheduled cancellation and clears it again" do
+    scheduled = OpenStruct.new(id: "sub_9", status: "active", customer: "cus_x",
+      current_period_end: 10.days.from_now.to_i, cancel_at_period_end: true)
+    @publication.sync_stripe_subscription!(scheduled)
+    assert @publication.reload.cancel_scheduled?
+    assert @publication.billing_active?, "paid through the period end, so still active"
+
+    kept = OpenStruct.new(id: "sub_9", status: "active", customer: "cus_x",
+      current_period_end: 10.days.from_now.to_i, cancel_at_period_end: false)
+    @publication.sync_stripe_subscription!(kept)
+    assert_not @publication.reload.cancel_scheduled?
   end
 
   test "sync accepts a top-level current_period_end and never clobbers an existing account customer" do

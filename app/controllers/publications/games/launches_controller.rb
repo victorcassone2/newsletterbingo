@@ -1,7 +1,7 @@
 class Publications::Games::LaunchesController < Publications::Games::BaseController
   def create
     unless @publication.billing_active?
-      back_to_game alert: "Your trial has ended. Subscribe from Setup to launch this game."
+      back_to_game alert: "Set up billing to launch this game — it takes a minute from Setup → Billing."
       return
     end
 

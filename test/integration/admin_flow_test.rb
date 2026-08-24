@@ -27,6 +27,12 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert publication.present?
     assert_match(/\Apub_/, publication.public_code)
 
+    # Billing is card-upfront now and creation lands on the confirm page.
+    # This journey is about the game mechanics, so grant the trial directly;
+    # the billing flows have their own tests.
+    assert_redirected_to new_account_publication_subscription_path(account_id: account_id, publication_id: publication.id)
+    publication.update!(trial_ends_at: 30.days.from_now)
+
     # Visiting Today drafts the first game automatically: 30 words, prizes
     get account_publication_today_path(account_id: account_id, publication_id: publication.id)
     assert_response :success

@@ -9,16 +9,21 @@ Rails.application.routes.draw do
   scope "a/:account_id", as: :account do
     get "", to: "publications#index", as: ""
     resource :account_profile, only: %i[ show ], path: "people"
+    resource :billing, only: %i[ show ] do
+      scope module: :billings do
+        resource :portal, only: %i[ create ]
+      end
+    end
     resources :memberships, only: %i[ update destroy ]
     resources :invitations, only: %i[ create destroy ]
     resource :deactivation, only: %i[ create destroy ]
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
-        resource :subscription, only: %i[ create ] do
+        resource :subscription, only: %i[ new create ] do
           scope module: :subscriptions do
             resource :return, only: %i[ show ]
-            resource :portal, only: %i[ create ]
+            resource :cancellation, only: %i[ create destroy ]
           end
         end
         resource :board_preview, only: %i[ show ]
