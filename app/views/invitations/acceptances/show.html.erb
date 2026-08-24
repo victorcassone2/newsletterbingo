@@ -1,0 +1,38 @@
+<div class="auth-wrap">
+  <h1 class="auth-title">Join <%= @invitation.account.name %></h1>
+  <div class="card">
+    <p style="margin-bottom: 1rem;">
+      You've been invited to join <strong><%= @invitation.account.name %></strong> on Daily Bingo.
+    </p>
+
+    <% if authenticated? %>
+      <%= button_to "Join as #{Current.user.email_address}",
+            invitation_acceptance_path(@invitation.token), class: "btn btn-primary" %>
+    <% elsif User.exists?(email_address: @invitation.email_address) %>
+      <p class="small muted" style="margin-bottom: 1rem;">
+        You already have a Daily Bingo account. Sign in and you'll be brought back here to accept.
+      </p>
+      <%= link_to "Sign in to accept", new_session_path, class: "btn btn-primary" %>
+    <% else %>
+      <%= form_with model: @user, url: invitation_acceptance_path(@invitation.token) do |form| %>
+        <% if @user.errors.any? %>
+          <div class="errors"><%= @user.errors.full_messages.to_sentence %></div>
+        <% end %>
+
+        <div class="field">
+          <%= form.label :email_address, "Email" %>
+          <%= form.email_field :email_address, disabled: true %>
+        </div>
+        <div class="field">
+          <%= form.label :password %>
+          <%= form.password_field :password, autocomplete: "new-password", autofocus: true %>
+        </div>
+        <div class="field">
+          <%= form.label :password_confirmation, "Confirm password" %>
+          <%= form.password_field :password_confirmation, autocomplete: "new-password" %>
+        </div>
+        <%= form.submit "Create account & join", class: "btn btn-primary" %>
+      <% end %>
+    <% end %>
+  </div>
+</div>

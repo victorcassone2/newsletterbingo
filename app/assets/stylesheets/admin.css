@@ -531,3 +531,9 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 .auth-wrap { max-width: 24rem; margin: 8vh auto 0; padding: 0 1rem; }
 .auth-wrap .card { padding: 1.75rem; }
 .auth-title { text-align: center; margin-bottom: 1.25rem; }
+
+/* People page: actions stay quiet until pointed at; the badge anchors the row. */
+.people-row-meta { display: inline-flex; gap: 1rem; align-items: center; }
+.people-row-meta .link-button { color: var(--ink-faint); font-size: .8rem; text-decoration: none; white-space: nowrap; }
+.people-row-meta .link-button:hover { color: var(--ink); text-decoration: underline; }
+.people-invite { border-top: 1px solid var(--line-soft); margin-top: .5rem; padding-top: 1rem; }

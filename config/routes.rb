@@ -9,6 +9,9 @@ Rails.application.routes.draw do
   scope "a/:account_id", as: :account do
     get "", to: "publications#index", as: ""
     resource :account_profile, only: %i[ show ], path: "people"
+    resources :memberships, only: %i[ update destroy ]
+    resources :invitations, only: %i[ create destroy ]
+    resource :deactivation, only: %i[ create destroy ]
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
@@ -31,6 +34,11 @@ Rails.application.routes.draw do
         end
       end
     end
+  end
+
+  # Invitation acceptance is public: the emailed token is the credential.
+  resources :invitations, param: :token, only: [] do
+    resource :acceptance, only: %i[ show create ], module: :invitations
   end
 
   # Public player experience. The newsletter link itself performs the claim.

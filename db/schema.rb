@@ -10,9 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_23_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "account_deactivations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_account_deactivations_on_account_id", unique: true
+  end
 
   create_table "accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -138,6 +145,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_23_000001) do
     t.check_constraint "ends_on >= starts_on", name: "games_span_forward"
     t.check_constraint "pool_size >= (board_size * board_size - 1)", name: "games_pool_covers_board"
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'completed'::character varying::text])", name: "games_status_check"
+  end
+
+  create_table "invitations", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "email_address", null: false
+    t.string "token", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "email_address"], name: "index_invitations_on_account_id_and_email_address", unique: true
+    t.index ["account_id"], name: "index_invitations_on_account_id"
+    t.index ["token"], name: "index_invitations_on_token", unique: true
   end
 
   create_table "issues", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

@@ -7,3 +7,8 @@ rival_owner:
   account: rival
   user: two
   role: owner
+
+publisher_member:
+  account: publisher
+  user: three
+  role: member

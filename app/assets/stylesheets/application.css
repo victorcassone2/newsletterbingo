@@ -92,7 +92,7 @@ input[type="color"] {
 }
 
 /* Buttons: primary is near-black; secondary is white on a hairline. */
-.btn, button.btn {
+.btn {
   display: inline-block;
   font: inherit; font-weight: 500; font-size: .875rem;
   padding: .5rem .85rem;

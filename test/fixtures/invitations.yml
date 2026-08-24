@@ -1,0 +1,9 @@
+pending:
+  account: publisher
+  email_address: invited@example.com
+  token: pending_invitation_token
+
+for_existing_user:
+  account: rival
+  email_address: one@example.com
+  token: existing_user_invitation_token

@@ -12,4 +12,12 @@ class User < ApplicationRecord
   def member_of?(account)
     memberships.exists?(account_id: account.id)
   end
+
+  def owner_of?(account)
+    memberships.owner.exists?(account_id: account.id)
+  end
+
+  def can_access?(account)
+    owner_of?(account) || !account.deactivated?
+  end
 end

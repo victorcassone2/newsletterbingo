@@ -1,0 +1,14 @@
+<p style="margin: 0 0 16px;">
+  You've been invited to join <strong><%= @invitation.account.name %></strong> on Daily Bingo.
+</p>
+
+<p style="margin: 0 0 16px;">
+  <%= link_to "Accept invitation", invitation_acceptance_url(@invitation.token),
+        style: "display: inline-block; background: #0f172a; color: #ffffff; font-weight: 500; font-size: 14px; padding: 10px 16px; border-radius: 6px; text-decoration: none;" %>
+</p>
+
+<p style="margin: 0; color: #64748b; font-size: 13px;">
+  Or paste this link into your browser:<br>
+  <%= link_to invitation_acceptance_url(@invitation.token), invitation_acceptance_url(@invitation.token),
+        style: "color: #64748b;" %>
+</p>
