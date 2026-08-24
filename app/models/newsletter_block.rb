@@ -19,7 +19,7 @@ class NewsletterBlock
   end
 
   def claim_url(email_value = publication.email_merge_tag)
-    "#{DailyBingo.public_host}/c/#{publication.public_code}/today?email=#{email_value}&issue=#{publication.campaign_merge_tag}"
+    "#{NewsletterBingo.public_host}/c/#{publication.public_code}/today?email=#{email_value}&issue=#{publication.campaign_merge_tag}"
   end
 
   def sponsor_name
@@ -58,7 +58,7 @@ class NewsletterBlock
     end
 
     def word_image_url
-      "#{DailyBingo.public_host}/c/#{publication.public_code}/word.png"
+      "#{NewsletterBingo.public_host}/c/#{publication.public_code}/word.png"
     end
 
     def evergreen_html

@@ -2,7 +2,7 @@
   <h1 class="auth-title">Join <%= @invitation.account.name %></h1>
   <div class="card">
     <p style="margin-bottom: 1rem;">
-      You've been invited to join <strong><%= @invitation.account.name %></strong> on Daily Bingo.
+      You've been invited to join <strong><%= @invitation.account.name %></strong> on Newsletter Bingo.
     </p>
 
     <% if authenticated? %>
@@ -10,7 +10,7 @@
             invitation_acceptance_path(@invitation.token), class: "btn btn-primary" %>
     <% elsif User.exists?(email_address: @invitation.email_address) %>
       <p class="small muted" style="margin-bottom: 1rem;">
-        You already have a Daily Bingo account. Sign in and you'll be brought back here to accept.
+        You already have a Newsletter Bingo account. Sign in and you'll be brought back here to accept.
       </p>
       <%= link_to "Sign in to accept", new_session_path, class: "btn btn-primary" %>
     <% else %>

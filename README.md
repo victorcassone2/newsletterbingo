@@ -1,6 +1,6 @@
-# Daily Bingo
+# Newsletter Bingo
 
-Daily Bingo is a multi-tenant SaaS for **publications** (email newsletters,
+Newsletter Bingo is a multi-tenant SaaS for **publications** (email newsletters,
 local media, community publishers). A publication pastes one tiny HTML block
 near the bottom of its email:
 
@@ -179,7 +179,7 @@ The Branding screen live-previews both the newsletter block and the board.
 Colors flow through CSS custom properties (`--brand-*`) across the entire
 reader experience — page, buttons, board, claimed squares, prize and sponsor
 treatments — with button text color chosen for contrast automatically. The
-reader page carries only a subtle "Powered by Daily Bingo" footer (built to
+reader page carries only a subtle "Powered by Newsletter Bingo" footer (built to
 become removable on higher plans).
 
 ## Sponsors

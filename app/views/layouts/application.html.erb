@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "Daily Bingo" %></title>
+    <title><%= content_for(:title) || "Newsletter Bingo" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -14,7 +14,7 @@
       <header class="topbar">
         <div class="topbar-inner">
           <%= link_to account_publications_path(account_id: Current.account.id), class: "topbar-brand" do %>
-            <span class="brand-dot"></span> Daily Bingo
+            <span class="brand-dot"></span> Newsletter Bingo
           <% end %>
           <nav class="topbar-nav">
             <%= nav_link_to "Publications", account_publications_path(account_id: Current.account.id),

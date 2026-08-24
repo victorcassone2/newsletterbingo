@@ -1,6 +1,6 @@
-# Daily Bingo — 37signals Rails Conventions
+# Newsletter Bingo — 37signals Rails Conventions
 
-Daily Bingo is a multi-tenant SaaS that lets a Publication (an email publication)
+Newsletter Bingo is a multi-tenant SaaS that lets a Publication (an email publication)
 embed a tiny "TODAY'S BINGO" block in its emails. Each reader click claims that
 day's square on their own persistent 5×5 bingo board for the current 24-day Game.
 

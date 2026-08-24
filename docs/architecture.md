@@ -1,4 +1,4 @@
-# Daily Bingo — Domain Architecture
+# Newsletter Bingo — Domain Architecture
 
 ## Product loop
 
