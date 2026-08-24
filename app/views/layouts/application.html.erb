@@ -17,13 +17,29 @@
             <span class="brand-dot"></span> Newsletter Bingo
           <% end %>
           <nav class="topbar-nav">
-            <%= nav_link_to "Publications", account_publications_path(account_id: Current.account.id),
-                  active: controller_name == "publications" && controller_path == "publications" %>
-            <%= nav_link_to "Billing", account_billing_path(account_id: Current.account.id),
-                  active: controller_path == "billings" %>
-            <%= nav_link_to "People", account_account_profile_path(account_id: Current.account.id),
-                  active: controller_name == "account_profiles" %>
-            <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
+            <div class="menu" data-controller="menu">
+              <button type="button" class="menu-button" data-action="click->menu#toggle"
+                      aria-label="Open account menu">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <div class="menu-panel" data-menu-target="panel" hidden>
+                <div class="menu-head">
+                  <div class="menu-account"><%= Current.account.name %></div>
+                  <div class="menu-user"><%= Current.user.email_address %></div>
+                </div>
+                <div class="menu-group">
+                  <%= link_to "Publications", account_publications_path(account_id: Current.account.id), class: "menu-item" %>
+                  <%= link_to "Billing", account_billing_path(account_id: Current.account.id), class: "menu-item" %>
+                  <%= link_to "People", account_account_profile_path(account_id: Current.account.id), class: "menu-item" %>
+                </div>
+                <div class="menu-group">
+                  <%= button_to "Sign out", session_path, method: :delete,
+                        class: "menu-item", form: { class: "menu-form" } %>
+                </div>
+              </div>
+            </div>
           </nav>
         </div>
       </header>

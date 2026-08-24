@@ -15,6 +15,32 @@
 .nav-link:hover { color: var(--ink); text-decoration: none; }
 .nav-link.active { color: var(--ink); font-weight: 650; }
 
+/* Account dropdown in the top bar. */
+.menu { position: relative; }
+.menu-button {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--tint); color: var(--ink-soft); cursor: pointer;
+}
+.menu-button:hover { color: var(--ink); border-color: var(--ink-faint); }
+.menu-button svg { width: 18px; height: 18px; }
+.menu-panel {
+  position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; width: 15rem;
+  background: var(--card); border: 1px solid var(--line); border-radius: .6rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .08); overflow: hidden;
+}
+.menu-head { padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+.menu-account { font-weight: 650; font-size: .9rem; color: var(--ink); }
+.menu-user { font-size: .78rem; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; }
+.menu-group { padding: .3rem 0; }
+.menu-group + .menu-group { border-top: 1px solid var(--line); }
+.menu-item {
+  display: block; width: 100%; text-align: left; padding: .45rem .9rem;
+  font-size: .88rem; color: var(--ink-soft); background: none; border: 0; cursor: pointer;
+}
+.menu-item:hover { background: var(--tint); color: var(--ink); text-decoration: none; }
+.menu-form { display: block; }
+
 .pubnav { background: var(--card); border-bottom: 1px solid var(--line); }
 .pubnav-inner {
   max-width: 62rem; margin: 0 auto; padding: .5rem 1.25rem;
