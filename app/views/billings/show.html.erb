@@ -38,7 +38,8 @@
     <b>Payment problem <span class="badge badge-amber">Past due</span></b>
     <p class="muted small" style="margin: .35rem 0 .8rem;">Your last payment didn't go through.
       Stripe is retrying your card; update it to keep your games rotating.</p>
-    <%= button_to "Update card", account_billing_portal_path, class: "btn btn-primary" %>
+    <%= button_to "Update card", account_billing_portal_path, class: "btn btn-primary",
+          form: { data: { turbo: false } } %>
   <% else %>
     <% if Current.account.publications.none? %>
       <b>Nothing to bill yet</b>
@@ -49,12 +50,14 @@
       <p class="muted small" style="margin: .35rem 0 .8rem;">Running games finish out, but the next
         ones won't start. Restart to keep the streak going.</p>
       <%= button_to "Restart — $#{Current.account.monthly_price}/month",
-            account_billing_subscription_path, class: "btn btn-primary" %>
+            account_billing_subscription_path, class: "btn btn-primary",
+            form: { data: { turbo: false } } %>
     <% else %>
       <b>Inactive <span class="badge badge-amber">Games won't rotate</span></b>
       <p class="muted small" style="margin: .35rem 0 .8rem;">Start your subscription — 30 days free,
         then $<%= Current.account.monthly_price %>/month.</p>
-      <%= button_to "Start free trial", account_billing_subscription_path, class: "btn btn-primary" %>
+      <%= button_to "Start free trial", account_billing_subscription_path, class: "btn btn-primary",
+            form: { data: { turbo: false } } %>
     <% end %>
   <% end %>
 </div>
@@ -70,7 +73,8 @@
     <% end %>
   </p>
   <% if Current.account.stripe_customer_id.present? %>
-    <%= button_to "Manage billing info", account_billing_portal_path, class: "btn btn-primary" %>
+    <%= button_to "Manage billing info", account_billing_portal_path, class: "btn btn-primary",
+          form: { data: { turbo: false } } %>
   <% end %>
 </div>
 

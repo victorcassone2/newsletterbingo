@@ -1,4 +1,7 @@
-<%= form_with model: publication, url: url, method: publication.persisted? ? :patch : :post do |form| %>
+<%# Creating can end in a cross-origin redirect to Stripe Checkout, which
+    Turbo's fetch cannot follow -- submit the classic way. %>
+<%= form_with model: publication, url: url, method: publication.persisted? ? :patch : :post,
+      data: publication.persisted? ? {} : { turbo: false } do |form| %>
   <% if publication.errors.any? %>
     <div class="errors"><%= publication.errors.full_messages.to_sentence %></div>
   <% end %>
@@ -31,9 +34,9 @@
     <%= form.submit "Save settings", class: "btn btn-primary" %>
   <% elsif Current.account.subscribed? %>
     <%= form.submit "Create publication", class: "btn btn-primary" %>
-    <div class="hint">Adds $29/month to your subscription, prorated.</div>
+    <p class="muted small" style="margin: .5rem 0 0;">Adds $29/month to your subscription, prorated.</p>
   <% else %>
     <%= form.submit "Create & start free trial", class: "btn btn-primary" %>
-    <div class="hint">30 days free, then $29/month. Cancel anytime from Billing.</div>
+    <p class="muted small" style="margin: .5rem 0 0;">30 days free, then $29/month. Cancel anytime from Billing.</p>
   <% end %>
 <% end %>
