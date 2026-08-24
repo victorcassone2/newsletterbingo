@@ -11,6 +11,11 @@
           <div>
             <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
             <% unless publication.active? %><span class="badge badge-gray">Inactive</span><% end %>
+            <% case publication.billing_state when :trialing %>
+              <span class="badge badge-gray">Trial</span>
+            <% when :trial_expired, :canceled %>
+              <span class="badge badge-amber">Lapsed</span>
+            <% end %>
             <div class="small muted">
               <% if (game = publication.games.active.first) %>
                 Word <%= game.days_elapsed %> of <%= game.pool_size %>

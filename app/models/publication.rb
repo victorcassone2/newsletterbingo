@@ -1,4 +1,6 @@
 class Publication < ApplicationRecord
+  include Billable
+
   COLOR_FORMAT = /\A#\h{6}\z/
   CADENCES = %w[ issues calendar ]
 
@@ -91,9 +93,12 @@ class Publication < ApplicationRecord
   # deck. Idempotent and safe to run concurrently: the partial unique
   # indexes on games referee every race. The first-ever game is only
   # drafted, never auto-launched; the publisher reviews and launches it.
+  # A lapsed subscription blocks only the launch: the running game plays
+  # out, drafts keep drafting, and readers hit the existing "no game
+  # running" soft landing rather than a paywall.
   def rotate_games
     games.active.each { |game| game.complete if game.over? }
-    launch_on_deck_game if games.active.none? && games.completed.exists?
+    launch_on_deck_game if billing_active? && games.active.none? && games.completed.exists?
     draft_on_deck_game if games.draft.none?
   end
 

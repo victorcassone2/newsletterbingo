@@ -5,6 +5,7 @@ omaha:
   timezone: America/Chicago
   email_merge_tag: "{{email}}"
   cadence: calendar
+  trial_ends_at: <%= 30.days.from_now %>
 
 lincoln:
   account: publisher
@@ -12,6 +13,7 @@ lincoln:
   public_code: pub_lincoln_test_code_12
   timezone: America/Chicago
   cadence: calendar
+  trial_ends_at: <%= 30.days.from_now %>
 
 rival:
   account: rival
@@ -19,3 +21,4 @@ rival:
   public_code: pub_rival_test_code_1234
   timezone: America/New_York
   cadence: calendar
+  trial_ends_at: <%= 30.days.from_now %>

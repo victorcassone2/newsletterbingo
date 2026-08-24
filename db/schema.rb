@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_125656) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_130002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,7 +24,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_125656) do
   create_table "accounts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.string "stripe_customer_id"
     t.datetime "updated_at", null: false
+    t.index ["stripe_customer_id"], name: "index_accounts_on_stripe_customer_id"
   end
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -225,6 +227,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_125656) do
     t.check_constraint "kind::text = ANY (ARRAY['line'::character varying::text, 'blackout'::character varying::text])", name: "prizes_kind_check"
   end
 
+  create_table "processed_webhook_events", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_processed_webhook_events_on_event_id", unique: true
+  end
+
   create_table "publications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "accent_color", default: "#2563EB", null: false
     t.uuid "account_id", null: false
@@ -233,6 +242,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_125656) do
     t.integer "board_size", default: 5, null: false
     t.string "cadence", default: "issues", null: false
     t.string "campaign_merge_tag", default: "{{campaign_id}}", null: false
+    t.boolean "complimentary", default: false, null: false
     t.datetime "created_at", null: false
     t.string "email_merge_tag", default: "{{email}}", null: false
     t.string "name", null: false
@@ -240,11 +250,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_125656) do
     t.string "public_code", null: false
     t.integer "send_days", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
     t.string "sponsor_name"
+    t.string "stripe_subscription_id"
+    t.datetime "subscription_current_period_end"
+    t.string "subscription_status"
     t.string "text_color", default: "#111827", null: false
     t.string "timezone", default: "America/Chicago", null: false
+    t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_publications_on_account_id"
     t.index ["public_code"], name: "index_publications_on_public_code", unique: true
+    t.index ["stripe_subscription_id"], name: "index_publications_on_stripe_subscription_id"
   end
 
   create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

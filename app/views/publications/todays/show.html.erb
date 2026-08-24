@@ -1,3 +1,10 @@
+<% unless @publication.billing_active? %>
+  <div class="attention">
+    <span>⏳ Your next game won't start — subscribe to keep the streak going.</span>
+    <%= link_to "Subscribe", edit_account_publication_path(id: @publication.id, anchor: "billing"), class: "btn btn-small" %>
+  </div>
+<% end %>
+
 <% if @game.nil? %>
   <% if @next_game %>
     <%= render "draft_review", game: @next_game %>

@@ -1,5 +1,10 @@
 class Publications::Games::LaunchesController < Publications::Games::BaseController
   def create
+    unless @publication.billing_active?
+      back_to_game alert: "Your trial has ended. Subscribe from Setup to launch this game."
+      return
+    end
+
     @game.launch
     notice = @publication.issue_cadence? ?
       "Your game is live. The first word goes out with your next send." :

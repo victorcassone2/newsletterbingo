@@ -2,7 +2,7 @@
 <div class="page-head">
   <div>
     <h1>Setup</h1>
-    <p class="muted small">Connect Daily Bingo to your newsletter, brand the board, and manage settings.</p>
+    <p class="muted small">Connect Newsletter Bingo to your newsletter, brand the board, and manage settings.</p>
   </div>
 </div>
 
@@ -14,6 +14,7 @@
   <button type="button" class="active" data-tabs-target="tab" data-pane="connect" data-action="tabs#select">Connect</button>
   <button type="button" data-tabs-target="tab" data-pane="branding" data-action="tabs#select">Branding</button>
   <button type="button" data-tabs-target="tab" data-pane="general" data-action="tabs#select">General</button>
+  <button type="button" data-tabs-target="tab" data-pane="billing" data-action="tabs#select">Billing</button>
 </div>
 
 <div data-tabs-target="pane" data-pane="connect">
@@ -103,7 +104,7 @@
           <div class="field" data-cadence-target="panel" data-cadence="issues" <%= "hidden" unless @publication.issue_cadence? %>>
             <%= form.label :campaign_merge_tag, "Campaign id tag" %>
             <%= form.text_field :campaign_merge_tag, data: { platform_target: "campaignTag" } %>
-            <div class="hint">How Daily Bingo notices a new issue went out and reveals the next word.</div>
+            <div class="hint">How Newsletter Bingo notices a new issue went out and reveals the next word.</div>
           </div>
 
           <div class="field" data-cadence-target="panel" data-cadence="calendar" <%= "hidden" unless @publication.calendar_cadence? %>>
@@ -254,6 +255,44 @@
         </label>
       <% end %>
     </div>
+  </div>
+</div>
+
+<div data-tabs-target="pane" data-pane="billing" hidden>
+  <div class="card">
+    <% case @publication.billing_state when :complimentary %>
+      <b>On the house <span class="badge badge-green">Complimentary</span></b>
+      <p class="muted small" style="margin: .35rem 0 0;">This publication runs free of charge. No card needed.</p>
+    <% when :subscribed %>
+      <b>Subscribed <span class="badge badge-green">$29/month</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">
+        Games rotate automatically<% if @publication.subscription_current_period_end %>; your next
+        renewal is <%= @publication.subscription_current_period_end.strftime("%B %-d, %Y") %><% end %>.
+        Update your card, view invoices, or cancel anytime from the billing portal.
+      </p>
+      <%= button_to "Manage billing", account_publication_subscription_portal_path(publication_id: @publication.id), class: "btn" %>
+    <% when :past_due %>
+      <b>Payment problem <span class="badge badge-amber">Past due</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Your last payment didn't go through.
+        Stripe is retrying your card; update it in the billing portal to keep your games rotating.</p>
+      <%= button_to "Update card", account_publication_subscription_portal_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <% when :trialing %>
+      <% days_left = (@publication.trial_ends_at.to_date - Date.current).to_i %>
+      <b>Free trial <span class="badge badge-gray"><%= pluralize(days_left, "day") %> left</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Everything is unlocked while you try
+        Newsletter Bingo. Subscribe for $29/month and your games keep rotating when the trial ends.</p>
+      <%= button_to "Subscribe — $29/month", account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <% when :canceled %>
+      <b>Subscription ended <span class="badge badge-amber">Lapsed</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Your running game finishes out, but the
+        next one won't start. Resubscribe to keep the streak going.</p>
+      <%= button_to "Resubscribe — $29/month", account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <% else %>
+      <b>Trial ended <span class="badge badge-amber">Lapsed</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Your running game finishes out, but the
+        next one won't start. Subscribe to keep the streak going.</p>
+      <%= button_to "Subscribe — $29/month", account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-primary" %>
+    <% end %>
   </div>
 </div>
 </div>

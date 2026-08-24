@@ -15,6 +15,12 @@ Rails.application.routes.draw do
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
+        resource :subscription, only: %i[ create ] do
+          scope module: :subscriptions do
+            resource :return, only: %i[ show ]
+            resource :portal, only: %i[ create ]
+          end
+        end
         resource :board_preview, only: %i[ show ]
         resource :analytics, only: %i[ show ]
         resources :words, only: %i[ index create ] do
@@ -35,6 +41,10 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  # Stripe posts subscription lifecycle events here, server-to-server.
+  # Authenticated by signature, so outside the account scope.
+  post "webhooks/stripe", to: "payments/webhooks#create", as: :stripe_webhook
 
   # Invitation acceptance is public: the emailed token is the credential.
   resources :invitations, param: :token, only: [] do
