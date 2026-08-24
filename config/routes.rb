@@ -12,6 +12,12 @@ Rails.application.routes.draw do
     resource :billing, only: %i[ show ] do
       scope module: :billings do
         resource :portal, only: %i[ create ]
+        resource :subscription, only: %i[ create ] do
+          scope module: :subscriptions do
+            resource :return, only: %i[ show ]
+            resource :cancellation, only: %i[ create destroy ]
+          end
+        end
       end
     end
     resources :memberships, only: %i[ update destroy ]
@@ -20,12 +26,6 @@ Rails.application.routes.draw do
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
-        resource :subscription, only: %i[ new create ] do
-          scope module: :subscriptions do
-            resource :return, only: %i[ show ]
-            resource :cancellation, only: %i[ create destroy ]
-          end
-        end
         resource :board_preview, only: %i[ show ]
         resource :analytics, only: %i[ show ]
         resources :words, only: %i[ index create ] do

@@ -1,9 +1,62 @@
 <div class="page-head">
   <div>
     <h1>Billing</h1>
-    <p class="muted small">One card covers every publication; each publication carries its own
-      $29/month subscription, managed from its Setup page.</p>
+    <p class="muted small">One subscription — $29/month for each publication you run.</p>
   </div>
+</div>
+
+<div class="card" style="margin-bottom: 1.25rem;">
+  <% case Current.account.billing_state when :active %>
+    <% if Current.account.cancel_scheduled? %>
+      <b>Cancellation scheduled
+        <span class="badge badge-amber">Ends <%= Current.account.subscription_current_period_end&.strftime("%b %-d, %Y") %></span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">You're paid through then and games run
+        until the clock runs out; after that the next game won't start. Changed your mind?</p>
+      <%= button_to "Keep my subscription", account_billing_subscription_cancellation_path,
+            method: :delete, class: "btn btn-primary" %>
+    <% elsif Current.account.trialing? %>
+      <b>Free trial <span class="badge badge-green">$<%= Current.account.monthly_price %>/month after</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Everything is unlocked. Your first charge
+        is <%= Current.account.subscription_current_period_end&.strftime("%B %-d, %Y") %> — cancel
+        before then and you won't pay a thing.</p>
+      <%= button_to "Cancel subscription", account_billing_subscription_cancellation_path,
+            class: "btn",
+            data: { turbo_confirm: "Cancel your subscription? Games stop rotating when the trial ends." } %>
+    <% else %>
+      <b>Active <span class="badge badge-green">$<%= Current.account.monthly_price %>/month</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">
+        <%= pluralize(Current.account.billable_publications.count, "publication") %> × $29.
+        <% if Current.account.subscription_current_period_end %>
+          Next renewal is <%= Current.account.subscription_current_period_end.strftime("%B %-d, %Y") %>.
+        <% end %>
+      </p>
+      <%= button_to "Cancel subscription", account_billing_subscription_cancellation_path,
+            class: "btn",
+            data: { turbo_confirm: "Cancel your subscription? Games stop rotating when the paid period ends." } %>
+    <% end %>
+  <% when :payment_problem %>
+    <b>Payment problem <span class="badge badge-amber">Past due</span></b>
+    <p class="muted small" style="margin: .35rem 0 .8rem;">Your last payment didn't go through.
+      Stripe is retrying your card; update it to keep your games rotating.</p>
+    <%= button_to "Update card", account_billing_portal_path, class: "btn btn-primary" %>
+  <% else %>
+    <% if Current.account.publications.none? %>
+      <b>Nothing to bill yet</b>
+      <p class="muted small" style="margin: .35rem 0 0;">Create your first publication and your
+        30-day free trial starts with it.</p>
+    <% elsif Current.account.stripe_subscription_id.present? %>
+      <b>Inactive <span class="badge badge-amber">Games won't rotate</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Running games finish out, but the next
+        ones won't start. Restart to keep the streak going.</p>
+      <%= button_to "Restart — $#{Current.account.monthly_price}/month",
+            account_billing_subscription_path, class: "btn btn-primary" %>
+    <% else %>
+      <b>Inactive <span class="badge badge-amber">Games won't rotate</span></b>
+      <p class="muted small" style="margin: .35rem 0 .8rem;">Start your subscription — 30 days free,
+        then $<%= Current.account.monthly_price %>/month.</p>
+      <%= button_to "Start free trial", account_billing_subscription_path, class: "btn btn-primary" %>
+    <% end %>
+  <% end %>
 </div>
 
 <div class="card" style="margin-bottom: 1.25rem;">
@@ -13,8 +66,7 @@
       Update your card, change the billing email, or download invoices on Stripe's
       secure billing portal.
     <% else %>
-      Nothing on file yet — your card is collected when you confirm your first
-      publication's subscription.
+      Nothing on file yet — your card is collected when your subscription starts.
     <% end %>
   </p>
   <% if Current.account.stripe_customer_id.present? %>
@@ -22,38 +74,20 @@
   <% end %>
 </div>
 
-<div class="card">
-  <b>Subscriptions</b>
-  <ul class="list" style="margin-top: .6rem;">
-    <% @publications.each do |publication| %>
-      <li>
-        <div>
-          <%= link_to publication.name, edit_account_publication_path(id: publication.id, anchor: "billing") %>
-          <div class="small muted">
-            <% case publication.billing_state when :complimentary %>
-              Complimentary
-            <% when :subscribed %>
-              <% if publication.cancel_scheduled? %>
-                Cancels <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>
-              <% elsif publication.subscription_status == "trialing" %>
-                Free trial — first charge <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>
-              <% else %>
-                $29/month — renews <%= publication.subscription_current_period_end&.strftime("%B %-d, %Y") %>
-              <% end %>
-            <% when :past_due %>
-              Payment problem — update your card above
-            <% when :trialing %>
-              Free trial — <%= pluralize(((publication.trial_ends_at.to_date - Date.current).to_i), "day") %> left
-            <% when :canceled, :trial_expired %>
-              Lapsed — restart from its Setup page
-            <% else %>
-              Billing not set up
-            <% end %>
+<% if @publications.any? %>
+  <div class="card">
+    <b>Publications on this subscription</b>
+    <ul class="list" style="margin-top: .6rem;">
+      <% @publications.each do |publication| %>
+        <li>
+          <div>
+            <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
+            <div class="small muted">
+              <%= publication.complimentary? ? "Complimentary" : "$29/month" %>
+            </div>
           </div>
-        </div>
-        <%= link_to "Open →", edit_account_publication_path(id: publication.id, anchor: "billing"),
-              class: "btn btn-quiet btn-small" %>
-      </li>
-    <% end %>
-  </ul>
-</div>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

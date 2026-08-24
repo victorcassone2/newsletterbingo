@@ -9,6 +9,11 @@ module Payments
     Gateway.new(config[:secret_key])
   end
 
+  # The $29/month per-publication Price every subscription bills against.
+  def self.price_id
+    config[:price_id].presence or raise MisconfiguredError, "no Stripe price is configured"
+  end
+
   # Verify a webhook signature. Only one endpoint (and so one secret) exists
   # today, but keep the try-each shape from local_deal_engine so a second
   # secret (e.g. during a secret rotation) is a config change, not a code one.

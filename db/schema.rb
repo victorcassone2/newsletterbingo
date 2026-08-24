@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_24_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,8 +25,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_140000) do
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.string "stripe_customer_id"
+    t.string "stripe_subscription_id"
+    t.boolean "subscription_cancel_at_period_end", default: false, null: false
+    t.datetime "subscription_current_period_end"
+    t.string "subscription_status"
     t.datetime "updated_at", null: false
     t.index ["stripe_customer_id"], name: "index_accounts_on_stripe_customer_id"
+    t.index ["stripe_subscription_id"], name: "index_accounts_on_stripe_subscription_id"
   end
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -250,17 +255,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_24_140000) do
     t.string "public_code", null: false
     t.integer "send_days", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
     t.string "sponsor_name"
-    t.string "stripe_subscription_id"
-    t.boolean "subscription_cancel_at_period_end", default: false, null: false
-    t.datetime "subscription_current_period_end"
-    t.string "subscription_status"
     t.string "text_color", default: "#111827", null: false
     t.string "timezone", default: "America/Chicago", null: false
-    t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_publications_on_account_id"
     t.index ["public_code"], name: "index_publications_on_public_code", unique: true
-    t.index ["stripe_subscription_id"], name: "index_publications_on_stripe_subscription_id"
   end
 
   create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

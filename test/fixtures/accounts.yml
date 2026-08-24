@@ -1,5 +1,13 @@
+# Both accounts carry a live subscription so game-mechanics tests rotate
+# freely; billing tests downgrade explicitly when testing the gate.
 publisher:
   name: Demo Publisher
+  stripe_subscription_id: sub_publisher
+  subscription_status: active
+  subscription_current_period_end: <%= 20.days.from_now %>
 
 rival:
   name: Rival Publisher
+  stripe_subscription_id: sub_rival
+  subscription_status: active
+  subscription_current_period_end: <%= 20.days.from_now %>

@@ -1,5 +1,5 @@
 class PublicationsController < ApplicationController
-  include AccountScoping
+  include AccountScoping, SubscriptionStarting
 
   before_action :set_publication, only: %i[ show edit update ]
 
@@ -15,11 +15,22 @@ class PublicationsController < ApplicationController
     @publication = Current.account.publications.new
   end
 
+  # Creating the publication is the billing commitment (the button says so):
+  # an already-subscribed account just grows its subscription's quantity via
+  # the callback, a fresh one starts its subscription here -- straight to
+  # Setup with a card on file, through hosted Checkout without.
   def create
     @publication = Current.account.publications.new(publication_params)
     if @publication.save
-      redirect_to new_account_publication_subscription_path(publication_id: @publication.id),
-        notice: "#{@publication.name} is created. Start your free trial and it's ready to set up."
+      if @publication.billing_active?
+        redirect_to edit_account_publication_path(id: @publication.id),
+          notice: "#{@publication.name} is created. Time to set it up."
+      else
+        start_subscription_or_checkout(
+          landing_path: edit_account_publication_path(id: @publication.id),
+          publication: @publication
+        )
+      end
     else
       render :new, status: :unprocessable_entity
     end

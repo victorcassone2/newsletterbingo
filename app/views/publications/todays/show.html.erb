@@ -1,12 +1,7 @@
 <% unless @publication.billing_active? %>
   <div class="attention">
-    <% if @publication.billing_state == :pending %>
-      <span>⏳ Games can't launch until billing starts — 30 days free, then $29/month.</span>
-      <%= link_to "Start free trial", new_account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-small" %>
-    <% else %>
-      <span>⏳ Your next game won't start — subscribe to keep the streak going.</span>
-      <%= link_to "Subscribe", new_account_publication_subscription_path(publication_id: @publication.id), class: "btn btn-small" %>
-    <% end %>
+    <span>⏳ Your next game won't start — subscribe to keep the streak going.</span>
+    <%= link_to "Go to Billing", account_billing_path, class: "btn btn-small" %>
   </div>
 <% end %>
 

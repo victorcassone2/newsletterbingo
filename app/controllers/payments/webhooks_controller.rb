@@ -24,24 +24,28 @@ class Payments::WebhooksController < ActionController::Base
       end
     end
 
-    # Publication subscription lifecycle: created/renewed/payment failed/
+    # Account subscription lifecycle: created/renewed/payment failed/
     # canceled all funnel through here. This is what closes (and reopens)
     # the game-rotation gate when billing state changes.
     def sync_subscription(event)
       subscription = event.data.object
       ProcessedWebhookEvent.once(event.id) do
-        publication = publication_for(subscription)
-        next false unless publication
-        publication.sync_stripe_subscription!(subscription)
+        account = account_for(subscription)
+        next false unless account
+        account.sync_stripe_subscription!(subscription)
         true
       end
     end
 
     # Our stored subscription id first; fall back to the metadata stamped on
     # the subscription at checkout, which covers the first event arriving
-    # before the return page has stored the id.
-    def publication_for(subscription)
-      Publication.find_by(stripe_subscription_id: subscription.id) ||
-        Publication.find_by(id: subscription.metadata&.[]("publication_id"))
+    # before the return page has stored the id. The fallback only applies to
+    # an account with no subscription yet, so a stray event from some other
+    # subscription (e.g. a pre-migration per-publication one) can never
+    # overwrite the live one's state.
+    def account_for(subscription)
+      Account.find_by(stripe_subscription_id: subscription.id) ||
+        Account.where(stripe_subscription_id: nil)
+          .find_by(id: subscription.metadata&.[]("account_id"))
     end
 end

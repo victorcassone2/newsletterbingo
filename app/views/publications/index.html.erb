@@ -11,11 +11,7 @@
           <div>
             <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
             <% unless publication.active? %><span class="badge badge-gray">Inactive</span><% end %>
-            <% case publication.billing_state when :trialing %>
-              <span class="badge badge-gray">Trial</span>
-            <% when :trial_expired, :canceled %>
-              <span class="badge badge-amber">Lapsed</span>
-            <% when :pending %>
+            <% unless publication.billing_active? %>
               <span class="badge badge-amber">Needs billing</span>
             <% end %>
             <div class="small muted">

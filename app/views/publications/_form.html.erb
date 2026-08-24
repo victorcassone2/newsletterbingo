@@ -27,5 +27,13 @@
     </div>
   <% end %>
 
-  <%= form.submit publication.persisted? ? "Save settings" : "Create publication", class: "btn btn-primary" %>
+  <% if publication.persisted? %>
+    <%= form.submit "Save settings", class: "btn btn-primary" %>
+  <% elsif Current.account.subscribed? %>
+    <%= form.submit "Create publication", class: "btn btn-primary" %>
+    <div class="hint">Adds $29/month to your subscription, prorated.</div>
+  <% else %>
+    <%= form.submit "Create & start free trial", class: "btn btn-primary" %>
+    <div class="hint">30 days free, then $29/month. Cancel anytime from Billing.</div>
+  <% end %>
 <% end %>
