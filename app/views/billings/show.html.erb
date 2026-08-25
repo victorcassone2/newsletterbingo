@@ -62,25 +62,25 @@
   <% end %>
 </div>
 
-<div class="card" style="margin-bottom: 1.25rem;">
-  <b>Payment method &amp; invoices</b>
-  <p class="muted small" style="margin: .35rem 0 .8rem;">
-    <% if Current.account.stripe_customer_id.present? %>
+<%# Never subscribed means no invoices and nothing to manage: hide the portal
+    card so starting the trial stays the page's one action. A lapsed account
+    keeps it for its past invoices. %>
+<% if Current.account.stripe_subscription_id.present? && Current.account.stripe_customer_id.present? %>
+  <div class="card" style="margin-bottom: 1.25rem;">
+    <b>Payment method &amp; invoices</b>
+    <p class="muted small" style="margin: .35rem 0 .8rem;">
       Update your card, change the billing email, or download invoices on Stripe's
       secure billing portal.
-    <% else %>
-      Nothing on file yet — your card is collected when your subscription starts.
-    <% end %>
-  </p>
-  <% if Current.account.stripe_customer_id.present? %>
+    </p>
     <%= button_to "Manage billing info", account_billing_portal_path, class: "btn btn-primary",
           form: { data: { turbo: false } } %>
-  <% end %>
-</div>
+  </div>
+<% end %>
 
 <% if @publications.any? %>
   <div class="card">
-    <b>Publications on this subscription</b>
+    <b><%= Current.account.billing_state == :inactive ?
+             "What your subscription will cover" : "Publications on this subscription" %></b>
     <ul class="list" style="margin-top: .6rem;">
       <% @publications.each do |publication| %>
         <li>
