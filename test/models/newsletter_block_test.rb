@@ -28,10 +28,22 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "email=|EMAIL|"
   end
 
-  test "the word arrives as a dynamic image, never baked into the HTML" do
+  test "the word arrives as a dynamic inline image, never baked into the HTML" do
     html = NewsletterBlock.new(@publication).to_html
-    assert_includes html, "/c/#{@publication.public_code}/word.png"
+    assert_includes html, "/c/#{@publication.public_code}/word.png?variant=inline"
     assert_not_includes html, @call.label
+  end
+
+  test "the section header carries the Newsletter Bingo mark, not an emoji" do
+    html = NewsletterBlock.new(@publication).to_html
+    assert_includes html, "/icon-192x192.png"
+  end
+
+  test "the issue-cadence block carries no word image" do
+    @publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
+    html = NewsletterBlock.new(@publication).to_html
+    assert_not_includes html, "word.png"
+    assert_includes html, "A new word drops with this issue"
   end
 
   test "the block is identical from day to day: no per-call state leaks in" do

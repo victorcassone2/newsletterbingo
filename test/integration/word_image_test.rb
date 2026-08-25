@@ -23,6 +23,20 @@ class WordImageTest < ActionDispatch::IntegrationTest
     assert_equal PNG_SIGNATURE, response.body.byteslice(0, 4)
   end
 
+  test "the default block variant renders the fixed retina canvas" do
+    get word_image_path(@publication.public_code)
+    width, height = response.body.byteslice(16, 8).unpack("N2")
+    assert_equal [ WordImage::WIDTH, WordImage::HEIGHT ], [ width, height ]
+  end
+
+  test "the inline variant serves the word trimmed to line height" do
+    get word_image_path(@publication.public_code, variant: "inline")
+    assert_response :success
+    width, height = response.body.byteslice(16, 8).unpack("N2")
+    assert_equal WordImage::INLINE_HEIGHT, height
+    assert width < WordImage::WIDTH
+  end
+
   test "an unknown public code is a 404" do
     get word_image_path("pub_nope")
     assert_response :not_found

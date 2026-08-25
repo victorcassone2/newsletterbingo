@@ -4,6 +4,7 @@
 class WordImagesController < PublicController
   def show
     expires_now
-    send_data WordImage.new(@publication).png, type: "image/png", disposition: "inline"
+    variant = params[:variant] == "inline" ? :inline : :block
+    send_data WordImage.new(@publication, variant: variant).png, type: "image/png", disposition: "inline"
   end
 end

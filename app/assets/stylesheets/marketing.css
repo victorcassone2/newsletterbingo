@@ -170,34 +170,19 @@
 .mock-email-body { padding: 1.1rem 1.25rem 1.35rem; }
 .mock-email-line { height: .5rem; border-radius: 4px; background: var(--line-soft); margin-bottom: .55rem; }
 .mock-email-line.short { width: 70%; }
-.mock-bingo-block {
-  margin-top: 1rem;
-  background: var(--mk-amber-wash);
-  border: 1px solid #fde68a;
-  border-radius: 12px;
-  padding: 1rem 1.25rem 1.15rem;
-  text-align: center;
+/* The bingo block, as it ships: a native section of the newsletter. */
+.mock-bingo-block { margin-top: 1rem; text-align: left; }
+.mock-bingo-block p { margin: 0; }
+.mock-bingo-head {
+  display: flex; align-items: center; gap: .4rem;
+  font-size: .85rem; font-weight: 700; color: var(--ink);
+  margin-bottom: .3rem;
 }
-.mock-bingo-kicker { font-size: .68rem; font-weight: 700; letter-spacing: .18em; color: var(--mk-amber-deep); }
-.mock-bingo-sponsor { font-size: .7rem; color: var(--ink-soft); margin-top: .3rem; }
-.mock-bingo-word {
-  font-family: var(--mono);
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  color: var(--ink);
-  margin-top: .4rem;
-}
-.mock-bingo-button {
-  display: inline-block;
-  margin-top: .7rem;
-  background: var(--mk-amber);
-  color: #fff;
-  font-size: .82rem;
-  font-weight: 700;
-  padding: .5rem 1.1rem;
-  border-radius: 8px;
-}
+.mock-bingo-mark { width: .85rem; height: .85rem; }
+.mock-bingo-copy { font-size: .78rem; line-height: 1.55; color: var(--ink-strong); }
+.mock-bingo-word { font-family: var(--mono); font-weight: 700; letter-spacing: .04em; }
+.mock-bingo-claim { color: var(--mk-amber-deep); font-weight: 700; white-space: nowrap; }
+.mock-bingo-sponsor { font-size: .68rem; color: var(--ink-faint); margin-bottom: .3rem; }
 
 /* The reader's 5x5 board. */
 .mock-board-head { background: var(--ink); color: #fff; padding: .85rem 1.25rem; }
@@ -311,9 +296,7 @@
 .mock-winner-prize { font-size: .82rem; color: var(--ink-soft); margin-top: .35rem; }
 .mock-winner-sponsor { font-size: .72rem; color: var(--mk-amber-deep); font-weight: 600; margin-top: .7rem; }
 
-/* -------------------------------------------------- Three-way value */
-.mk-value-grid { margin-top: 2.75rem; display: grid; gap: 1.25rem; }
-@media (min-width: 40rem) { .mk-value-grid { grid-template-columns: repeat(3, 1fr); } }
+/* -------------------------------------------------------- Value cards */
 .mk-value-card {
   background: #fff;
   border: 1px solid var(--line);
@@ -321,11 +304,7 @@
   padding: 1.5rem;
   box-shadow: var(--shadow);
 }
-.mk-value-card .who {
-  font-size: .72rem; font-weight: 700; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--mk-amber-deep);
-}
-.mk-value-card h3 { font-size: 1rem; font-weight: 650; margin-top: .55rem; }
+.mk-value-card h3 { font-size: 1rem; font-weight: 650; }
 .mk-value-card p { margin: .55rem 0 0; font-size: .9rem; line-height: 1.6; color: var(--ink-soft); }
 
 /* -------------------------------------------------------------- Steps */

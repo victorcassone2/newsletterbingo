@@ -121,6 +121,10 @@
             <%= hidden_field_tag "publication[send_days][]", "" %>
             <div class="hint">Words land only on these days, starting with the next game you launch.</div>
           </div>
+
+          <div class="save-row">
+            <%= form.submit "Save", class: "btn btn-primary" %>
+          </div>
         </div>
       </div>
     <% end %>
@@ -147,9 +151,6 @@
       </div>
     </div>
 
-    <div class="save-row">
-      <%= submit_tag "Save connection", class: "btn btn-primary", form: "connect-form" %>
-    </div>
   </div>
 </div>
 

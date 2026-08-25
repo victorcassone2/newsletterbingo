@@ -88,7 +88,7 @@
 
     <div class="card receipt-card">
       <div class="ticket">
-        <div class="ticket-label"><%= @publication.issue_cadence? ? "Last word" : "Today's word" %> <% if @call.prize_call? %>· 🎁 prize call<% end %></div>
+        <div class="ticket-label"><%= @publication.issue_cadence? ? "Current word" : "Today's word" %> <% if @call.prize_call? %>· 🎁 prize call<% end %></div>
         <div class="ticket-word"><%= @call.label %></div>
       </div>
 
