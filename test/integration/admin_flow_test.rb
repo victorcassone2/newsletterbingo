@@ -6,12 +6,18 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
       account_name: "New Media Co.",
       user: { email_address: "founder@example.com", password: "S3cure!password", password_confirmation: "S3cure!password" }
     }
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     user = User.find_by(email_address: "founder@example.com")
     assert user.present?
     account = user.accounts.first
     assert_equal "New Media Co.", account.name
     assert user.memberships.first.owner?
+
+    # The dashboard passes them into their new account with the welcome intact
+    follow_redirect!
+    assert_redirected_to account_publications_path(account_id: account.id)
+    follow_redirect!
+    assert_match "Create your first publication", response.body
   end
 
   test "the full publisher journey: publication, game, launch, daily adjustments, embed" do

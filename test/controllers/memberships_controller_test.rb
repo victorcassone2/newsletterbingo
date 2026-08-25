@@ -78,13 +78,13 @@ class MembershipsControllerTest < ActionDispatch::IntegrationTest
     assert flash[:alert].present?
   end
 
-  test "an owner removing themselves lands on the home page" do
+  test "an owner removing themselves lands on the dashboard" do
     memberships(:publisher_member).update!(role: "owner")
     sign_in_as users(:one)
 
     delete account_membership_path(account_id: @account.id, id: memberships(:publisher_owner).id)
 
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     assert_not users(:one).member_of?(@account)
   end
 

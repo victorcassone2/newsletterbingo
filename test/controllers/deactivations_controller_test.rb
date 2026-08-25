@@ -35,7 +35,7 @@ class DeactivationsControllerTest < ActionDispatch::IntegrationTest
 
     get account_publications_path(account_id: @account.id)
 
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
     assert flash[:alert].present?
   end
 
@@ -48,21 +48,21 @@ class DeactivationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "home shows the deactivated notice when a member has no accessible account" do
+  test "dashboard shows the deactivated notice when a member has no accessible account" do
     @account.create_deactivation!
     sign_in_as users(:three)
 
-    get root_path
+    get dashboard_path
 
     assert_response :success
     assert_select "h1", "Account deactivated"
   end
 
-  test "home still routes owners into their deactivated account" do
+  test "dashboard still routes owners into their deactivated account" do
     @account.create_deactivation!
     sign_in_as users(:one)
 
-    get root_path
+    get dashboard_path
 
     assert_redirected_to account_publications_path(account_id: @account.id)
   end

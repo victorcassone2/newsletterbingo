@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= content_for(:title) || "Newsletter Bingo: the game that gets your emails opened" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <% meta_description = "Newsletter Bingo puts a one-click bingo game inside your email publication, whether you send daily or by the issue. Readers claim each send's word on their own 5x5 board, and the block becomes sponsorship inventory: the whole game, single squares, or the prizes." %>
+    <meta name="description" content="<%= meta_description %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Newsletter Bingo">
+    <meta property="og:title" content="Newsletter Bingo: the game that gets your emails opened">
+    <meta property="og:description" content="<%= meta_description %>">
+    <meta property="og:image" content="<%= request.base_url %>/icon-512x512.png">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#F59E0B">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "application", "marketing", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="marketing">
+    <header class="mk-header">
+      <div class="mk-header-inner">
+        <%= link_to root_path, class: "mk-brand" do %>
+          <%= image_tag "logo.svg", alt: "Newsletter Bingo", class: "mk-logo" %>
+        <% end %>
+
+        <nav class="mk-nav">
+          <a href="/#how-it-works">How it works</a>
+          <a href="/#sponsorship">Sponsorship</a>
+          <a href="/#pricing">Pricing</a>
+        </nav>
+
+        <div class="mk-header-actions">
+          <% if authenticated? %>
+            <%= link_to "Go to dashboard", dashboard_path, class: "mk-cta mk-cta-small" %>
+          <% else %>
+            <%= link_to "Sign in", new_session_path, class: "mk-signin" %>
+            <%= link_to "Try it free", new_registration_path, class: "mk-cta mk-cta-small" %>
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <% if notice || alert %>
+        <div class="mk-container mk-flash">
+          <% if notice %><div class="flash flash-notice"><%= notice %></div><% end %>
+          <% if alert %><div class="flash flash-alert"><%= alert %></div><% end %>
+        </div>
+      <% end %>
+      <%= yield %>
+    </main>
+
+    <footer class="mk-footer">
+      <div class="mk-footer-inner">
+        <div class="mk-footer-row">
+          <%= image_tag "logo.svg", alt: "Newsletter Bingo", class: "mk-logo mk-logo-footer" %>
+          <nav class="mk-footer-nav">
+            <%= link_to "Sign in", new_session_path %>
+            <%= link_to "Try it free", new_registration_path %>
+            <a href="/#pricing">Pricing</a>
+          </nav>
+        </div>
+        <p class="mk-footer-note">&copy; <%= Date.current.year %> Newsletter Bingo &middot; The game your readers open email for</p>
+      </div>
+    </footer>
+  </body>
+</html>

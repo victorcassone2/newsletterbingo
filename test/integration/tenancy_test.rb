@@ -14,7 +14,7 @@ class TenancyTest < ActionDispatch::IntegrationTest
   test "a user cannot enter an account they don't belong to" do
     sign_in_as users(:two)
     get account_publications_path(account_id: accounts(:publisher).id)
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
   end
 
   test "a publication cannot be read through the wrong account" do

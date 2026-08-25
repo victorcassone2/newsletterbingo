@@ -5,6 +5,9 @@ Rails.application.routes.draw do
 
   root "home#show"
 
+  # The signed-in front door: routes a user into their account.
+  resource :dashboard, only: %i[ show ]
+
   # Publisher administration, always scoped to an account the user belongs to.
   scope "a/:account_id", as: :account do
     get "", to: "publications#index", as: ""

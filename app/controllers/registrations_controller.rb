@@ -17,7 +17,7 @@ class RegistrationsController < ApplicationController
         Membership.create!(account: account, user: @user, role: "owner")
       end
       start_new_session_for @user
-      redirect_to root_path, notice: "Welcome! Create your first publication to get started."
+      redirect_to dashboard_path, notice: "Welcome! Create your first publication to get started."
     else
       render :new, status: :unprocessable_entity
     end

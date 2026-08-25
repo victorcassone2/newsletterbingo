@@ -33,7 +33,7 @@ class InvitationsControllerTest < ActionDispatch::IntegrationTest
         params: { invitation: { email_address: "teammate@example.com" } }
     end
 
-    assert_redirected_to root_path
+    assert_redirected_to dashboard_path
   end
 
   test "destroy cancels a pending invitation" do

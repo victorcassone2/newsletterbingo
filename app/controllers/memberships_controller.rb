@@ -14,7 +14,7 @@ class MembershipsController < ApplicationController
   def destroy
     if @membership.destroy
       if @membership.user == Current.user
-        redirect_to root_path, notice: "You left #{@membership.account.name}."
+        redirect_to dashboard_path, notice: "You left #{@membership.account.name}."
       else
         redirect_to people_path, notice: "#{@membership.user.email_address} was removed."
       end

@@ -14,10 +14,10 @@ module AccountScoping
       Current.account = Current.user.accounts.find(params[:account_id])
       unless Current.user.can_access?(Current.account)
         Current.account = nil
-        redirect_to root_path, alert: "That account has been deactivated."
+        redirect_to dashboard_path, alert: "That account has been deactivated."
       end
     rescue ActiveRecord::RecordNotFound
-      redirect_to root_path, alert: "That account isn't available."
+      redirect_to dashboard_path, alert: "That account isn't available."
     end
 
     def current_account

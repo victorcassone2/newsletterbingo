@@ -1,0 +1,384 @@
+<% check_icon = capture do %>
+  <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd"/></svg>
+<% end %>
+
+<%# ---------------------------------------------------------------- Hero %>
+<section class="mk-hero">
+  <div class="mk-hero-inner">
+    <div>
+      <h1>Keep your readers engaged, one square at a time.</h1>
+      <p class="mk-hero-copy">
+        Newsletter Bingo drops a tiny game block into your email. Every send
+        calls a word, one click claims it, and each reader chases bingo on
+        their own game board.
+      </p>
+      <div class="mk-hero-actions">
+        <%= link_to "Try it free for 30 days", new_registration_path, class: "mk-cta" %>
+        <a href="#how-it-works" class="mk-cta-ghost">See how it works <span aria-hidden="true">&darr;</span></a>
+      </div>
+      <p class="mk-hero-note">
+        Paste one block into your template, once. No API, no reader accounts, no app.
+      </p>
+    </div>
+
+    <%# The two artifacts: the block in the email, and the board it fills. %>
+    <div class="mk-hero-visual" aria-hidden="true">
+      <div class="mock-card mock-board-card">
+        <div class="mock-board-head">
+          <p class="name">The Morning Pour</p>
+          <p class="sub">Call 9 of 30 &middot; your board</p>
+        </div>
+        <div class="mock-board-grid">
+          <% claimed = [ 0, 3, 6, 8, 16, 18, 21 ] %>
+          <% 25.times do |i| %>
+            <% if i == 12 %>
+              <span class="mock-square free">FREE</span>
+            <% elsif claimed.include?(i) %>
+              <span class="mock-square claimed">&#10003;</span>
+            <% else %>
+              <span class="mock-square"></span>
+            <% end %>
+          <% end %>
+        </div>
+        <div class="mock-board-foot">
+          <span><b>8 of 25</b> claimed</span>
+          <span>2 away from a line</span>
+        </div>
+      </div>
+
+      <div class="mock-card mock-email-card">
+        <div class="mock-email-chrome"><span></span><span></span><span></span></div>
+        <div class="mock-email-body">
+          <div class="mock-email-line"></div>
+          <div class="mock-email-line"></div>
+          <div class="mock-email-line short"></div>
+          <div class="mock-bingo-block">
+            <p class="mock-bingo-kicker">TODAY'S BINGO</p>
+            <p class="mock-bingo-sponsor">Presented by Fogline Coffee</p>
+            <p class="mock-bingo-word">SERENDIPITY</p>
+            <span class="mock-bingo-button">Claim today's spot &rarr;</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# -------------------------------------------------- Three-way value %>
+<section class="mk-section mk-section-alt">
+  <div class="mk-container">
+    <div class="mk-section-head">
+      <h2>Your readers already like your writing. Give them a streak to protect.</h2>
+      <p>
+        A subject line has to win the open every single send. A board with
+        squares at stake wins it once, then keeps it for the whole game.
+      </p>
+    </div>
+    <div class="mk-value-grid">
+      <div class="mk-value-card">
+        <p class="who">For you</p>
+        <h3>Opens become a habit, not a gamble</h3>
+        <p>
+          Readers with seven claimed squares don't skim their inbox deciding
+          whether you made the cut. They open because the next word is
+          waiting and the streak is theirs to lose. That habit shows up in
+          every open and click metric your sponsors ask about.
+        </p>
+      </div>
+      <div class="mk-value-card">
+        <p class="who">For your sponsors</p>
+        <h3>The most-anticipated spot in your send</h3>
+        <p>
+          The bingo block is the one corner of the email readers look for on
+          purpose. Put a sponsor's name on it, on single squares, or on the
+          prizes, and you're selling guaranteed attention send after send,
+          with click counts to prove it landed.
+        </p>
+      </div>
+      <div class="mk-value-card">
+        <p class="who">For your readers</p>
+        <h3>One click per issue, a real board of their own</h3>
+        <p>
+          No app to download, no account to create. Their email address is
+          their identity, their board persists all game, and a line or a
+          blackout wins a real prize. It takes two seconds and it's theirs.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%# ------------------------------------------------------- How it works %>
+<section id="how-it-works" class="mk-section mk-anchor">
+  <div class="mk-container">
+    <div class="mk-section-head">
+      <p class="mk-eyebrow-amber">How it works</p>
+      <h2>Set it up in an afternoon. Then it runs itself.</h2>
+    </div>
+
+    <ol class="mk-steps">
+      <%# Step 1: the word library %>
+      <li class="mk-step">
+        <div>
+          <div class="mk-step-number">1</div>
+          <h3>Pick words that sound like your publication</h3>
+          <p>
+            Load your word library once: inside jokes, beat vocabulary, the
+            words your readers would recognize as yours. Each game draws a
+            fresh pool and calls one word per send. Keep adding words and
+            future games stay fresh without you touching anything.
+          </p>
+        </div>
+        <div class="mock-panel" aria-hidden="true">
+          <div class="mock-card">
+            <p class="mock-list-head">Word library</p>
+            <ul class="mock-list">
+              <li>Serendipity <span class="mock-pill">In play</span></li>
+              <li>Masthead <span class="mock-pill">In play</span></li>
+              <li>Deadline <span class="mock-pill">In play</span></li>
+              <li>Evergreen</li>
+              <li>Scoop</li>
+            </ul>
+            <p class="mock-list-foot">34 words &middot; next game draws 30</p>
+          </div>
+        </div>
+      </li>
+
+      <%# Step 2: the one-time paste %>
+      <li class="mk-step">
+        <div>
+          <div class="mk-step-number">2</div>
+          <h3>Paste one block into your email template</h3>
+          <p>
+            Copy the snippet, paste it into your template, and you're done
+            integrating. The HTML is evergreen: the block keeps up with the
+            game on its own and your platform's merge tags identify the
+            reader, so the block you pasted in week one is still correct in
+            week fifty. No API, no plugin, no re-paste per issue.
+          </p>
+        </div>
+        <div class="mock-panel" aria-hidden="true">
+          <div class="mock-card">
+            <p class="mock-list-head">Your embed block</p>
+            <div class="mock-snippet-body">
+              <p class="mock-snippet-label">Paste once into your template</p>
+              <div class="mock-snippet-row">
+                <span class="mock-snippet-code">&lt;table role="presentation" width="100%"&hellip;</span>
+                <span class="mock-copy-btn">Copy</span>
+              </div>
+              <div class="mock-bingo-block">
+                <p class="mock-bingo-kicker">TODAY'S BINGO</p>
+                <p class="mock-bingo-word">MASTHEAD</p>
+                <span class="mock-bingo-button">Claim today's spot &rarr;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <%# Step 3: the claim %>
+      <li class="mk-step">
+        <div>
+          <div class="mk-step-number">3</div>
+          <h3>Every click claims a square</h3>
+          <p>
+            The click itself is the claim: no landing page hurdle, no login.
+            Each reader gets a stable, randomized board, and a called word
+            fills a square only on the cards that hold it. That's what makes
+            it bingo. One claim per reader per word, and stale links from
+            old sends can look but not claim.
+          </p>
+        </div>
+        <div class="mock-panel" aria-hidden="true">
+          <div class="mock-card">
+            <div class="mock-board-head">
+              <p class="name">The Morning Pour</p>
+              <p class="sub">SERENDIPITY claimed &middot; call 9 of 30</p>
+            </div>
+            <div class="mock-board-grid">
+              <% claimed = [ 2, 3, 6, 8, 11, 16, 18, 21 ] %>
+              <% 25.times do |i| %>
+                <% if i == 12 %>
+                  <span class="mock-square free">FREE</span>
+                <% elsif claimed.include?(i) %>
+                  <span class="mock-square claimed">&#10003;</span>
+                <% else %>
+                  <span class="mock-square"></span>
+                <% end %>
+              <% end %>
+            </div>
+            <div class="mock-board-foot">
+              <span><b>9 of 25</b> claimed</span>
+              <span>1 away from a line</span>
+            </div>
+          </div>
+        </div>
+      </li>
+
+      <%# Step 4: prizes and rotation %>
+      <li class="mk-step">
+        <div>
+          <div class="mk-step-number">4</div>
+          <h3>Prizes award themselves, and the next game starts</h3>
+          <p>
+            Complete a line, win the line prize. Fill the board, win the
+            blackout. Awards happen automatically, once per reader per game,
+            with the sponsor's name and link attached. When the last word is
+            called, the game wraps up and the next one starts with fresh
+            words. You never reset anything.
+          </p>
+        </div>
+        <div class="mock-panel" aria-hidden="true">
+          <div class="mock-card">
+            <div class="mock-winner-body">
+              <span class="mock-winner-badge">Bingo</span>
+              <p class="mock-winner-title">You completed a line!</p>
+              <p class="mock-winner-prize">20% off at Fogline Coffee, all month</p>
+              <p class="mock-winner-sponsor">Prize presented by Fogline Coffee &rarr;</p>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<%# -------------------------------------------------------- Sponsorship %>
+<section id="sponsorship" class="mk-section mk-section-alt mk-anchor">
+  <div class="mk-container">
+    <div class="mk-section-head">
+      <p class="mk-eyebrow-amber">Sponsorship</p>
+      <h2>You didn't just add a game. You added inventory.</h2>
+      <p>
+        Most ad spots sell impressions readers scroll past. The bingo block
+        is the spot readers scroll to. That difference is what you put on
+        the rate card.
+      </p>
+    </div>
+    <div class="mk-sponsor-grid">
+      <div class="mk-value-card">
+        <h3>The presenting sponsor line</h3>
+        <p>
+          "Presented by" rides the block in every send of the game. Not a
+          one-issue banner: a whole 30-word game of the sponsor's name in
+          the exact place your most engaged readers look first.
+        </p>
+      </div>
+      <div class="mk-value-card">
+        <h3>Sell it by the square</h3>
+        <p>
+          Any call of the game can carry its own sponsor. That word gets the
+          sponsor's message and a click-counted link, and readers click it to
+          claim their square, whether it arrives with today's send or this
+          week's issue. Mark it a prize call and the sponsor's word pays out
+          a bonus too.
+        </p>
+      </div>
+      <div class="mk-value-card">
+        <h3>Two prizes to sell</h3>
+        <p>
+          The line prize and the blackout prize each carry a name, an image,
+          and a link you control. A gift card, a discount, a product drop:
+          the sponsor funds the prize, and winners click through to claim it.
+        </p>
+      </div>
+      <div class="mk-value-card">
+        <h3>Numbers for the renewal call</h3>
+        <p>
+          Sponsor, word, and prize links are all click-counted, and your
+          analytics show claims across the game, send by send. When a
+          sponsor asks what their spot bought them, you hand over the answer
+          and book the next one.
+        </p>
+      </div>
+    </div>
+    <p class="mk-sponsor-note">
+      Sell it whole or slice it up: one presenting sponsor for the game,
+      single squares for smaller advertisers, prizes for whoever wants the
+      winner's moment. Even one sponsor pays for the game many times over.
+    </p>
+  </div>
+</section>
+
+<%# ----------------------------------------------------- Why it's easy %>
+<section class="mk-section">
+  <div class="mk-container">
+    <div class="mk-section-head">
+      <p class="mk-eyebrow-amber">Built to be no extra work</p>
+      <h2>You already have a newsletter to write</h2>
+      <p>
+        Every design decision assumes your time goes into the publication,
+        not into running a game.
+      </p>
+    </div>
+    <div class="mk-feature-grid">
+      <% [
+        [ "One paste, then evergreen", "The embed HTML never changes. The block keeps up with the game on its own, so the one you pasted months ago always shows the current call." ],
+        [ "Works with your email platform", "Reader identity comes from the merge tags your platform already supports. If you can paste custom HTML, you can run Newsletter Bingo." ],
+        [ "No reader accounts, ever", "A reader's email address is their identity. Boards persist across the whole game with nothing to sign up for and nothing to forget." ],
+        [ "Fits your cadence, daily or not", "Publish every day and the word flips with the calendar, in your publication's timezone. Publish by the issue and the word advances with each send. You choose per publication." ],
+        [ "Fair by construction", "One claim per reader per word, enforced at the database. Forwarded emails and stale links can't double-claim or fake a streak." ],
+        [ "Games rotate themselves", "When the last word is called, awards stand and the next game starts with fresh words from your library. There is no reset button because there's nothing to reset." ]
+      ].each do |title, body| %>
+        <div class="mk-feature-card">
+          <div class="mk-feature-check"><%= check_icon %></div>
+          <h3><%= title %></h3>
+          <p><%= body %></p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
+
+<%# ------------------------------------------------------------ Pricing %>
+<section id="pricing" class="mk-section mk-section-alt mk-anchor">
+  <div class="mk-container">
+    <div class="mk-section-head">
+      <p class="mk-eyebrow-amber">Pricing</p>
+      <h2>One flat price. One sponsor covers it.</h2>
+      <p>
+        Everything is included from day one: games, boards, prizes,
+        sponsorship tools, and analytics. No tiers to compare, no per-reader
+        pricing that punishes growth.
+      </p>
+    </div>
+
+    <div class="mk-price-card">
+      <div class="mk-price-row">
+        <div>
+          <h3>Newsletter Bingo</h3>
+          <p class="plan-sub">Per publication, everything included.</p>
+        </div>
+        <p class="mk-price-amount">
+          <span class="figure">$29</span>
+          <span class="per">/ month</span>
+        </p>
+      </div>
+      <ul class="mk-price-features">
+        <li><%= check_icon %><span>Unlimited readers, boards, and claims</span></li>
+        <li><%= check_icon %><span>Back-to-back games that rotate themselves</span></li>
+        <li><%= check_icon %><span>Sponsor line, two prize slots, and click counts</span></li>
+        <li><%= check_icon %><span>Analytics on claims, streaks, and engagement</span></li>
+      </ul>
+      <div class="mk-price-cta">
+        <%= link_to "Start your 30-day free trial", new_registration_path, class: "mk-cta" %>
+      </div>
+    </div>
+    <p class="mk-price-footnote">
+      30 days free with everything unlocked. Cancel before the first charge
+      and you won't pay a thing.
+    </p>
+  </div>
+</section>
+
+<%# ---------------------------------------------------------- Final CTA %>
+<section class="mk-final">
+  <div class="mk-container">
+    <h2>Your first game could start with the next send</h2>
+    <p>
+      Pick your words, paste the block, and tomorrow your readers have a
+      square waiting. That's the whole setup.
+    </p>
+    <%= link_to "Try Newsletter Bingo free", new_registration_path, class: "mk-cta-invert" %>
+  </div>
+</section>
