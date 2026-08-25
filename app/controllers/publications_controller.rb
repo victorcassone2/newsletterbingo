@@ -45,7 +45,9 @@ class PublicationsController < ApplicationController
 
   def update
     if @publication.update(publication_params)
-      redirect_to edit_account_publication_path(id: @publication.id, anchor: params[:pane].presence), notice: "Saved."
+      # pane rides as a query param, not a URL fragment: Turbo drops
+      # fragments when following a form submission's redirect.
+      redirect_to edit_account_publication_path(id: @publication.id, pane: params[:pane].presence), notice: "Saved."
     else
       @newsletter_block = NewsletterBlock.new(@publication)
       @preview_words = preview_words

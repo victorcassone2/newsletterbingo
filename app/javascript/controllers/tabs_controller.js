@@ -1,12 +1,15 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Segmented panes: one visible at a time, selection mirrored in the URL
-// hash so a save can land back on the pane it came from.
+// hash. A save lands back on its pane via a ?pane= query param instead,
+// because Turbo drops URL fragments when following a form redirect.
 export default class extends Controller {
   static targets = [ "tab", "pane" ]
 
   connect() {
-    this.show(window.location.hash.slice(1))
+    const requested = window.location.hash.slice(1) ||
+      new URLSearchParams(window.location.search).get("pane") || ""
+    this.show(requested)
   }
 
   select(event) {
