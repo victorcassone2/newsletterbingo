@@ -4,7 +4,7 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
   test "registration creates a user, an account, and an owner membership" do
     post registration_path, params: {
       account_name: "New Media Co.",
-      user: { email_address: "founder@example.com", password: "s3curepassword", password_confirmation: "s3curepassword" }
+      user: { email_address: "founder@example.com", password: "S3cure!password", password_confirmation: "S3cure!password" }
     }
     assert_redirected_to root_path
     user = User.find_by(email_address: "founder@example.com")

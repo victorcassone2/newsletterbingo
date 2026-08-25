@@ -19,7 +19,7 @@ class Invitations::AcceptancesControllerTest < ActionDispatch::IntegrationTest
 
     assert_difference [ "User.count", "Membership.count" ], 1 do
       post invitation_acceptance_path(invitation.token),
-        params: { user: { password: "secret123", password_confirmation: "secret123" } }
+        params: { user: { password: "S3cret!123", password_confirmation: "S3cret!123" } }
     end
 
     assert_redirected_to account_path(account_id: accounts(:publisher).id)

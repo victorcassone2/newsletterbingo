@@ -1,4 +1,7 @@
 class User < ApplicationRecord
+  PASSWORD_COMPLEXITY = /\A(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+\z/
+  PASSWORD_COMPLEXITY_MESSAGE = "must include an uppercase letter, lowercase letter, number, and special character"
+
   has_secure_password
   has_many :sessions, dependent: :destroy
   has_many :memberships, dependent: :destroy
@@ -8,6 +11,10 @@ class User < ApplicationRecord
 
   validates :email_address, presence: true, uniqueness: true,
     format: { with: URI::MailTo::EMAIL_REGEXP }
+  # allow_nil: only validate when a password is being set (has_secure_password
+  # already requires one on create), so profile updates never trip this.
+  validates :password, length: { in: 8..72 },
+    format: { with: PASSWORD_COMPLEXITY, message: PASSWORD_COMPLEXITY_MESSAGE }, allow_nil: true
 
   def member_of?(account)
     memberships.exists?(account_id: account.id)

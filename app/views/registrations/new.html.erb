@@ -16,7 +16,9 @@
       </div>
       <div class="field">
         <%= form.label :password %>
-        <%= form.password_field :password, autocomplete: "new-password" %>
+        <%= form.password_field :password, autocomplete: "new-password", minlength: 8, maxlength: 72 %>
+        <div class="hint">At least 8 characters, including an uppercase letter, lowercase letter,
+          number, and special character.</div>
       </div>
       <div class="field">
         <%= form.label :password_confirmation, "Confirm password" %>
