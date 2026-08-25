@@ -3,6 +3,12 @@
   <head>
     <title><%= content_for(:title) || "Newsletter Bingo" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#F59E0B">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "application", "admin", "data-turbo-track": "reload" %>
@@ -14,7 +20,7 @@
       <header class="topbar">
         <div class="topbar-inner">
           <%= link_to account_publications_path(account_id: Current.account.id), class: "topbar-brand" do %>
-            <span class="brand-dot"></span> Newsletter Bingo
+            <%= image_tag "logo.svg", alt: "Newsletter Bingo", class: "brand-logo" %>
           <% end %>
           <nav class="topbar-nav">
             <div class="menu" data-controller="menu">

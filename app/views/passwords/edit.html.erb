@@ -1,4 +1,5 @@
 <div class="auth-wrap">
+  <%= image_tag "logo.svg", alt: "Newsletter Bingo", class: "auth-logo" %>
   <h1 class="auth-title">Update your password</h1>
   <div class="card">
     <%= form_with url: password_path(params[:token]), method: :put do |form| %>

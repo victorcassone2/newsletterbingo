@@ -7,7 +7,7 @@
 }
 .topbar-brand { font-weight: 700; letter-spacing: -.01em; color: var(--ink); display: flex; align-items: center; gap: .45rem; }
 .topbar-brand:hover { text-decoration: none; }
-.brand-dot { width: .8rem; height: .8rem; border-radius: 3px; background: var(--brand); }
+.brand-logo { display: block; height: 22px; width: auto; }
 .topbar-nav { display: flex; align-items: center; gap: 1.1rem; font-size: .9rem; }
 
 /* Active nav state is weight-only. */
@@ -564,6 +564,7 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 
 /* Auth pages */
 .auth-wrap { max-width: 24rem; margin: 8vh auto 0; padding: 0 1rem; }
+.auth-logo { display: block; height: 26px; width: auto; margin: 0 auto 1.5rem; }
 .auth-wrap .card { padding: 1.75rem; }
 .auth-title { text-align: center; margin-bottom: 1.25rem; }
 
