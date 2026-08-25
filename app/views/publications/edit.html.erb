@@ -126,7 +126,7 @@
     <% end %>
 
     <div class="step">
-      <div class="step-head"><span class="step-no">3</span><h2>Paste the block into your template</h2></div>
+      <div class="step-head"><span class="step-no">3</span><h2>Paste the block into your template, once</h2></div>
       <div class="step-body">
         <div class="embed-row">
           <div class="embed-preview"><%= @newsletter_block.to_html %></div>
@@ -236,18 +236,20 @@
   <div class="card switch-card">
     <div class="switch-row">
       <div>
-        <b><%= @publication.active? ? "Accepting claims" : "Paused" %></b>
+        <b><%= @publication.active? ? "Publication live" : "Publication paused" %></b>
         <p class="muted small" style="margin: .15rem 0 0;">
           <% if @publication.active? %>
-            Readers can claim today's word and view their boards.
+            Turn off to pause everything readers see: claim links, boards, and the word
+            image go dark, and games stop rotating until you turn it back on.
           <% else %>
-            Claim links in your emails don't work and boards are hidden until you turn this back on.
+            Claim links, boards, and the word image are dark, and games aren't rotating.
+            Turn back on to resume.
           <% end %>
         </p>
       </div>
       <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
         <%= hidden_field_tag :pane, "general" %>
-        <label class="toggle" aria-label="Accepting claims">
+        <label class="toggle" aria-label="Publication live">
           <%# autocomplete off: the browser must not restore a stale checked
               state over the server-rendered one on refresh %>
           <%= form.check_box :active, onchange: "this.form.requestSubmit();", autocomplete: "off" %>

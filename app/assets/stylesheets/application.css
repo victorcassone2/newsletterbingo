@@ -82,7 +82,7 @@ input[type="color"] {
   border: 1px solid #cbd5e1; border-radius: var(--radius-sm); background: var(--card);
 }
 .field { margin-bottom: 1rem; }
-.field .hint { font-size: .8rem; color: var(--ink-soft); margin-top: .25rem; }
+.hint { font-size: .8rem; color: var(--ink-soft); margin-top: .25rem; }
 .field-row { display: flex; gap: 1rem; flex-wrap: wrap; }
 .field-row .field { flex: 1 1 10rem; margin-bottom: 1rem; }
 

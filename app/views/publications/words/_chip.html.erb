@@ -7,7 +7,6 @@
       <% if uses.positive? %>title="Used in <%= pluralize(uses, "game") %>"<% end %>>
   <% if in_game %><span class="dot"></span><% end %>
   <%= word.label %>
-  <% if uses.positive? && !word.system? %><span class="use"><%= uses %>×</span><% end %>
   <% unless word.system? || in_game %>
     <% if word.archived? %>
       <%= button_to "↺", account_publication_word_archival_path(publication_id: @publication.id, word_id: word.id),

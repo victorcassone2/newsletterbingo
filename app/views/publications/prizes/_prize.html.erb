@@ -23,9 +23,11 @@
         <div class="prize-name"><%= prize.name %></div>
         <p class="small muted" style="margin: .3rem 0 0;">
           <% if prize.line? %>
-            For a player's first completed row, column, or diagonal, once each.
+            Awarded when a player completes their first line: any row, column, or
+            diagonal. One win per player each game.
           <% else %>
-            For claiming every word on their card, once each.
+            Awarded when a player claims every word on their card. One win per
+            player each game.
           <% end %>
         </p>
       <% else %>

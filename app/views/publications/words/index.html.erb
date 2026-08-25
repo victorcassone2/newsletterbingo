@@ -59,14 +59,19 @@
     <% end %>
 
     <div class="cloud-group">
-      <h3>Ready for future games</h3>
+      <h3>Waiting for the next game</h3>
       <div class="cloud" id="ready-cloud">
         <% ready.each do |word| %>
           <%= render "chip", word: word, uses: @use_counts.fetch(word.id, 0) %>
         <% end %>
         <% if ready.empty? %>
-          <p class="small muted" style="margin: 0;">Your pool is empty. Add the words only your
-            readers would recognize, and games start feeling like yours.</p>
+          <% if in_game.any? %>
+            <p class="small muted" style="margin: 0;">Every word you've added is in the current
+              game. Add more and future games draw from a deeper pool.</p>
+          <% else %>
+            <p class="small muted" style="margin: 0;">Your pool is empty. Add the words only your
+              readers would recognize, and games start feeling like yours.</p>
+          <% end %>
         <% end %>
       </div>
     </div>

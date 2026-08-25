@@ -10,7 +10,7 @@
         <li>
           <div>
             <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
-            <% unless publication.active? %><span class="badge badge-gray">Inactive</span><% end %>
+            <% unless publication.active? %><span class="badge badge-gray">Paused</span><% end %>
             <% unless publication.billing_active? %>
               <span class="badge badge-amber">Needs billing</span>
             <% end %>

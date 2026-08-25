@@ -230,7 +230,6 @@
 .wchip.ingame { border-color: var(--green-line); background: var(--green-bg); color: var(--green-ink); }
 .wchip.archived { border-style: dashed; color: var(--ink-faint); background: var(--paper); }
 .wchip.sys { color: var(--ink-soft); font-weight: 550; }
-.wchip .use { font-size: .68rem; font-weight: 500; color: var(--ink-faint); }
 .wchip form { display: contents; }
 .wchip .x {
   display: none; border: 0; background: none; font: inherit; cursor: pointer;
