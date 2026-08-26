@@ -1,4 +1,17 @@
 Rails.application.routes.draw do
+  # One canonical host. Both newsletterbingo.com and www.newsletterbingo.com
+  # reach the app, so www redirects to the apex rather than serving a second
+  # copy: claim links, cookies and analytics all belong to a single hostname.
+  # Matched against the configured host rather than any "www." prefix: Rails
+  # integration tests default to www.example.com, which is not this app's www.
+  constraints(->(request) { request.host.casecmp?("www.#{URI(NewsletterBingo.public_host).host}") }) do
+    match "(*path)", via: :all, to: redirect(status: 301) { |_params, request|
+      apex = URI::HTTPS.build(host: request.host.delete_prefix("www."), path: request.path)
+      apex.query = request.query_string.presence
+      apex.to_s
+    }
+  end
+
   resource :session
   resources :passwords, param: :token
   resource :registration, only: %i[ new create ]
