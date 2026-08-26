@@ -7,6 +7,9 @@ if ENV["SENTRY_DSN"].present?
   Sentry.init do |config|
     config.dsn = ENV["SENTRY_DSN"]
     config.environment = Rails.env
+    # Ties each error to the deploy that introduced it. Populated by Heroku's
+    # runtime dyno metadata, so it is simply absent elsewhere.
+    config.release = ENV["HEROKU_SLUG_COMMIT"]
     config.breadcrumbs_logger = [ :active_support_logger, :http_logger ]
 
     # Participants' email addresses move through this app, so request bodies,
