@@ -10,7 +10,6 @@ class Publications::TodaysController < Publications::BaseController
       @calls = @game.daily_calls.includes(:game_word)
       @call = @publication.current_call
       @next_call = @game.next_call
-      @current_issue = @game.issues.order(:created_at).last if @publication.issue_cadence?
       @newsletter_block = NewsletterBlock.new(@publication)
       @claims_today = @call ? @call.daily_claims.count : 0
       @players = @publication.analytics.game_participants(@game)

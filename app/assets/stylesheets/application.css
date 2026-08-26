@@ -184,3 +184,4 @@ input[type="color"] {
   font-family: var(--mono); font-size: 1.6rem; font-weight: 700;
   letter-spacing: .08em; margin-top: .25rem; color: var(--ink);
 }
+.ticket .ticket-sub { font-size: .8rem; color: var(--ink-soft); margin-top: .3rem; }

@@ -79,6 +79,13 @@
           This word has been called and is part of game history.
         <% end %>
       </p>
+      <% if @latest_issue&.rollbackable? && @latest_issue.daily_call == @call %>
+        <p class="small muted">Sent by accident? Until a reader claims it, the word can go back
+          in the queue.</p>
+        <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @latest_issue.id),
+              method: :delete, class: "btn btn-quiet btn-small",
+              form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
+      <% end %>
     <% end %>
   </div>
 </div>

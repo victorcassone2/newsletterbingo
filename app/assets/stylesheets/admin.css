@@ -99,7 +99,7 @@
 .stack > * + * { margin-top: 1.25rem; }
 
 /* Today cockpit: one header shape for every state: position + status
-   left, the claims pulse right. */
+   left; the claims pulse joins it on the right only before a word is live. */
 .cockpit-head {
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.4rem;
@@ -107,8 +107,8 @@
 .cockpit-sub { font-size: .88rem; color: var(--ink-soft); margin: 0 0 .55rem; }
 .cockpit-sub strong { color: var(--ink); }
 
-.gameticks { display: grid; grid-template-columns: repeat(24, 9px); gap: 3px; }
-.gameticks i { display: block; height: 6px; border-radius: 3px; background: var(--line); }
+.gameticks { display: flex; gap: 3px; }
+.gameticks i { display: block; width: 9px; height: 6px; border-radius: 3px; background: var(--line); flex: none; }
 .gameticks i.on { background: var(--brand); }
 .gameticks i.now { background: var(--ink); }
 
@@ -126,6 +126,18 @@
 .pulse-row { display: flex; align-items: center; gap: .8rem; }
 .pulse-row svg { display: block; }
 .pulse-row a { font-size: .78rem; font-weight: 650; color: var(--brand); }
+
+/* Expanded pulse: a full grid-cell card beside the next-word ticket. */
+.pulse-fill { display: flex; flex-direction: column; padding: 1.1rem 1.25rem 1rem; }
+.pulse-fill .pulse-num { font-size: 2.3rem; }
+.pulse-fill .pulse-cap { font-size: .85rem; }
+.pulse-fill .pulse-sub { font-size: .85rem; margin-bottom: .8rem; }
+.pulse-fill .pulse-top a {
+  margin-left: auto; white-space: nowrap; align-self: center;
+  font-size: .85rem; font-weight: 650; color: var(--brand);
+}
+.pulse-fill .pulse-row { margin-top: auto; }
+.pulse-fill .pulse-row svg { flex: 1 1 auto; width: 100%; min-width: 0; height: auto; }
 
 .attention {
   display: flex; align-items: center; gap: .7rem; flex-wrap: wrap;
@@ -145,9 +157,7 @@
 }
 .trial-banner a { font-weight: 650; color: var(--brand); }
 
-.next-card { border-color: var(--green-line); }
 .next-card .ticket-label { color: var(--green-ink); }
-.receipt-card .ticket-word { color: var(--ink-strong); }
 
 .ondeck {
   display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;

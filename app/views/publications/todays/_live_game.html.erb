@@ -1,5 +1,6 @@
 <%# One header shape for every state of the live game: date, position,
-    status badge, game ticks on the left; the claims pulse on the right. %>
+    status badge, game ticks. The claims pulse sits beside the next-word
+    card once a word is live; before that it rides in the header. %>
 <div class="cockpit-head">
   <div>
     <div class="eyebrow">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>
@@ -35,23 +36,9 @@
     </div>
   </div>
 
-  <div class="pulse">
-    <div class="pulse-top">
-      <span class="pulse-num"><%= @claims_today %></span>
-      <span class="pulse-cap"><%= "claim".pluralize(@claims_today) %> today</span>
-    </div>
-    <p class="pulse-sub">
-      <% if @call && @players.positive? %>
-        <%= @publication.analytics.participation_rate_today(@game) %>% of <%= @players %> players this game
-      <% else %>
-        claims appear the moment readers click
-      <% end %>
-    </p>
-    <div class="pulse-row">
-      <%= claim_sparkline(@claim_series.map(&:last)) %>
-      <%= link_to "Analytics →", account_publication_analytics_path(publication_id: @publication.id) %>
-    </div>
-  </div>
+  <% unless @call %>
+    <%= render "pulse" %>
+  <% end %>
 </div>
 
 <% if @next_game && @next_game.game_words.count < @next_game.pool_size %>
@@ -66,17 +53,16 @@
   <div class="grid-2">
     <div class="card next-card">
       <div class="ticket">
-        <div class="ticket-label">Next word<% if @next_call %> ·
-          <%= @publication.issue_cadence? ? "goes out with your next send" : @next_call.call_on.strftime("%A, %B %-d") %><% end %></div>
+        <div class="ticket-label">Next word</div>
         <% if @next_call %>
           <div class="ticket-word"><%= @next_call.label %></div>
+          <div class="ticket-sub"><%= @publication.issue_cadence? ? "Goes out with your next send" : @next_call.call_on.strftime("%A, %B %-d") %></div>
         <% else %>
           <div class="ticket-word muted">—</div>
         <% end %>
       </div>
 
       <% if @next_call %>
-        <p class="small muted" style="margin-top: .9rem;">Still changeable: swap the word here, or drag it in the schedule below.</p>
         <div class="today-actions">
           <%= link_to "Edit word", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @next_call.id), class: "btn btn-primary btn-small" %>
           <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id, word: "next"), target: "_blank", class: "btn btn-quiet btn-small" %>
@@ -86,34 +72,10 @@
       <% end %>
     </div>
 
-    <div class="card receipt-card">
-      <div class="ticket">
-        <div class="ticket-label"><%= @publication.issue_cadence? ? "Current word" : "Today's word" %> <% if @call.prize_call? %>· 🎁 prize call<% end %></div>
-        <div class="ticket-word"><%= @call.label %></div>
-      </div>
-
-      <p class="small muted" style="margin-top: .9rem;">
-        <% if @call.word_changeable? %>
-          Word can still change.
-        <% else %>
-          Locked<%= @publication.issue_cadence? ? ": sent with this issue" : (": already claimed" if @call.daily_claims.any?) %>.
-          The story readers see after claiming can still change.
-        <% end %>
-      </p>
-
-      <div class="today-actions">
-        <%= link_to (@call.word_changeable? ? "Edit word" : "Add story & link"), edit_account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), class: "btn btn-quiet btn-small" %>
-        <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id), target: "_blank", class: "btn btn-quiet btn-small" %>
-        <% if !@call.word_changeable? && @publication.issue_cadence? && @current_issue&.rollbackable? %>
-          <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @current_issue.id),
-                method: :delete, class: "btn btn-quiet btn-small",
-                form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
-        <% end %>
-      </div>
-    </div>
+    <%= render "pulse", expanded: true %>
   </div>
 
-  <div class="card" style="margin-top: 1.25rem;">
+  <div class="card" style="margin-top: .5rem;">
     <div class="card-head">
       <h2><%= @publication.issue_cadence? ? "Reveal order" : "Schedule" %></h2>
       <% if @publication.issue_cadence? %>

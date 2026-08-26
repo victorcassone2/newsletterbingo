@@ -3,6 +3,7 @@ class Publications::Games::CallsController < Publications::Games::BaseController
 
   def edit
     @eligible_replacements = replacement_words
+    @latest_issue = latest_issue
   end
 
   def update
@@ -10,6 +11,7 @@ class Publications::Games::CallsController < Publications::Games::BaseController
       back_to_game notice: "Day #{@call.day_number} updated."
     else
       @eligible_replacements = replacement_words
+      @latest_issue = latest_issue
       render :edit, status: :unprocessable_entity
     end
   end
@@ -17,6 +19,10 @@ class Publications::Games::CallsController < Publications::Games::BaseController
   private
     def set_call
       @call = @game.daily_calls.find(params[:id])
+    end
+
+    def latest_issue
+      @game.issues.order(:created_at).last if @publication.issue_cadence?
     end
 
     def call_params

@@ -1,0 +1,25 @@
+<%# Compact in the cockpit header; expanded it stretches to card height
+    beside the next-word card, sparkline filling the width. %>
+<% expanded = local_assigns.fetch(:expanded, false) %>
+<div class="<%= class_names("pulse", "pulse-fill": expanded) %>">
+  <div class="pulse-top">
+    <span class="pulse-num"><%= @claims_today %></span>
+    <span class="pulse-cap"><%= "claim".pluralize(@claims_today) %> today</span>
+    <% if expanded %>
+      <%= link_to "Analytics →", account_publication_analytics_path(publication_id: @publication.id) %>
+    <% end %>
+  </div>
+  <p class="pulse-sub">
+    <% if @call && @players.positive? %>
+      <%= @publication.analytics.participation_rate_today(@game) %>% of <%= @players %> players this game
+    <% else %>
+      claims appear the moment readers click
+    <% end %>
+  </p>
+  <div class="pulse-row">
+    <%= expanded ? claim_sparkline(@claim_series.map(&:last), width: 340, height: 72) : claim_sparkline(@claim_series.map(&:last)) %>
+    <% unless expanded %>
+      <%= link_to "Analytics →", account_publication_analytics_path(publication_id: @publication.id) %>
+    <% end %>
+  </div>
+</div>
