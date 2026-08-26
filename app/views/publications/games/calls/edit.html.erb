@@ -24,6 +24,7 @@
       <% end %>
     </p>
   </div>
+  <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id, word: @call.id), target: "_blank", class: "btn btn-quiet" %>
 </div>
 
 <div class="grid-2">
@@ -58,10 +59,7 @@
         <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee!" %>
       </div>
 
-      <div class="today-actions">
-        <%= form.submit "Save", class: "btn btn-primary" %>
-        <%= link_to "Preview", account_publication_board_preview_path(publication_id: @publication.id, word: @call.id), target: "_blank", class: "btn btn-quiet" %>
-      </div>
+      <%= form.submit "Save", class: "btn btn-primary" %>
     <% end %>
   </div>
 
