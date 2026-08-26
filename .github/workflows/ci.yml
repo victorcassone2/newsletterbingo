@@ -141,7 +141,14 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare test:system
+        # The app has no system tests yet. Keep the job wired up so adding
+        # test/system starts exercising it, rather than failing until then.
+        run: |
+          if [ -d test/system ]; then
+            bin/rails db:test:prepare test:system
+          else
+            echo "No test/system directory; nothing to run."
+          fi
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4
