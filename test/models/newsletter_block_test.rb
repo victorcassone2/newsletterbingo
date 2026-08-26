@@ -80,7 +80,7 @@ class NewsletterBlockTest < ActiveSupport::TestCase
 
   test "publication branding colors are applied" do
     @publication.update!(accent_color: "#AB12CD")
-    assert_includes NewsletterBlock.new(@publication).to_html, "#AB12CD"
+    assert_includes NewsletterBlock.new(@publication).to_html, "#ab12cd"
   end
 
   test "sponsor names are HTML-escaped" do

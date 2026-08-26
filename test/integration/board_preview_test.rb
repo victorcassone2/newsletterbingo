@@ -16,7 +16,7 @@ class BoardPreviewTest < ActionDispatch::IntegrationTest
       get account_publication_board_preview_path(account_id: @account_id, publication_id: @publication.id)
     end
     assert_response :success
-    assert_match "YOUR BINGO CARD", response.body
+    assert_select "section.board-section .square", minimum: 25
   end
 
   test "preview shows the state after the next word goes out" do

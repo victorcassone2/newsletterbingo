@@ -2,10 +2,11 @@
   <% players = @analytics.game_participants(@game) %>
   <% current_call = @publication.current_call %>
   <% called = @game.days_elapsed %>
+  <% unit = @publication.call_unit %>
 
   <div class="page-head">
     <div>
-      <h1>Day <%= called %> of <%= @game.pool_size %></h1>
+      <h1><%= unit.capitalize %> <%= called %> of <%= @game.pool_size %></h1>
       <p class="cockpit-sub" style="margin-bottom: 0;">
         Current game · <%= game_label(@game) %>
         <% if current_call %> · word today: <strong><%= current_call.label %></strong><% end %>
@@ -14,7 +15,7 @@
     <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
   </div>
 
-  <div class="gameticks stretch" role="img" aria-label="Game progress: <%= called %> of <%= @game.pool_size %> days played">
+  <div class="gameticks stretch" role="img" aria-label="Game progress: <%= called %> of <%= @game.pool_size %> <%= unit.pluralize %> played">
     <% (1..@game.pool_size).each do |day| %>
       <i class="<%= "on" if day < called %><%= "now" if day == called %>"></i>
     <% end %>
@@ -43,7 +44,8 @@
   <div class="card claims-card">
     <div class="claims-head">
       <h2>Claims by word</h2>
-      <span class="muted small">each bar is one game day · <%= @game.days_remaining %> days remaining</span>
+      <span class="muted small">each bar is one game <%= unit %> ·
+        <%= @game.days_remaining %> <%= unit.pluralize(@game.days_remaining) %> remaining</span>
     </div>
     <div class="claims-chart">
       <% unless players.zero? %>
@@ -53,7 +55,7 @@
         <% @analytics.claims_per_day(@game).each do |call, count| %>
           <% if call.called? %>
             <div class="bar-slot <%= "today-slot" if call == current_call %>"
-                 title="<%= call.label %> · Day <%= call.position %> · <%= call.call_on.strftime("%b %-d") %> · <%= count %> of <%= players %> claimed">
+                 title="<%= call.label %> · <%= unit.capitalize %> <%= call.position %> · <%= call.call_on.strftime("%b %-d") %> · <%= count %> of <%= players %> claimed">
               <% if call == current_call %>
                 <span class="toplabel">today</span>
               <% elsif count == players && players.positive? %>
@@ -107,7 +109,7 @@
           <span><%= game.pool_size %> words · completed</span>
         </div>
         <div class="m"><b><%= summary[:participants] %></b><span>players</span></div>
-        <div class="m"><b><%= summary[:average_claimed_days] %></b><span>avg days claimed</span></div>
+        <div class="m"><b><%= summary[:average_claimed_days] %></b><span>avg <%= @publication.call_unit.pluralize %> claimed</span></div>
         <div class="m"><b><%= summary[:bingo_percent] %>%</b><span>reached bingo</span></div>
         <div class="m"><b><%= summary[:blackouts] %></b><span><%= "blackout".pluralize(summary[:blackouts]) %></span></div>
         <%= link_to "Details →", account_publication_game_path(publication_id: @publication.id, id: game.id), class: "back-link" %>

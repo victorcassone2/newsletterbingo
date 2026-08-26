@@ -22,6 +22,8 @@ class Publication < ApplicationRecord
   normalizes :email_merge_tag, with: ->(t) { t.strip }
   normalizes :campaign_merge_tag, with: ->(t) { t.strip }
   normalizes :send_days, with: ->(days) { Array(days).compact_blank.map(&:to_i).uniq.sort }
+  normalizes :primary_color, :accent_color, :background_color, :text_color,
+    with: ->(color) { color.strip.downcase }
 
   validates :name, presence: true
   validates :public_code, presence: true, uniqueness: true
@@ -44,6 +46,13 @@ class Publication < ApplicationRecord
 
   def calendar_cadence?
     cadence == "calendar"
+  end
+
+  # A game advances one word per issue sent, or one word per calendar day.
+  # Copy that counts a game's progress says so in the publisher's own unit:
+  # "word 3 of 30" for issue cadence, "day 3 of 30" for calendar.
+  def call_unit
+    issue_cadence? ? "word" : "day"
   end
 
   # Words per game under the publication's chosen format.

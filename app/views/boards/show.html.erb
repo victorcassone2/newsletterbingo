@@ -1,8 +1,9 @@
 <div class="player-head">
   <% if @publication.logo.attached? %>
-    <%= image_tag @publication.logo, alt: @publication.name, class: "player-logo" %><br>
+    <%= image_tag @publication.logo, alt: @publication.name, class: "player-logo" %>
+  <% else %>
+    <div class="player-pubname"><%= @publication.name.upcase %></div>
   <% end %>
-  <div class="player-pubname"><%= @publication.name.upcase %></div>
 </div>
 
 <% if @celebrate == "bingo" %>
@@ -98,8 +99,6 @@
   <% end %>
 
   <section class="board-section" data-controller="board" style="--board-cols: <%= @game.board_size %>;">
-    <div class="board-eyebrow">YOUR BINGO CARD</div>
-
     <% if @game.board_size == 5 %>
       <div class="bingo-header" aria-hidden="true">
         <% %w[B I N G O].each do |letter| %><span><%= letter %></span><% end %>
@@ -141,7 +140,7 @@
             <div class="square-detail" hidden data-board-target="detail" data-square-key="<%= square.position %>">
               <h3><%= square.label %> <% if call&.prize_call? %>🎁<% end %></h3>
               <% if call %>
-                <p class="small muted"><%= @publication.issue_cadence? ? "Word" : "Day" %> <%= call.position %><% if call.issued? %> · called <%= call.call_on.strftime("%B %-d") %><% end %></p>
+                <p class="small muted"><%= @publication.call_unit.capitalize %> <%= call.position %><% if call.issued? %> · called <%= call.call_on.strftime("%B %-d") %><% end %></p>
                 <% if call.prize_call? && call.prize_description.present? %>
                   <p><%= call.prize_description %></p>
                 <% end %>
@@ -166,7 +165,7 @@
                 <%= link_to (@line_prize.link_text.presence || "Details"), prize_outbound_path(@publication.public_code, @line_prize.id) %>
               <% end %>
             <% else %>
-              <span class="prize-kind">Line</span> <strong><%= @line_prize.name %></strong>
+              <span class="prize-kind">Line Prize</span> <strong><%= @line_prize.name %></strong>
             <% end %>
           </div>
         <% end %>
@@ -178,7 +177,7 @@
                 <%= link_to (@blackout_prize.link_text.presence || "Details"), prize_outbound_path(@publication.public_code, @blackout_prize.id) %>
               <% end %>
             <% else %>
-              <span class="prize-kind">Blackout</span> <strong><%= @blackout_prize.name %></strong>
+              <span class="prize-kind">Blackout Prize</span> <strong><%= @blackout_prize.name %></strong>
             <% end %>
           </div>
         <% end %>

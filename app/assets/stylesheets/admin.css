@@ -417,6 +417,12 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 
 /* Branding editor */
 .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); gap: 1rem; }
+.swatch-pair { display: flex; align-items: center; gap: .5rem; }
+.swatch-pair .hex-field {
+  width: 6.5rem; flex: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .85rem; text-transform: lowercase;
+}
 
 /* Branding preview: a miniature of the reader board, driven by the same
    brand variables the player surface uses. */
@@ -424,6 +430,12 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
   border-radius: 12px; padding: 1.25rem;
   background: var(--brand-background, var(--paper));
   color: var(--brand-text, var(--ink));
+}
+.brand-preview-frame .preview-head { text-align: center; margin-bottom: .8rem; }
+.brand-preview-frame .preview-logo { max-height: 2.6rem; max-width: 12rem; object-fit: contain; }
+.brand-preview-frame .preview-pubname {
+  font-weight: 800; font-size: .9rem; letter-spacing: .02em;
+  color: var(--brand-primary, var(--ink));
 }
 .brand-preview-frame .preview-card {
   background: var(--brand-surface, #ffffff); color: var(--brand-on-surface, var(--ink));

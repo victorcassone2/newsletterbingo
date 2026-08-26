@@ -6,7 +6,7 @@
     <div class="eyebrow">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>
     <h1>
       <% if @call %>
-        <%= @publication.issue_cadence? ? "Word" : "Day" %> <%= @call.position %> of <%= @game.pool_size %>
+        <%= @publication.call_unit.capitalize %> <%= @call.position %> of <%= @game.pool_size %>
         <span class="badge badge-green">Live</span>
       <% elsif @publication.issue_cadence? %>
         Word 1 of <%= @game.pool_size %> <span class="badge badge-amber">Waiting</span>

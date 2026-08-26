@@ -85,6 +85,19 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     assert_equal 0, late.daily_claims.count
   end
 
+  test "analytics counts the game in words, never in days" do
+    sign_in_as users(:one)
+    get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-001")
+
+    get account_publication_analytics_path(account_id: accounts(:publisher).id, publication_id: @publication.id)
+
+    assert_response :success
+    assert_select "h1", text: /\AWord 1 of #{@game.pool_size}\z/
+    assert_match(/each bar is one game word/, response.body)
+    assert_match(/#{@game.reload.days_remaining} words remaining/, response.body)
+    assert_no_match(/game day|days remaining/, response.body)
+  end
+
   test "an unissued call's edit page frames its timing in sends" do
     sign_in_as users(:one)
     unissued = @game.daily_calls.find_by(call_on: nil)

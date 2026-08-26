@@ -1,0 +1,10 @@
+<div class="field">
+  <%= form.label attribute, label %>
+  <div class="swatch-pair">
+    <%= form.color_field attribute, data: { action: "input->brand-preview#update", brand_property: property } %>
+    <input type="text" class="hex-field" value="<%= form.object.public_send(attribute).downcase %>"
+           maxlength="7" spellcheck="false" autocomplete="off" aria-label="<%= label %> hex color"
+           data-action="input->brand-preview#updateHex change->brand-preview#restoreHex">
+  </div>
+  <% if local_assigns[:hint] %><div class="hint"><%= hint %></div><% end %>
+</div>

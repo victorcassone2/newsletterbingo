@@ -21,6 +21,31 @@ class PublicationTest < ActiveSupport::TestCase
     assert publication.valid?
   end
 
+  test "colors are stored lowercase, however they were typed" do
+    publication = publications(:omaha)
+    publication.update!(primary_color: " #AB12CD ")
+    assert_equal "#ab12cd", publication.reload.primary_color
+  end
+
+  test "a new publication starts on the Newsletter Bingo palette" do
+    publication = Account.first.publications.new
+
+    assert_equal "#b45309", publication.primary_color
+    assert_equal "#f59e0b", publication.accent_color
+    assert_equal "#fcfcfc", publication.background_color
+    assert_equal "#2a2118", publication.text_color
+  end
+
+  test "the call unit follows the cadence" do
+    publication = publications(:omaha)
+
+    publication.cadence = "calendar"
+    assert_equal "day", publication.call_unit
+
+    publication.cadence = "issues"
+    assert_equal "word", publication.call_unit
+  end
+
   test "timezone must be recognized" do
     publication = publications(:omaha)
     publication.timezone = "Mars/Olympus"

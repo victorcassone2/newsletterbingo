@@ -159,31 +159,26 @@
       <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch do |form| %>
         <%= hidden_field_tag :pane, "branding" %>
         <div class="swatch-grid">
-          <div class="field">
-            <%= form.label :primary_color, "Primary" %>
-            <%= form.color_field :primary_color, data: { action: "input->brand-preview#update", brand_property: "--brand-primary" } %>
-            <div class="hint">Headings & identity</div>
-          </div>
-          <div class="field">
-            <%= form.label :accent_color, "Accent" %>
-            <%= form.color_field :accent_color, data: { action: "input->brand-preview#update", brand_property: "--brand-accent" } %>
-            <div class="hint">Buttons & claimed squares</div>
-          </div>
-          <div class="field">
-            <%= form.label :background_color, "Background" %>
-            <%= form.color_field :background_color, data: { action: "input->brand-preview#update", brand_property: "--brand-background" } %>
-          </div>
-          <div class="field">
-            <%= form.label :text_color, "Text" %>
-            <%= form.color_field :text_color, data: { action: "input->brand-preview#update", brand_property: "--brand-text" } %>
-          </div>
+          <%= render "publications/color_swatch", form: form, attribute: :primary_color,
+                label: "Primary", property: "--brand-primary", hint: "Headings & identity" %>
+          <%= render "publications/color_swatch", form: form, attribute: :accent_color,
+                label: "Accent", property: "--brand-accent", hint: "Buttons & claimed squares" %>
+          <%= render "publications/color_swatch", form: form, attribute: :background_color,
+                label: "Background", property: "--brand-background" %>
+          <%= render "publications/color_swatch", form: form, attribute: :text_color,
+                label: "Text", property: "--brand-text" %>
         </div>
 
         <div class="field">
           <%= form.label :logo %>
-          <%= form.file_field :logo, accept: "image/png,image/jpeg,image/webp,image/svg+xml" %>
+          <%= form.file_field :logo, accept: "image/png,image/jpeg,image/webp,image/svg+xml",
+                data: { action: "change->brand-preview#swapLogo" } %>
+          <div class="hint">Shown at the top of readers&rsquo; boards in place of your publication name.</div>
           <% if @publication.logo.attached? %>
-            <div class="hint">Current: <%= image_tag @publication.logo, style: "max-height: 2rem; vertical-align: middle;" %></div>
+            <div class="hint">
+              <%= link_to "Remove logo", account_publication_logo_path(publication_id: @publication.id),
+                    data: { turbo_method: :delete }, class: "link-button" %>
+            </div>
           <% end %>
         </div>
 
@@ -193,6 +188,12 @@
 
     <div class="card">
       <div class="brand-preview-frame" data-brand-preview-target="preview" style="<%= brand_style(@publication) %>">
+        <div class="preview-head">
+          <img class="preview-logo" data-brand-preview-target="logo" alt="Logo"
+            <% if @publication.logo.attached? %>src="<%= url_for(@publication.logo) %>"<% else %>hidden<% end %>>
+          <div class="preview-pubname" data-brand-preview-target="pubname"
+            <%= "hidden" if @publication.logo.attached? %>><%= @publication.name.upcase %></div>
+        </div>
         <div class="preview-card">
           <div class="preview-eyebrow">TODAY&rsquo;S BINGO</div>
           <div class="preview-word"><%= @preview_words.first || "FARMERS MARKET" %></div>
