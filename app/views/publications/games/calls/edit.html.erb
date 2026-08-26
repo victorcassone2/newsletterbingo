@@ -3,17 +3,23 @@
 <% term = @publication.issue_cadence? ? "Word" : "Day" %>
 <div class="page-head">
   <div>
-    <div class="eyebrow">
-      <%= term %> <%= @call.day_number %>
-      <% if @call.issued? %>
-        · <%= @call.call_on.strftime("%A, %B %-d") %>
-      <% elsif @game.draft? %>
-        · goes live when the game launches
-      <% elsif @publication.issue_cadence? %>
-        · goes out with a future send
-      <% end %>
-    </div>
     <h1><%= @call.label %></h1>
+    <p class="muted small">
+      <% if @call.called? %>
+        Went out <%= @call.today? ? "today" : @call.call_on.strftime("%A, %B %-d") %>
+      <% elsif @game.draft? %>
+        Goes live when the game launches
+      <% elsif (expected = @call.expected_call_on) %>
+        <% days_away = (expected - @publication.local_date).to_i %>
+        <% if @call.issued? %>
+          Goes out <%= days_away == 1 ? "tomorrow" : "#{expected.strftime("%A, %B %-d")} · #{days_away} days away" %>
+        <% elsif days_away == 1 %>
+          Probably goes out tomorrow, based on your send days
+        <% else %>
+          About <%= days_away %> days away, based on your send days
+        <% end %>
+      <% end %>
+    </p>
   </div>
 </div>
 

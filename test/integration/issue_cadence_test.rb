@@ -85,7 +85,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     assert_equal 0, late.daily_claims.count
   end
 
-  test "an unissued call's edit page renders without a date" do
+  test "an unissued call's edit page projects its send from the send days" do
     sign_in_as users(:one)
     unissued = @game.daily_calls.find_by(call_on: nil)
 
@@ -93,7 +93,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
       publication_id: @publication.id, game_id: @game.id, id: unissued.id)
 
     assert_response :success
-    assert_match "goes out with a future send", response.body
+    assert_match "based on your send days", response.body
   end
 
   test "a spurious advance can be rolled back until someone claims" do

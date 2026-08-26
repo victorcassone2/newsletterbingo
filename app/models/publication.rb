@@ -61,6 +61,18 @@ class Publication < ApplicationRecord
     send_days.presence || (0..6).to_a
   end
 
+  # The next `count` dates on the publication's send days, starting no
+  # earlier than `from`.
+  def send_dates(count, from: local_date + 1)
+    dates = []
+    date = from
+    while dates.size < count
+      dates << date if sending_wdays.include?(date.wday)
+      date += 1
+    end
+    dates
+  end
+
   def tz
     ActiveSupport::TimeZone[timezone]
   end

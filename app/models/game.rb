@@ -268,17 +268,8 @@ class Game < ApplicationRecord
       game_words.each { |game_word| daily_calls.create!(game_word: game_word, position: game_word.position) }
     end
 
-    # The next `count` dates on the publication's send days, starting no
-    # earlier than `from`.
     def scheduled_dates(from: starts_on, count: pool_size)
-      wdays = publication.sending_wdays
-      dates = []
-      date = from
-      while dates.size < count
-        dates << date if wdays.include?(date.wday)
-        date += 1
-      end
-      dates
+      publication.send_dates(count, from: from)
     end
 
     def issue_floor_elapsed?

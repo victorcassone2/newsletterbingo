@@ -53,6 +53,18 @@ class DailyCall < ApplicationRecord
     position
   end
 
+  # The date this call is expected to reach readers: its scheduled date
+  # when it has one, otherwise its place in the unissued queue projected
+  # onto the publication's send days.
+  def expected_call_on
+    if call_on.present?
+      call_on
+    elsif game.active?
+      sends_away = game.daily_calls.where(call_on: nil, position: ..position).count
+      publication.send_dates(sends_away).last
+    end
+  end
+
   # Once a word is out (called, claimed, or sent with an issue) it keeps
   # its place in game history. Draft calls are always still on the table.
   def word_changeable?
