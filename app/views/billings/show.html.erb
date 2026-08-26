@@ -16,7 +16,9 @@
             method: :delete, class: "btn btn-primary" %>
     <% elsif Current.account.trialing? %>
       <b>Free trial <span class="badge badge-green">$<%= Current.account.monthly_price %>/month after</span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">Everything is unlocked. Your first charge
+      <p class="muted small" style="margin: .35rem 0 .8rem;">
+        <%= pluralize(Current.account.billable_publications.count, "publication") %> × $29.
+        Everything is unlocked. Your first charge
         is <%= Current.account.subscription_current_period_end&.strftime("%B %-d, %Y") %> — cancel
         before then and you won't pay a thing.</p>
       <%= button_to "Cancel subscription", account_billing_subscription_cancellation_path,
@@ -74,24 +76,5 @@
     </p>
     <%= button_to "Manage billing info", account_billing_portal_path, class: "btn btn-primary",
           form: { data: { turbo: false } } %>
-  </div>
-<% end %>
-
-<% if @publications.any? %>
-  <div class="card">
-    <b><%= Current.account.billing_state == :inactive ?
-             "What your subscription will cover" : "Publications on this subscription" %></b>
-    <ul class="list" style="margin-top: .6rem;">
-      <% @publications.each do |publication| %>
-        <li>
-          <div>
-            <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
-            <div class="small muted">
-              <%= publication.complimentary? ? "Complimentary" : "$29/month" %>
-            </div>
-          </div>
-        </li>
-      <% end %>
-    </ul>
   </div>
 <% end %>

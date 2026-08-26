@@ -5,6 +5,5 @@ class BillingsController < ApplicationController
   # Stripe portal; each publication's subscription state is summarized here
   # from local columns (no Stripe calls on render).
   def show
-    @publications = Current.account.publications.order(:name)
   end
 end
