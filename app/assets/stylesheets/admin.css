@@ -515,7 +515,7 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 .seg-tabs button:not(.active):hover { background: var(--paper); }
 
 .steps { padding: 0; }
-.steps .step { padding: 1.2rem 1.4rem; }
+.steps .step { padding: 1rem 1.4rem; }
 .steps .step + .step { border-top: 1px solid var(--line-soft); }
 .step-head { display: flex; align-items: center; gap: .65rem; }
 .step-head h2 { margin: 0; }
@@ -524,7 +524,7 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
   border: 1.5px solid var(--line); color: var(--ink-soft);
   font-size: .74rem; font-weight: 700; line-height: 1.3rem; text-align: center;
 }
-.step-body { margin: .8rem 0 0 2.05rem; }
+.step-body { margin: .45rem 0 0 2.05rem; }
 @media (max-width: 44rem) { .step-body { margin-left: 0; } }
 
 .platform-chips { display: flex; gap: .5rem; flex-wrap: wrap; }

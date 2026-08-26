@@ -22,6 +22,7 @@
     <div class="step">
       <div class="step-head"><span class="step-no">1</span><h2>Where do you send from?</h2></div>
       <div class="step-body">
+        <p class="hint" style="margin: 0 0 .6rem;" data-platform-target="hint">Pick your platform and the merge tags below fill themselves in.</p>
         <div class="platform-chips">
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-email="{{email}}" data-campaign="{{campaign_id}}" data-cadence="issues"
@@ -41,7 +42,6 @@
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-hint="Paste the merge tags your platform documents for subscriber email and campaign id.">Other</button>
         </div>
-        <p class="hint" data-platform-target="hint">Pick your platform and the merge tags below fill themselves in.</p>
       </div>
     </div>
 
@@ -50,6 +50,8 @@
       <div class="step">
         <div class="step-head"><span class="step-no">2</span><h2>When words go live</h2></div>
         <div class="step-body">
+          <p class="hint" style="margin: 0 0 .6rem;">Each card gets a random hand of the game&rsquo;s words, so not every
+            word lands on every card. Takes effect with your next game; a game in progress never changes shape.</p>
           <div class="choice-cards">
             <label class="choice-card">
               <%= form.radio_button :cadence, "issues", data: { cadence_target: "choice", action: "cadence#update" } %>
@@ -89,9 +91,6 @@
                 </span>
               </label>
             </div>
-            <div class="hint">Each card gets a random hand of the game&rsquo;s words, so not every
-              word lands on every card. Takes effect with your next game; a game in progress
-              never changes shape.</div>
           </div>
 
           <div class="field" style="margin-top: 1rem;">
