@@ -25,21 +25,11 @@ test:
   <<: *default
   database: daily_bingo_test
 
+# Heroku exposes a single DATABASE_URL. Solid Queue's tables live in that same
+# database (see db/migrate/*_create_solid_queue_tables.rb), so there is no
+# separate queue/cache/cable database to connect to.
 production:
-  primary: &primary_production
-    <<: *default
-    database: daily_bingo_production
-    username: daily_bingo
-    password: <%= ENV["DAILY_BINGO_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: daily_bingo_production_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    database: daily_bingo_production_queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_production
-    database: daily_bingo_production_cable
-    migrations_paths: db/cable_migrate
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  url: <%= ENV["DATABASE_URL"] %>

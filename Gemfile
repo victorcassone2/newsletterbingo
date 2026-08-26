@@ -28,6 +28,9 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
+# Active Storage backend for production uploads (S3).
+gem "aws-sdk-s3", "~> 1", require: false
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
