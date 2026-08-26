@@ -8,7 +8,7 @@ class Publications::Games::CallsController < Publications::Games::BaseController
 
   def update
     if @call.update(call_params)
-      back_to_game notice: "Day #{@call.day_number} updated."
+      back_to_call notice: "Saved. Readers see it after they claim."
     else
       @eligible_replacements = replacement_words
       @latest_issue = latest_issue

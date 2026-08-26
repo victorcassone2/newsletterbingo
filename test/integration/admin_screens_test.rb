@@ -94,8 +94,9 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     patch account_publication_game_call_path(account_id: @account_id,
       publication_id: @publication.id, game_id: game.id, id: call.id),
       params: { daily_call: { description: "Market day details." } }
-    assert_redirected_to account_publication_today_path(account_id: @account_id, publication_id: @publication.id, tab: "next"),
-      "draft edits land back on the next-game tab"
+    assert_redirected_to edit_account_publication_game_call_path(account_id: @account_id,
+      publication_id: @publication.id, game_id: game.id, id: call.id),
+      "saving stays on the call's page"
     assert_equal "Market day details.", call.reload.description
 
     patch account_publication_game_call_word_path(account_id: @account_id,

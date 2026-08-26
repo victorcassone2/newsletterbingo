@@ -3,7 +3,8 @@ class Publications::BoardPreviewsController < Publications::BaseController
 
   # A publisher's look at the real reader board, rendered from an
   # in-memory sample board so no participant or claims are created.
-  # ?word=next shows the state after the next word goes out.
+  # ?word=next shows the state after the next word goes out; a call id
+  # shows the day that call is the one to claim.
   def show
     @game = @publication.active_game
     if @game.nil?
@@ -11,7 +12,15 @@ class Publications::BoardPreviewsController < Publications::BaseController
         alert: "No live game to preview yet."
     end
 
-    @todays_call = params[:word] == "next" ? @game.next_call : @game.current_call
+    @todays_call =
+      case params[:word]
+      when "next"
+        @game.next_call
+      when nil
+        @game.current_call
+      else
+        @game.daily_calls.find_by(id: params[:word]) || @game.current_call
+      end
     @board = BingoBoard.sample_for(@game, through: @todays_call)
     @squares = @board.bingo_squares.sort_by(&:position)
     @claimed_today = @todays_call.present?
