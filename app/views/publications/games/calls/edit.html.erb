@@ -38,6 +38,13 @@
       <% end %>
 
       <div class="field">
+        <label><%= form.check_box :prize_call %> Prize call: show a 🎁 in the newsletter block</label>
+      </div>
+      <div class="field">
+        <%= form.label :prize_description, "Prize call description" %>
+        <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee!" %>
+      </div>
+      <div class="field">
         <%= form.label :description, "Short description" %>
         <%= form.text_area :description, rows: 3, placeholder: "Papillion Farmers Market is open tonight from 5–8 PM with local vendors, food and live music." %>
       </div>
@@ -50,13 +57,6 @@
           <%= form.label :link_text, "Link text" %>
           <%= form.text_field :link_text, placeholder: "See vendors and details" %>
         </div>
-      </div>
-      <div class="field">
-        <label><%= form.check_box :prize_call %> Prize call: show a 🎁 in the newsletter block</label>
-      </div>
-      <div class="field">
-        <%= form.label :prize_description, "Prize call description (optional)" %>
-        <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee!" %>
       </div>
 
       <%= form.submit "Save", class: "btn btn-primary" %>

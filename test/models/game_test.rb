@@ -132,7 +132,7 @@ class GameTest < ActiveSupport::TestCase
     game = @publication.games.create!(starts_on: @publication.local_date)
     game.assign_words(Game.random_word_selection(@publication, count: game.pool_size))
     call = game.daily_calls.find_by(position: 3)
-    call.update!(description: "Market day", prize_call: true)
+    call.update!(description: "Market day", prize_call: true, prize_description: "Free coffee")
 
     game.launch
     call.reload

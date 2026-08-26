@@ -15,6 +15,7 @@ class DailyCall < ApplicationRecord
     if: -> { call_on.present? && game&.calendar_cadence? }
   validates :link_url, http_url: true
   validates :link_text, presence: true, if: -> { link_url.present? }
+  validates :prize_description, presence: true, if: :prize_call?
 
   delegate :label, to: :game_word
 

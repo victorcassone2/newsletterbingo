@@ -73,7 +73,7 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     patch account_publication_game_call_path(account_id: account_id, publication_id: publication.id,
       game_id: game.id, id: current_call.id), params: {
         daily_call: { description: "Fresh rolls at dawn.", link_url: "https://example.com/bakery",
-                      link_text: "See the menu", prize_call: "1" }
+                      link_text: "See the menu", prize_call: "1", prize_description: "First 10 win a roll" }
       }
     assert_redirected_to edit_account_publication_game_call_path(account_id: account_id,
       publication_id: publication.id, game_id: game.id, id: current_call.id)

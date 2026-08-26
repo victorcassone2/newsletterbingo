@@ -48,7 +48,7 @@ class NewsletterBlockTest < ActiveSupport::TestCase
 
   test "the block is identical from day to day: no per-call state leaks in" do
     html = NewsletterBlock.new(@publication).to_html
-    @call.update!(prize_call: true)
+    @call.update!(prize_call: true, prize_description: "Free coffee")
     assert_equal html, NewsletterBlock.new(@publication).to_html
   end
 
