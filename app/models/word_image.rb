@@ -37,32 +37,34 @@ class WordImage
 
   private
     def render_png
-      # The label reaches ImageMagick through a file, never the command
-      # line: a word like "@/etc/passwd" stays a literal caption instead
-      # of becoming a file read.
-      Tempfile.create([ "word", ".txt" ]) do |text|
-        text.write(label)
-        text.flush
-        Tempfile.create([ "word", ".png" ]) do |image|
-          MiniMagick.convert do |convert|
-            convert.background "none"
-            convert.fill publication.text_color
-            convert.font font if font
-            convert.pointsize 60
-            convert << "label:@#{text.path}"
-            if variant == :inline
-              convert.trim
-              convert.resize "x#{INLINE_HEIGHT}"
-            else
-              convert.resize "#{WIDTH - 20}x#{HEIGHT - 12}>"
-              convert.gravity "center"
-              convert.extent "#{WIDTH}x#{HEIGHT}"
-            end
-            convert << image.path
+      Tempfile.create([ "word", ".png" ]) do |image|
+        MiniMagick.convert do |convert|
+          convert.background "none"
+          convert.fill publication.text_color
+          convert.font font if font
+          convert.pointsize 60
+          convert << "label:#{caption}"
+          if variant == :inline
+            convert.trim
+            convert.resize "x#{INLINE_HEIGHT}"
+          else
+            convert.resize "#{WIDTH - 20}x#{HEIGHT - 12}>"
+            convert.gravity "center"
+            convert.extent "#{WIDTH}x#{HEIGHT}"
           end
-          File.binread(image.path)
+          convert << image.path
         end
+        File.binread(image.path)
       end
+    end
+
+    # ImageMagick reads a caption starting with "@" as a filename to load, so a
+    # word like "@/etc/passwd" would become a file read. Passing the caption
+    # through a temp file used to prevent that, but Debian and Ubuntu forbid
+    # @-reads outright and took every word image down with them. A backslash
+    # keeps the "@" literal on every platform.
+    def caption
+      label.sub(/\A@/) { "\\@" }
     end
 
     def font
