@@ -1,0 +1,44 @@
+name: Deploy
+
+# Pushing to prod ships to Heroku. Code reaches prod by fast-forward from main,
+# which CI has already exercised, so this workflow deploys rather than retesting.
+on:
+  push:
+    branches: [ prod ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://newsletterbingo-a507e41a89b6.herokuapp.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          # Heroku rejects a shallow push: it needs the full history.
+          fetch-depth: 0
+
+      - name: Push to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          git push "https://heroku:${HEROKU_API_KEY}@git.heroku.com/newsletterbingo.git" HEAD:refs/heads/main
+
+      - name: Wait for the app to answer
+        run: |
+          for attempt in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" https://newsletterbingo-a507e41a89b6.herokuapp.com/up || true)
+            echo "attempt ${attempt}: /up -> ${status}"
+            if [ "$status" = "200" ]; then exit 0; fi
+            sleep 10
+          done
+          echo "app did not return 200 after the release"
+          exit 1
