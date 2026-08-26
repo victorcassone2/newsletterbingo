@@ -31,6 +31,10 @@ gem "solid_cable"
 # Active Storage backend for production uploads (S3).
 gem "aws-sdk-s3", "~> 1", require: false
 
+# Error reporting. Inert unless SENTRY_DSN is set (see config/initializers/sentry.rb).
+gem "sentry-ruby"
+gem "sentry-rails"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
