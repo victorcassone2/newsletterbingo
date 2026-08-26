@@ -60,8 +60,13 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
 
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "newsletterbingo.herokuapp.com"), protocol: "https" }
+  # Set host to be used by links generated in mailer templates. APP_HOST doubles
+  # as the claim-link origin (see config/initializers/public_host.rb), so it may
+  # carry a scheme; default_url_options wants the bare host.
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch("APP_HOST", "newsletterbingo.herokuapp.com").sub(%r{\Ahttps?://}, ""),
+    protocol: "https"
+  }
 
   # Email via Mailgun SMTP. MAILGUN_DOMAIN is the verified sending domain;
   # credentials come from Heroku config vars.
