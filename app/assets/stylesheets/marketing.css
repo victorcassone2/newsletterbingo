@@ -184,6 +184,39 @@
 .mock-bingo-claim { color: var(--mk-amber-deep); font-weight: 700; white-space: nowrap; }
 .mock-bingo-sponsor { font-size: .68rem; color: var(--ink-faint); margin-bottom: .3rem; }
 
+/* Step 3's board leads with the receipt, the way the real board page does. */
+.mock-card .mock-board-name {
+  margin: 0;
+  padding: 1rem 1.25rem 0;
+  text-align: center;
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  color: var(--mk-amber-deep);
+}
+.mock-receipt {
+  margin: .6rem 1rem .1rem;
+  padding: .8rem .8rem .85rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+.mock-receipt .eyebrow {
+  margin: 0;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+  color: var(--mk-amber-deep);
+}
+.mock-receipt .word {
+  margin: .3rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  line-height: 1.1;
+  color: var(--ink);
+}
 /* The reader's 5x5 board. */
 .mock-board-head { background: var(--ink); color: #fff; padding: .85rem 1.25rem; }
 .mock-board-head .name { font-weight: 700; font-size: .95rem; }
@@ -194,6 +227,7 @@
   gap: .35rem;
   padding: 1rem;
 }
+.mock-board-grid.four-up { grid-template-columns: repeat(4, 1fr); }
 .mock-square {
   aspect-ratio: 1;
   border-radius: 7px;
@@ -215,6 +249,16 @@
   background: var(--mk-amber-wash);
   border-color: #fde68a;
   color: var(--mk-amber-deep);
+}
+/* The square the current call just filled: the one the reader clicked. */
+.mock-square.just-claimed {
+  background: var(--mk-amber-deep);
+  border-color: var(--mk-amber-deep);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: .5rem;
+  letter-spacing: .02em;
+  box-shadow: 0 0 0 3px var(--mk-amber);
 }
 .mock-board-foot {
   padding: 0 1rem 1rem;
@@ -294,7 +338,7 @@
 }
 .mock-winner-title { font-size: 1.15rem; font-weight: 700; margin-top: .6rem; }
 .mock-winner-prize { font-size: .82rem; color: var(--ink-soft); margin-top: .35rem; }
-.mock-winner-sponsor { font-size: .72rem; color: var(--mk-amber-deep); font-weight: 600; margin-top: .7rem; }
+.mock-winner-sponsor { font-size: .72rem; color: var(--mk-amber-deep); font-weight: 600; margin-top: .7rem; text-wrap: balance; }
 
 /* -------------------------------------------------------- Value cards */
 .mk-value-card {

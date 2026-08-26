@@ -55,7 +55,7 @@
           <div class="mock-bingo-block">
             <p class="mock-bingo-head"><img src="/icon.svg" alt="" class="mock-bingo-mark"> Today's bingo</p>
             <p class="mock-bingo-sponsor">Sponsored by Fogline Coffee</p>
-            <p class="mock-bingo-copy">Today's word is <span class="mock-bingo-word">SERENDIPITY</span>. One click
+            <p class="mock-bingo-copy">Today's word is <span class="mock-bingo-word">ENGAGEMENT</span>. One click
               puts it on your board. <span class="mock-bingo-claim">Claim today's spot &rarr;</span></p>
           </div>
         </div>
@@ -69,7 +69,7 @@
   <div class="mk-container">
     <div class="mk-section-head">
       <p class="mk-eyebrow-amber">How it works</p>
-      <h2>Set it up in an afternoon. Then it runs itself.</h2>
+      <h2>Set it up over lunch. Then it runs itself.</h2>
     </div>
 
     <ol class="mk-steps">
@@ -89,8 +89,8 @@
           <div class="mock-card">
             <p class="mock-list-head">Word library</p>
             <ul class="mock-list">
-              <li>Serendipity <span class="mock-pill">In play</span></li>
-              <li>Masthead <span class="mock-pill">In play</span></li>
+              <li>Engagement <span class="mock-pill">In play</span></li>
+              <li>Simple <span class="mock-pill">In play</span></li>
               <li>Deadline <span class="mock-pill">In play</span></li>
               <li>Evergreen</li>
               <li>Scoop</li>
@@ -124,7 +124,7 @@
               </div>
               <div class="mock-bingo-block">
                 <p class="mock-bingo-head"><img src="/icon.svg" alt="" class="mock-bingo-mark"> Today's bingo</p>
-                <p class="mock-bingo-copy">Today's word is <span class="mock-bingo-word">MASTHEAD</span>. One click
+                <p class="mock-bingo-copy">Today's word is <span class="mock-bingo-word">SIMPLE</span>. One click
                   puts it on your board. <span class="mock-bingo-claim">Claim &rarr;</span></p>
               </div>
             </div>
@@ -147,15 +147,20 @@
         </div>
         <div class="mock-panel" aria-hidden="true">
           <div class="mock-card">
-            <div class="mock-board-head">
-              <p class="name">The Morning Pour</p>
-              <p class="sub">SERENDIPITY claimed &middot; call 9 of 30</p>
+            <p class="mock-board-name">The Morning Pour</p>
+            <%# The receipt the reader lands on, the way the real board page leads. %>
+            <div class="mock-receipt">
+              <p class="eyebrow">TODAY&rsquo;S BINGO</p>
+              <p class="word">SIMPLE</p>
             </div>
-            <div class="mock-board-grid">
-              <% claimed = [ 2, 3, 6, 8, 11, 16, 18, 21 ] %>
-              <% 25.times do |i| %>
-                <% if i == 12 %>
+            <%# The called word lands on its own square; the rest are earlier claims. %>
+            <div class="mock-board-grid four-up">
+              <% claimed = [ 1, 4, 8, 11, 14 ] %>
+              <% 16.times do |i| %>
+                <% if i == 5 %>
                   <span class="mock-square free">FREE</span>
+                <% elsif i == 6 %>
+                  <span class="mock-square just-claimed">SIMPLE</span>
                 <% elsif claimed.include?(i) %>
                   <span class="mock-square claimed">&#10003;</span>
                 <% else %>
@@ -164,7 +169,7 @@
               <% end %>
             </div>
             <div class="mock-board-foot">
-              <span><b>9 of 25</b> claimed</span>
+              <span><b>7 of 16</b> claimed</span>
               <span>1 away from a line</span>
             </div>
           </div>
@@ -190,7 +195,7 @@
               <span class="mock-winner-badge">Bingo</span>
               <p class="mock-winner-title">You completed a line!</p>
               <p class="mock-winner-prize">20% off at Fogline Coffee, all month</p>
-              <p class="mock-winner-sponsor">Prize presented by Fogline Coffee &rarr;</p>
+              <p class="mock-winner-sponsor">Claim Prize&nbsp;&rarr;</p>
             </div>
           </div>
         </div>
@@ -206,9 +211,7 @@
       <p class="mk-eyebrow-amber">Sponsorship</p>
       <h2>You didn't just add a game. You added inventory.</h2>
       <p>
-        Most ad spots sell impressions readers scroll past. The bingo block
-        is the spot readers scroll to. That difference is what you put on
-        the rate card.
+        Readers scroll past most ad spots. They scroll to this one.
       </p>
     </div>
     <div class="mk-sponsor-grid">
