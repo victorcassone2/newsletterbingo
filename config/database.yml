@@ -31,5 +31,7 @@ test:
 production:
   adapter: postgresql
   encoding: unicode
-  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  # Puma's threads plus the Solid Queue supervisor, dispatcher and scheduler all
+  # draw from this pool; Solid Queue warns below 5.
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 }.to_i + 2 %>
   url: <%= ENV["DATABASE_URL"] %>
