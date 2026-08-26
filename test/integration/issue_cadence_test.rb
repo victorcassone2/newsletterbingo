@@ -93,7 +93,7 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
       publication_id: @publication.id, game_id: @game.id, id: unissued.id)
 
     assert_response :success
-    assert_match "Goes out with your next send", response.body
+    assert_match "Goes out with your <strong>next send</strong>", response.body
   end
 
   test "a spurious advance can be rolled back until someone claims" do

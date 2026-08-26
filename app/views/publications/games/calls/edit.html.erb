@@ -1,28 +1,36 @@
 <p><%= link_to "← Back to Today", account_publication_today_path(publication_id: @publication.id, tab: @game.draft? ? "next" : nil), class: "back-link" %></p>
 
-<% term = @publication.issue_cadence? ? "Word" : "Day" %>
 <div class="page-head">
   <div>
     <h1><%= @call.label %></h1>
-    <p class="muted small">
+    <p class="cockpit-sub">
       <% if @call.called? %>
-        Went out <%= @call.today? ? "today" : @call.call_on.strftime("%A, %B %-d") %>
+        Went out <strong><%= @call.today? ? "today" : @call.call_on.strftime("%A, %B %-d") %></strong>
       <% elsif @game.draft? %>
         Goes live when the game launches
       <% elsif @call.issued? %>
         <% days_away = (@call.call_on - @publication.local_date).to_i %>
-        Goes out <%= days_away == 1 ? "tomorrow" : "#{@call.call_on.strftime("%A, %B %-d")} · #{days_away} days away" %>
+        <% if days_away == 1 %>
+          Goes out <strong>tomorrow</strong>
+        <% else %>
+          Goes out <strong><%= @call.call_on.strftime("%A, %B %-d") %></strong> · <%= days_away %> days away
+        <% end %>
       <% elsif (sends_away = @call.sends_away) %>
-        <%= sends_away == 1 ? "Goes out with your next send" : "#{sends_away} sends away" %>
+        <% if sends_away == 1 %>
+          Goes out with your <strong>next send</strong>
+        <% else %>
+          <strong><%= sends_away %> sends away</strong>
+        <% end %>
       <% end %>
     </p>
   </div>
 </div>
 
-<div class="grid-2">
+<div class="grid-2" data-controller="call-preview">
   <div class="card">
     <div class="card-head"><h2>Call content</h2></div>
-    <p class="small muted">Shown to readers <em>after</em> they claim, never in the email itself.</p>
+    <p class="small muted">The story behind the word. Readers see it on their card the moment
+      they claim, never in the email itself.</p>
     <%= form_with model: @call, url: account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), method: :patch do |form| %>
       <% if @call.errors.any? %>
         <div class="errors"><%= @call.errors.full_messages.to_sentence %></div>
@@ -30,7 +38,8 @@
 
       <div class="field">
         <%= form.label :description, "Short description" %>
-        <%= form.text_area :description, rows: 3, placeholder: "Papillion Farmers Market is open tonight from 5–8 PM with local vendors, food and live music." %>
+        <%= form.text_area :description, rows: 3, placeholder: "Papillion Farmers Market is open tonight from 5–8 PM with local vendors, food and live music.",
+              data: { call_preview_target: "descriptionInput", action: "input->call-preview#update" } %>
       </div>
       <div class="field-row">
         <div class="field">
@@ -39,15 +48,17 @@
         </div>
         <div class="field">
           <%= form.label :link_text, "Link text" %>
-          <%= form.text_field :link_text, placeholder: "See vendors and details" %>
+          <%= form.text_field :link_text, placeholder: "See vendors and details",
+                data: { call_preview_target: "linkTextInput", action: "input->call-preview#update" } %>
         </div>
       </div>
       <div class="field">
-        <label><%= form.check_box :prize_call %> Prize call: show a 🎁 in the newsletter block</label>
+        <label><%= form.check_box :prize_call, data: { call_preview_target: "prizeInput", action: "call-preview#update" } %> Prize call: show a 🎁 in the newsletter block</label>
       </div>
       <div class="field">
         <%= form.label :prize_description, "Prize call description (optional)" %>
-        <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee!" %>
+        <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee!",
+              data: { call_preview_target: "prizeDescriptionInput", action: "input->call-preview#update" } %>
       </div>
 
       <%= form.submit "Save call", class: "btn btn-primary" %>
@@ -55,39 +66,60 @@
   </div>
 
   <div class="card">
-    <div class="card-head"><h2><%= term %> <%= @call.day_number %></h2></div>
-    <% if @call.word_changeable? %>
-      <p class="small muted">This word hasn't been called or claimed yet, so it can still change.</p>
-
-      <%= form_with url: account_publication_game_call_word_path(publication_id: @publication.id, game_id: @game.id, call_id: @call.id), method: :patch do %>
-        <div class="field">
-          <%= label_tag :label, "New word" %>
-          <%= text_field_tag :label, nil, list: "library-words", placeholder: "Start typing…", autocomplete: "off", maxlength: 40 %>
-          <datalist id="library-words">
-            <% @eligible_replacements.each do |word| %>
-              <option value="<%= word.label %>"></option>
-            <% end %>
-          </datalist>
-          <div class="hint">Matches the library as you type. A word not in it yet is added.
-            Swaps the new word into every player's board in this square's place.</div>
+    <div class="card-head"><h2>Where readers see it</h2></div>
+    <div class="footprint">
+      <div class="fp">
+        <b>In the email</b>
+        <span class="sim">TODAY&rsquo;S BINGO <span data-call-preview-target="emailFlag" <%= "hidden" unless @call.prize_call? %>>🎁</span><br>
+          <span class="accent"><%= @call.label %></span></span>
+      </div>
+      <div class="fp">
+        <b>On their card, right after claiming</b>
+        <div class="sim">
+          <div data-call-preview-target="storyPrize" <%= "hidden" unless @call.prize_call? && @call.prize_description.present? %>>🎁 <%= @call.prize_description %></div>
+          <div data-call-preview-target="storyDescription" <%= "hidden" if @call.description.blank? %>><%= @call.description %></div>
+          <div class="accent" data-call-preview-target="storyLink" <%= "hidden" unless @call.link? %>><%= @call.link_text %> →</div>
+          <div data-call-preview-target="storyEmpty" <%= "hidden" if @call.prize_call? && @call.prize_description.present? || @call.description.present? || @call.link? %>>Nothing yet · they just see the claim ✓</div>
         </div>
-        <%= submit_tag "Replace word", class: "btn btn-quiet" %>
-      <% end %>
-    <% else %>
-      <p class="small muted">
-        <% if @call.daily_claims.any? %>
-          Readers have already claimed this word today, so it's locked.
-        <% else %>
-          This word has been called and is part of game history.
-        <% end %>
-      </p>
-      <% if @latest_issue&.rollbackable? && @latest_issue.daily_call == @call %>
-        <p class="small muted">Sent by accident? Until a reader claims it, the word can go back
-          in the queue.</p>
-        <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @latest_issue.id),
-              method: :delete, class: "btn btn-quiet btn-small",
-              form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
-      <% end %>
-    <% end %>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top: .7rem;">The email only ever shows the word.
+      The story waits on the card, a little reward for clicking through.</p>
   </div>
+</div>
+
+<div class="card" style="margin-top: 1.25rem;">
+  <div class="card-head"><h2>Replace Word</h2></div>
+  <% if @call.word_changeable? %>
+    <p class="small muted">This word hasn't been called or claimed yet, so it can still change.</p>
+
+    <%= form_with url: account_publication_game_call_word_path(publication_id: @publication.id, game_id: @game.id, call_id: @call.id), method: :patch do %>
+      <div class="field">
+        <%= text_field_tag :label, nil, list: "library-words", placeholder: "Start typing…", autocomplete: "off", maxlength: 40, "aria-label": "New word" %>
+        <datalist id="library-words">
+          <% @eligible_replacements.each do |word| %>
+            <option value="<%= word.label %>"></option>
+          <% end %>
+        </datalist>
+        <div class="hint">Matches the library as you type. A word not in it yet is added.
+          Swaps the new word into every player's board in this square's place.</div>
+      </div>
+      <%= submit_tag "Replace word", class: "btn btn-primary" %>
+    <% end %>
+  <% else %>
+    <p class="small muted">
+      <% if @call.daily_claims.any? %>
+        Readers have already claimed this word today, so it's locked.
+      <% else %>
+        This word has been called and is part of game history.
+      <% end %>
+    </p>
+    <% if @latest_issue&.rollbackable? && @latest_issue.daily_call == @call %>
+      <p class="small muted">Sent by accident? Until a reader claims it, the word can go back
+        in the queue.</p>
+      <%= button_to "Re-queue this word", account_publication_game_issue_path(publication_id: @publication.id, game_id: @game.id, id: @latest_issue.id),
+            method: :delete, class: "btn btn-quiet btn-small",
+            form: { data: { turbo_confirm: "Put #{@call.label} back in the queue? Use this if the advance came from a test send." } } %>
+    <% end %>
+  <% end %>
 </div>
