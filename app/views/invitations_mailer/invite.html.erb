@@ -10,5 +10,5 @@
 <p style="margin: 0; color: #64748b; font-size: 13px;">
   Or paste this link into your browser:<br>
   <%= link_to invitation_acceptance_url(@invitation.token), invitation_acceptance_url(@invitation.token),
-        style: "color: #64748b;" %>
+        style: "color: #64748b; word-break: break-all; overflow-wrap: anywhere;" %>
 </p>

@@ -1,6 +1,15 @@
-<p>
-  You can reset your password on
-  <%= link_to "this password reset page", edit_password_url(@user.password_reset_token) %>.
+<p style="margin: 0 0 16px;">
+  Use the button below to choose a new password. This link expires in
+  <%= distance_of_time_in_words(0, @user.password_reset_token_expires_in) %>.
+</p>
 
-  This link will expire in <%= distance_of_time_in_words(0, @user.password_reset_token_expires_in) %>.
+<p style="margin: 0 0 16px;">
+  <%= link_to "Reset your password", edit_password_url(@user.password_reset_token),
+        style: "display: inline-block; background: #0f172a; color: #ffffff; font-weight: 500; font-size: 14px; padding: 10px 16px; border-radius: 6px; text-decoration: none;" %>
+</p>
+
+<p style="margin: 0; color: #64748b; font-size: 13px;">
+  Or paste this link into your browser:<br>
+  <%= link_to edit_password_url(@user.password_reset_token), edit_password_url(@user.password_reset_token),
+        style: "color: #64748b; word-break: break-all; overflow-wrap: anywhere;" %>
 </p>
