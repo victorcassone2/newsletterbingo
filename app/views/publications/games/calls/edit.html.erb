@@ -9,15 +9,11 @@
         Went out <%= @call.today? ? "today" : @call.call_on.strftime("%A, %B %-d") %>
       <% elsif @game.draft? %>
         Goes live when the game launches
-      <% elsif (expected = @call.expected_call_on) %>
-        <% days_away = (expected - @publication.local_date).to_i %>
-        <% if @call.issued? %>
-          Goes out <%= days_away == 1 ? "tomorrow" : "#{expected.strftime("%A, %B %-d")} · #{days_away} days away" %>
-        <% elsif days_away == 1 %>
-          Probably goes out tomorrow, based on your send days
-        <% else %>
-          About <%= days_away %> days away, based on your send days
-        <% end %>
+      <% elsif @call.issued? %>
+        <% days_away = (@call.call_on - @publication.local_date).to_i %>
+        Goes out <%= days_away == 1 ? "tomorrow" : "#{@call.call_on.strftime("%A, %B %-d")} · #{days_away} days away" %>
+      <% elsif (sends_away = @call.sends_away) %>
+        <%= sends_away == 1 ? "Goes out with your next send" : "#{sends_away} sends away" %>
       <% end %>
     </p>
   </div>

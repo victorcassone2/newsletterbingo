@@ -53,16 +53,10 @@ class DailyCall < ApplicationRecord
     position
   end
 
-  # The date this call is expected to reach readers: its scheduled date
-  # when it has one, otherwise its place in the unissued queue projected
-  # onto the publication's send days.
-  def expected_call_on
-    if call_on.present?
-      call_on
-    elsif game.active?
-      sends_away = game.daily_calls.where(call_on: nil, position: ..position).count
-      publication.send_dates(sends_away).last
-    end
+  # This call's place in the unissued queue: 1 means it goes out with
+  # the very next send. Nil once it has a date or before launch.
+  def sends_away
+    game.daily_calls.where(call_on: nil, position: ..position).count if game.active? && !issued?
   end
 
   # Once a word is out (called, claimed, or sent with an issue) it keeps

@@ -74,26 +74,17 @@ class GameSchedulingTest < ActiveSupport::TestCase
     assert_equal publication.local_date + (game.pool_size - 1), game.ends_on
   end
 
-  test "expected_call_on projects the unissued queue onto send days" do
+  test "sends_away counts a queued call's place in the unissued queue" do
     publication = publications(:omaha)
-    travel_to publication.tz.local(2026, 8, 26, 10) do
-      publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}", send_days: [ 2, 5 ])
-      game = publication.games.create!(starts_on: publication.local_date)
-      game.assign_words(Game.random_word_selection(publication, count: game.pool_size))
-      game.launch
-      game.claimable_call_for("send-1")
+    publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
+    game = publication.games.create!(starts_on: publication.local_date)
+    game.assign_words(Game.random_word_selection(publication, count: game.pool_size))
+    game.launch
+    issued = game.claimable_call_for("send-1")
 
-      assert_equal Date.new(2026, 8, 28), game.daily_calls.find_by(position: 2).expected_call_on
-      assert_equal Date.new(2026, 9, 1), game.daily_calls.find_by(position: 3).expected_call_on
-    end
-  end
-
-  test "expected_call_on is the scheduled date for calendar games" do
-    publication = publications(:omaha)
-    game = create_running_game(publication, starts_on: publication.local_date - 5)
-    upcoming = game.daily_calls.find_by(position: 10)
-
-    assert_equal upcoming.call_on, upcoming.expected_call_on
+    assert_nil issued.sends_away
+    assert_equal 1, game.daily_calls.find_by(position: 2).sends_away
+    assert_equal 2, game.daily_calls.find_by(position: 3).sends_away
   end
 
   test "switching cadence with no active game changes nothing" do
