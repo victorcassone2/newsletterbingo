@@ -38,34 +38,4 @@
 
   <%= render "prize", prize: @line_prize %>
   <%= render "prize", prize: @blackout_prize %>
-
-  <div class="card">
-    <div class="card-head">
-      <h2>🎁 Prize calls · this game</h2>
-      <span class="small muted">one-off giveaways on single words</span>
-    </div>
-    <% if @game.nil? %>
-      <p class="small muted" style="margin: 0;">No game is live yet. Once one launches, its prize
-        calls roll up here.</p>
-    <% else %>
-      <ul class="schedule">
-        <% @prize_calls.each do |call| %>
-          <li>
-            <span class="marker">🎁</span>
-            <span class="day-no">Word <%= call.position %><% if call.issued? %> · <%= call.call_on.strftime("%-m/%-d") %><% end %></span>
-            <span class="word"><%= call.label %></span>
-            <% if call.prize_description.present? %><span class="small muted"><%= call.prize_description %></span><% end %>
-            <span class="spacer"></span>
-            <%= link_to "Edit", edit_account_publication_game_call_path(publication_id: @publication.id, game_id: call.game_id, id: call.id), class: "small" %>
-          </li>
-        <% end %>
-        <li>
-          <span class="marker">○</span>
-          <span class="small muted">Mark any upcoming word as a prize call from the
-            <%= link_to "schedule", account_publication_today_path(publication_id: @publication.id) %>;
-            it gets the 🎁 in the email and on readers&rsquo; boards.</span>
-        </li>
-      </ul>
-    <% end %>
-  </div>
 </div>

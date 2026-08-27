@@ -8,7 +8,7 @@
       <h1>Word <%= called %> of <%= @game.pool_size %></h1>
       <p class="cockpit-sub" style="margin-bottom: 0;">
         Current game · <%= game_label(@game) %>
-        <% if current_call %> · word today: <strong><%= current_call.label %></strong><% end %>
+        <% if current_call %> · current word: <strong><%= current_call.label %></strong><% end %>
       </p>
     </div>
     <%= link_to "All games →", account_publication_games_path(publication_id: @publication.id), class: "back-link" %>
@@ -53,10 +53,10 @@
       <div class="bars">
         <% @analytics.claims_per_day(@game).each do |call, count| %>
           <% if call.called? %>
-            <div class="bar-slot <%= "today-slot" if call == current_call %>"
+            <div class="bar-slot <%= "current-slot" if call == current_call %>"
                  title="<%= call.label %> · Word <%= call.position %> · <%= call.call_on.strftime("%b %-d") %> · <%= count %> of <%= players %> claimed">
               <% if call == current_call %>
-                <span class="toplabel">today</span>
+                <span class="toplabel">latest</span>
               <% elsif count == players && players.positive? %>
                 <span class="toplabel"><%= count %></span>
               <% end %>

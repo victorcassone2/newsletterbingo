@@ -513,7 +513,7 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 .claims-chart .bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
 .claims-chart .bar-slot { flex: 1; height: 100%; display: flex; align-items: flex-end; position: relative; }
 .claims-chart .fill { width: 100%; min-height: 3px; background: var(--brand); border-radius: 4px 4px 0 0; }
-.claims-chart .today-slot .fill { background: var(--ink-strong); }
+.claims-chart .current-slot .fill { background: var(--ink-strong); }
 .claims-chart .bar-slot:hover .fill { opacity: .75; }
 .claims-chart .future { width: 100%; height: 3px; border-radius: 2px; background: var(--line); }
 .claims-chart .toplabel {

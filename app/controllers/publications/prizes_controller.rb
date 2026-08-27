@@ -1,7 +1,6 @@
 class Publications::PrizesController < Publications::BaseController
-  # The Sponsorship page: the sponsor's whole footprint: their name and
-  # where it appears, the standing prizes with award counts, and the
-  # current game's prize calls.
+  # The Sponsorship page: the sponsor's whole footprint, their name and
+  # where it appears, and the standing prizes with award counts.
   def index
     load_page
   end
@@ -36,7 +35,6 @@ class Publications::PrizesController < Publications::BaseController
       @line_prize = @publication.line_prize
       @blackout_prize = @publication.blackout_prize
       @game = @publication.active_game
-      @prize_calls = @game ? @game.daily_calls.where(prize_call: true).includes(:game_word) : DailyCall.none
     end
 
     def render_card(prize, status: :ok)
