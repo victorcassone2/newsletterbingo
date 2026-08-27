@@ -9,15 +9,21 @@
 # as a text link, and the sponsor as a small credit line. No box, so it
 # reads like the editor wrote it.
 #
-# Both cadences get evergreen HTML, pasted once, and both carry the
-# campaign-id merge tag: the freshly stamped token is what proves a click
-# came from the current send, so stale bookmarks can look but not claim.
-# Issue-cadence blocks carry no word (the first click of a new send
-# advances the game). Calendar blocks show today's word through a
-# dynamically served image (WordImage's inline variant), sized to sit
-# inside the sentence at text height, so the HTML itself never changes.
+# The HTML is evergreen: pasted once, it never names a word, because the
+# first click of a new send is what draws the next one. Platforms that
+# stamp a campaign id per send get that merge tag in the claim URL, so
+# the freshly stamped token proves a click came from the current email
+# and stale bookmarks can look but not claim. Platforms without one
+# (Substack, Ghost) get a link with no token, and the send is inferred
+# from how long the publication has been quiet.
 class NewsletterBlock
   include ERB::Util
+
+  # The claim link is the one thing in the block that must never be hard
+  # to see, so it wears the Newsletter Bingo amber rather than the
+  # publication's accent. A publisher who picks a pale accent for their
+  # board can't accidentally hide the link their whole game depends on.
+  CLAIM_LINK_COLOR = "#f59e0b"
 
   attr_reader :publication
 
@@ -26,7 +32,9 @@ class NewsletterBlock
   end
 
   def claim_url(email_value = publication.email_merge_tag)
-    "#{NewsletterBingo.public_host}/c/#{publication.public_code}/today?email=#{email_value}&issue=#{publication.campaign_merge_tag}"
+    url = "#{NewsletterBingo.public_host}/c/#{publication.public_code}/today?email=#{email_value}"
+    url += "&issue=#{publication.campaign_merge_tag}" if publication.campaign_tagged?
+    url
   end
 
   def sponsor_name
@@ -40,7 +48,7 @@ class NewsletterBlock
 
   private
     def build_html
-      section_html(publication.issue_cadence? ? evergreen_sentence : daily_sentence)
+      section_html(evergreen_sentence)
     end
 
     def section_html(sentence)
@@ -51,23 +59,15 @@ class NewsletterBlock
             <td style="font-family:Helvetica,Arial,sans-serif;">
               <div style="font-size:17px;font-weight:bold;color:#{h publication.text_color};margin:#{head_margin};"><img src="#{h brand_icon_url}" alt="" width="15" height="15" border="0" style="vertical-align:-1px;">&nbsp; Today&#8217;s bingo</div>
               #{sponsor_row}
-              <div style="font-size:14px;line-height:1.6;color:#{h publication.text_color};">#{sentence} <a href="#{h claim_url}" style="color:#{h publication.accent_color};font-weight:bold;text-decoration:none;white-space:nowrap;">Claim today&#8217;s spot &#8594;</a></div>
+              <div style="font-size:14px;line-height:1.6;color:#{h publication.text_color};">#{sentence} <a href="#{h claim_url}" style="color:#{CLAIM_LINK_COLOR};font-weight:bold;text-decoration:none;white-space:nowrap;">Claim today&#8217;s spot &#8594;</a></div>
             </td>
           </tr>
         </table>
       HTML
     end
 
-    def daily_sentence
-      %(Today&#8217;s word is <img src="#{h word_image_url}" alt="today&#8217;s bingo word" height="15" border="0" style="height:15px;width:auto;vertical-align:-2px;">. One click puts it on your board.)
-    end
-
     def evergreen_sentence
-      "A new word drops with this issue, and the first click claims it."
-    end
-
-    def word_image_url
-      "#{NewsletterBingo.public_host}/c/#{publication.public_code}/word.png?variant=inline"
+      "A new word has dropped. One click puts it on your board."
     end
 
     def brand_icon_url

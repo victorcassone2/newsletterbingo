@@ -2,7 +2,6 @@ class Publication < ApplicationRecord
   include Billable
 
   COLOR_FORMAT = /\A#\h{6}\z/
-  CADENCES = %w[ issues calendar ]
 
   belongs_to :account
   # Declaration order doubles as destroy order: games (and their awards)
@@ -13,46 +12,74 @@ class Publication < ApplicationRecord
   has_many :words, dependent: :destroy
   has_one :line_prize, -> { where(kind: "line") }, class_name: "Prize", inverse_of: :publication
   has_one :blackout_prize, -> { where(kind: "blackout") }, class_name: "Prize", inverse_of: :publication
+  has_one :closure, class_name: "PublicationClosure", dependent: :destroy
   has_one_attached :logo
 
+  # active is the publisher's live/paused switch; canceling is the harder
+  # stop, taking the publication off the subscription and, once the paid
+  # period runs out, off the air.
   scope :active, -> { where(active: true) }
+  scope :uncanceled, -> { where.missing(:closure) }
+  # Everything a reader can reach: switched on, and either never canceled or
+  # still inside the period its cancellation paid for.
+  scope :playable, -> {
+    active.left_joins(:closure)
+      .where("publication_closures.id IS NULL OR publication_closures.closes_at > ?", Time.current)
+  }
 
   normalizes :name, with: ->(n) { n.strip }
   normalizes :sponsor_name, with: ->(n) { n.strip }
   normalizes :email_merge_tag, with: ->(t) { t.strip }
   normalizes :campaign_merge_tag, with: ->(t) { t.strip }
-  normalizes :send_days, with: ->(days) { Array(days).compact_blank.map(&:to_i).uniq.sort }
   normalizes :primary_color, :accent_color, :background_color, :text_color,
     with: ->(color) { color.strip.downcase }
 
   validates :name, presence: true
   validates :public_code, presence: true, uniqueness: true
   validates :email_merge_tag, presence: true
-  validates :cadence, inclusion: { in: CADENCES }
   validates :board_size, inclusion: { in: Game::FORMATS.keys }
-  validates :campaign_merge_tag, presence: true
   validates :primary_color, :accent_color, :background_color, :text_color,
     format: { with: COLOR_FORMAT, message: "must be a hex color like #1A2B3C" }
   validate :timezone_must_be_recognized
 
   before_validation :assign_public_code, on: :create
   after_create :create_default_prizes
-  after_update :reschedule_active_game, if: :saved_change_to_cadence?
   after_update :reformat_draft_game, if: :saved_change_to_board_size?
 
-  def issue_cadence?
-    cadence == "issues"
+  # Platforms that stamp a campaign id per send let us prove a click came
+  # from the current email. Substack and Ghost don't, so those publications
+  # advance on the first click after a quiet period instead.
+  def campaign_tagged?
+    campaign_merge_tag.present?
   end
 
-  def calendar_cadence?
-    cadence == "calendar"
+  # Canceled: off the subscription, with a date it goes dark.
+  def canceled?
+    closure.present?
   end
 
-  # A game advances one word per issue sent, or one word per calendar day.
-  # Copy that counts a game's progress says so in the publisher's own unit:
-  # "word 3 of 30" for issue cadence, "day 3 of 30" for calendar.
-  def call_unit
-    issue_cadence? ? "word" : "day"
+  # Dark: canceled, and the period it was paid for has run out.
+  def closed?
+    canceled? && closure.effective?
+  end
+
+  def closes_on
+    closure&.closes_at&.to_date
+  end
+
+  # Cancels one publication without disturbing the account's others. It comes
+  # off the subscription now and stays on the air until the end of the period
+  # already paid for. Nothing is destroyed, so restoring picks up boards,
+  # claims and games where they were.
+  def close
+    create_closure!(closes_at: account.paid_through || Time.current) unless canceled?
+  end
+
+  # Reloads the association so a publication canceled and restored in the
+  # same breath doesn't answer canceled? from a record that's already gone.
+  def reopen
+    closure&.destroy
+    reload_closure
   end
 
   # Words per game under the publication's chosen format.
@@ -63,11 +90,6 @@ class Publication < ApplicationRecord
   # Squares on a card under the chosen format, excluding the FREE center.
   def board_cells
     board_size * board_size - 1
-  end
-
-  # Weekdays a calendar-cadence publication sends on; empty means every day.
-  def sending_wdays
-    send_days.presence || (0..6).to_a
   end
 
   def tz
@@ -92,7 +114,7 @@ class Publication < ApplicationRecord
     games.draft.first
   end
 
-  # The one word readers can claim right now, whatever the cadence.
+  # The one word readers can claim right now.
   def current_call
     active_game&.current_call
   end
@@ -155,10 +177,6 @@ class Publication < ApplicationRecord
     def create_default_prizes
       prizes.create!(kind: "line")
       prizes.create!(kind: "blackout")
-    end
-
-    def reschedule_active_game
-      active_game&.reschedule_for_cadence
     end
 
     # A format change applies to the next game, never one in progress:

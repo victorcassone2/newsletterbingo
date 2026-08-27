@@ -3,8 +3,26 @@ require "test_helper"
 class ClaimFlowTest < ActionDispatch::IntegrationTest
   setup do
     @publication = publications(:omaha)
-    @game = create_running_game(@publication)
-    @call = @game.call_for(@publication.local_date)
+    # Nothing has gone out yet: the first click below is the send that
+    # draws word 1.
+    @game = create_running_game(@publication, issued: 0)
+    @call = @game.daily_calls.first
+  end
+
+  test "a call's title reaches the board with or without a prize, the gift only with one" do
+    participant = Participant.locate_or_register(@publication, "reader@example.com")
+    ensure_on_card(participant.board_for(@game), @call)
+    @call.update!(prize_description: "Sponsored by Bloom Coffee")
+
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+    follow_redirect!
+
+    assert_match "Sponsored by Bloom Coffee", response.body, "a sponsor needs no prize to be credited"
+    assert_no_match(/🎁 Sponsored by Bloom Coffee/, response.body)
+
+    @call.update!(prize_call: true)
+    get board_path(@publication.public_code)
+    assert_match "🎁 Sponsored by Bloom Coffee", response.body, "the gift marks an actual prize"
   end
 
   test "the newsletter click itself performs the claim and redirects to a clean URL" do
@@ -85,7 +103,7 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_select ".claim-notice", text: /earlier email/
+    assert_select ".claim-notice", text: /starts with the next newsletter/
   end
 
   test "yesterday's token opens the board with a notice but claims nothing today" do
@@ -102,15 +120,6 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_select ".claim-notice", text: /earlier email/
-  end
-
-  test "a second fresh token the same day claims the same word" do
-    get claim_path(@publication.public_code, email: "amy@example.com", issue: "send-test")
-    get claim_path(@publication.public_code, email: "ben@example.com", issue: "send-real")
-
-    assert_equal 2, @game.issues.count
-    assert_equal [ @call.id ], @game.issues.map(&:daily_call_id).uniq
-    assert_equal 2, @call.daily_claims.count
   end
 
   test "a previous game's token never claims in the successor game" do
@@ -191,17 +200,10 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_equal successor.id, participant.daily_claims.sole.game_id
   end
 
-  test "a game that hasn't started yet says so" do
-    @game.destroy!
-    create_running_game(@publication, starts_on: @publication.local_date + 3)
-    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
-    assert_redirected_to board_path(@publication.public_code)
-    follow_redirect!
-    assert_match(/starts/i, response.body)
-  end
-
   test "a finished game completes itself and the claim lands on the successor" do
-    @game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
+    @game.destroy!
+    @game = create_running_game(@publication, starts_on: @publication.local_date - 40, issued: 30)
+
     get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     assert_redirected_to board_path(@publication.public_code)
 

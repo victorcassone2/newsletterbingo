@@ -42,6 +42,8 @@ Rails.application.routes.draw do
     resources :publications, except: %i[ destroy ] do
       scope module: :publications do
         resource :today, only: %i[ show ], controller: "todays"
+        # Shutting one publication down without touching the account's others.
+        resource :closure, only: %i[ create destroy ]
         resource :board_preview, only: %i[ show ]
         resource :logo, only: %i[ destroy ]
         resource :analytics, only: %i[ show ]
@@ -50,7 +52,7 @@ Rails.application.routes.draw do
         end
         resources :prizes, only: %i[ index update ]
         resource :sponsor, only: %i[ update ]
-        resources :games, only: %i[ index show edit update ] do
+        resources :games, only: %i[ index show ] do
           scope module: :games do
             resource :launch, only: %i[ create ]
             resources :issues, only: %i[ destroy ]
@@ -75,7 +77,6 @@ Rails.application.routes.draw do
 
   # Public player experience. The newsletter link itself performs the claim.
   get "c/:public_code/today", to: "claims#create", as: :claim
-  get "c/:public_code/word.png", to: "word_images#show", as: :word_image, format: false
   get "p/:public_code/board", to: "boards#show", as: :board
   post "p/:public_code/session", to: "participant_sessions#create", as: :participant_session
   get "p/:public_code/out/call/:id", to: "outbound_clicks#call", as: :call_outbound

@@ -2,9 +2,9 @@
 # Possession of the current send's token is what authorizes a claim, so
 # every accepted token is recorded: the stored mapping keeps old emails
 # resolving to the word they actually carried, no longer claimable.
-# Under issue cadence the first request carrying an unseen token also
-# advances the game to its next word; under calendar cadence the word is
-# date-driven and the issue is purely the freshness record.
+# The first request of a new send also advances the game to its next
+# word. Publications whose platform has no campaign id get a token minted
+# here instead, so the record still marks where each send started.
 class Issue < ApplicationRecord
   belongs_to :game
   belongs_to :daily_call
@@ -20,10 +20,9 @@ class Issue < ApplicationRecord
   end
 
   # A spurious advance (test send, prank token) can be undone until a
-  # reader claims the word. Only issue-cadence games advance on tokens;
-  # a calendar registration has no date of its own to give back.
+  # reader claims the word.
   def rollbackable?
-    game.issue_cadence? && game.issues.order(:created_at).last == self && daily_call.daily_claims.none?
+    game.issues.order(:created_at).last == self && daily_call.daily_claims.none?
   end
 
   # Puts the word back in the unissued queue.

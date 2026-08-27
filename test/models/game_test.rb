@@ -90,13 +90,14 @@ class GameTest < ActiveSupport::TestCase
     assert_raises(Game::NotLaunchable) { game.regenerate_words }
   end
 
-  test "launch creates one call per day using each word exactly once" do
-    travel_to local_noon(@publication, Date.new(2026, 8, 1)) do
-      game = create_running_game(@publication, starts_on: Date.new(2026, 8, 1))
-      assert_equal 30, game.daily_calls.count
-      assert_equal (Date.new(2026, 8, 1)..Date.new(2026, 8, 30)).to_a, game.daily_calls.map(&:call_on)
-      assert_equal game.game_words.pluck(:id).sort, game.daily_calls.map(&:game_word_id).sort
-    end
+  test "launch creates one queued call per pool word, using each word exactly once" do
+    game = @publication.games.create!(starts_on: @publication.local_date)
+    game.assign_words(Game.random_word_selection(@publication, count: game.pool_size))
+    game.launch
+
+    assert_equal 30, game.daily_calls.count
+    assert_equal [ nil ], game.daily_calls.map(&:call_on).uniq
+    assert_equal game.game_words.pluck(:id).sort, game.daily_calls.map(&:game_word_id).sort
   end
 
   test "a draft's calls exist undated so content can be written before launch" do
@@ -172,21 +173,28 @@ class GameTest < ActiveSupport::TestCase
     end
   end
 
-  test "day_number uses the publication timezone" do
-    game = create_running_game(@publication, starts_on: Date.new(2026, 8, 1))
+  test "a word going out is dated in the publication timezone, not the server's" do
+    game = create_running_game(@publication, issued: 0)
+
     travel_to Time.utc(2026, 8, 9, 4, 59) do # Aug 8, 11:59 PM in Chicago
-      assert_equal 8, game.day_number
-      assert_equal 22, game.days_remaining
+      assert_equal Date.new(2026, 8, 8), game.claimable_call_for("send-1").call_on
     end
-    travel_to Time.utc(2026, 8, 9, 5, 1) do # Aug 9, 12:01 AM in Chicago
-      assert_equal 9, game.day_number
+    travel_to Time.utc(2026, 8, 9, 5, 1) + 13.hours do # Aug 9 in Chicago
+      assert_equal Date.new(2026, 8, 9), game.claimable_call_for("send-2").call_on
     end
+  end
+
+  test "day_number and days_remaining count the words that have gone out" do
+    game = create_running_game(@publication, starts_on: @publication.local_date - 7)
+
+    assert_equal 8, game.day_number
+    assert_equal 22, game.days_remaining
   end
 
   test "completing a game preserves its records" do
     game = create_running_game(@publication)
     participant = Participant.locate_or_register(@publication, "reader@example.com")
-    game.call_for(@publication.local_date).claim_by(participant)
+    game.current_call.claim_by(participant)
 
     game.complete
     assert game.completed?
@@ -200,7 +208,7 @@ class GameTest < ActiveSupport::TestCase
     game.complete
     participant = Participant.locate_or_register(@publication, "reader@example.com")
     assert_raises(DailyCall::NotClaimable) do
-      game.call_for(@publication.local_date).claim_by(participant)
+      game.current_call.claim_by(participant)
     end
   end
 end

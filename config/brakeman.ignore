@@ -1,14 +1,14 @@
 {
   "ignored_warnings": [
     {
-      "fingerprint": "89d197773b86466f5c99785f5ebc63c09be183bbd38101763314fd346e44dd60",
+      "fingerprint": "98634c9b1e544cd8d8724f34f22a937cb31546f742e8eceb6c733560e804ac4a",
       "note": "Intentional click-tracking redirect. The destination is the persisted DailyCall#link_url, validated at write time to be http(s) only (HttpUrlValidator); request params never influence the destination, and the link is only followed for participants who actually claimed the call."
     },
     {
-      "fingerprint": "4706b2dd6412397295920f0cfe940d7e4871825f2d2bfbfd35c77f04034244af",
+      "fingerprint": "63f9820ad8fa150301894144679adda78093d9ee5ab9f07300dee81f63be4ed3",
       "note": "Intentional click-tracking redirect. The destination is the persisted Prize#link_url, validated at write time to be http(s) only; request params never influence the destination, and the link is only followed for participants who earned the prize."
     }
   ],
-  "updated": "2026-08-23",
+  "updated": "2026-08-26",
   "brakeman_version": "7.1.1"
 }

@@ -24,6 +24,13 @@
 }
 .menu-button:hover { color: var(--ink); border-color: var(--ink-faint); }
 .menu-button svg { width: 18px; height: 18px; }
+/* The same menu without the avatar chrome: just the dots. */
+.menu-button-plain {
+  width: auto; height: auto; padding: .1rem .2rem;
+  border: 0; border-radius: .3rem; background: none; color: var(--ink-faint);
+}
+.menu-button-plain:hover { background: none; border-color: transparent; color: var(--ink); }
+
 .menu-panel {
   position: absolute; right: 0; top: calc(100% + .5rem); z-index: 30; width: 15rem;
   background: var(--card); border: 1px solid var(--line); border-radius: .6rem;
@@ -316,6 +323,17 @@
 }
 .list li:last-child { border-bottom: none; }
 
+/* Card heading with a menu button parked at its right. */
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.card-head + .list { margin-top: .8rem; }
+
+/* Page links under a list that outgrew one screenful. */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-top: .8rem; padding-top: .8rem; border-top: 1px solid var(--line-soft);
+}
+.pagination__links { display: flex; gap: .4rem; }
+
 table.simple { width: 100%; border-collapse: collapse; font-size: .9rem; }
 table.simple th {
   text-align: left; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
@@ -557,16 +575,6 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 }
 .platform-chip:hover { border-color: var(--ink-faint); color: var(--ink); }
 .platform-chip.active { border-color: var(--brand); color: var(--green-ink); background: var(--green-bg); }
-
-.day-pills { display: flex; gap: .4rem; flex-wrap: wrap; }
-.day-pill {
-  position: relative; width: 3rem; text-align: center; cursor: pointer;
-  border: 1px solid var(--line); border-radius: 8px; padding: .45rem 0;
-  font-size: .8rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 0;
-}
-.day-pill input { position: absolute; opacity: 0; pointer-events: none; }
-.day-pill:has(input:checked) { border-color: var(--brand); background: var(--green-bg); color: var(--green-ink); }
-.day-pill:has(input:focus-visible) { outline: 2px solid var(--ink-soft); outline-offset: 1px; }
 
 .embed-row { display: flex; gap: 1.4rem; align-items: flex-start; }
 @media (max-width: 44rem) { .embed-row { flex-direction: column; } }

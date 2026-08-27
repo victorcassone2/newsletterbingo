@@ -12,7 +12,9 @@ class BoardsController < PublicController
 
     @game = @board.game
     @squares = @board.bingo_squares.includes(game_word: :daily_call).to_a
-    @todays_call = @game.current_call
+    # A finished game's last word is history: it stays on the card, but
+    # nothing is out to claim until the reader joins the new game.
+    @todays_call = @game.current_call if @game.active?
     @claimed_today = @todays_call &&
       current_participant.daily_claims.exists?(daily_call_id: @todays_call.id)
     @on_card_today = @todays_call && @board.covers?(@todays_call.game_word)

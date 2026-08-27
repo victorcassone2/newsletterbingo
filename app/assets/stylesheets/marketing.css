@@ -180,7 +180,6 @@
 }
 .mock-bingo-mark { width: .85rem; height: .85rem; }
 .mock-bingo-copy { font-size: .78rem; line-height: 1.55; color: var(--ink-strong); }
-.mock-bingo-word { font-family: var(--mono); font-weight: 700; letter-spacing: .04em; }
 .mock-bingo-claim { color: var(--mk-amber-deep); font-weight: 700; white-space: nowrap; }
 .mock-bingo-sponsor { font-size: .68rem; color: var(--ink-faint); margin-bottom: .3rem; }
 

@@ -3,7 +3,7 @@ module GamesHelper
   def game_label(game)
     if game.draft?
       "Next game"
-    elsif game.publication.issue_cadence?
+    else
       first_called = game.issued_calls.first&.call_on || game.starts_on
       last_called = game.issued_calls.last&.call_on
       if game.completed?
@@ -11,8 +11,6 @@ module GamesHelper
       else
         "Started #{first_called.strftime("%b %-d, %Y")}"
       end
-    else
-      "#{game.starts_on.strftime("%b %-d")} – #{game.ends_on.strftime("%b %-d, %Y")}"
     end
   end
 end

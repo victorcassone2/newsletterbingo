@@ -46,7 +46,7 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert game.draft?
     assert_equal 2, publication.prizes.count
 
-    # Launch with issue cadence (the default): calls exist but stay undated
+    # Launch queues every word: the calls exist but stay undated
     post account_publication_game_launch_path(account_id: account_id, publication_id: publication.id, game_id: game.id)
     assert game.reload.active?
     assert_equal 30, game.daily_calls.count
@@ -115,11 +115,11 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     publication = publications(:omaha)
     old_game = create_running_game(publication)
     participant = Participant.locate_or_register(publication, "loyal@example.com")
-    old_game.call_for(publication.local_date).claim_by(participant)
+    old_game.current_call.claim_by(participant)
     old_board_id = participant.board_for(old_game).id
     old_layout = participant.board_for(old_game).bingo_squares.sort_by(&:position).map(&:game_word_id)
 
-    old_game.update_columns(starts_on: publication.local_date - 40, ends_on: publication.local_date - 17)
+    age_out_game(old_game)
 
     get account_publication_today_path(account_id: accounts(:publisher).id, publication_id: publication.id)
     assert_response :success
@@ -130,7 +130,7 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     assert_not_equal old_game.id, new_game.id
     assert publication.on_deck_game.present?, "a fresh draft goes on deck"
 
-    new_game.call_for(publication.local_date).claim_by(participant)
+    new_game.claimable_call_for("send-after-rollover").claim_by(participant)
     new_board = participant.board_for(new_game)
     assert_not_equal old_board_id, new_board.id
 

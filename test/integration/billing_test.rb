@@ -8,6 +8,8 @@ require "minitest/mock"
 # through hosted Checkout without. Cancels in-app at period end, webhooks
 # stay idempotent and tenant-isolated, and lapsing gates game rotation.
 class BillingTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
   # Stands in for Payments::Gateway; records params so tests can assert on
   # what would have been sent to Stripe.
   class FakeGateway
@@ -115,7 +117,7 @@ class BillingTest < ActionDispatch::IntegrationTest
 
   test "creating a publication on a subscribed account touches no billing UI, just re-points the quantity" do
     gateway = FakeGateway.new
-    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account ] do
+    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account, true ] do
       Payments.stub(:platform, gateway) do
         post account_publications_path(account_id: @account.id), params: {
           publication: { name: "Third Herald", timezone: "America/Chicago" }
@@ -217,6 +219,182 @@ class BillingTest < ActionDispatch::IntegrationTest
     assert_not @account.subscribed?
   end
 
+  test "canceling one publication takes it off the next invoice and leaves the others running" do
+    gateway = quantity_gateway(2)
+
+    perform_enqueued_jobs do
+      Payments.stub(:platform, gateway) do
+        post account_publication_closure_path(account_id: @account.id, publication_id: @publication.id)
+      end
+    end
+
+    assert_redirected_to account_billing_path(account_id: @account.id)
+    assert @publication.reload.canceled?
+    assert_equal [ "sub_publisher", { items: [ { id: "si_1", quantity: 1 } ], proration_behavior: "none" } ],
+      gateway.update_args, "no credit: they keep the publication through the period they paid for"
+    assert_equal 29, @account.reload.monthly_price
+    assert_not publications(:lincoln).reload.canceled?, "the account's other publication is untouched"
+    assert publications(:lincoln).billing_active?
+  end
+
+  test "a canceled publication keeps its readers until the paid period runs out" do
+    create_running_game(@publication)
+    @publication.close
+    assert_equal @account.subscription_current_period_end.to_date, @publication.closes_on
+
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code), "still playing on time already paid for"
+
+    travel_to @publication.closes_on + 1.day do
+      get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+      assert_response :not_found
+      assert_select ".unavailable-card"
+
+      get board_path(@publication.public_code)
+      assert_response :not_found
+    end
+  end
+
+  test "canceling with nothing paid for goes dark on the spot" do
+    @account.update!(subscription_status: "canceled")
+
+    post account_publication_closure_path(account_id: @account.id, publication_id: @publication.id)
+
+    assert @publication.reload.closed?
+    assert_match(/dark now/, flash[:notice])
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+    assert_response :not_found
+  end
+
+  test "calling off a cancellation before it lands costs nothing extra" do
+    @publication.close
+    clear_enqueued_jobs
+    gateway = quantity_gateway(1)
+
+    perform_enqueued_jobs do
+      Payments.stub(:platform, gateway) do
+        delete account_publication_closure_path(account_id: @account.id, publication_id: @publication.id)
+      end
+    end
+
+    assert_not @publication.reload.canceled?
+    assert_equal [ "sub_publisher", { items: [ { id: "si_1", quantity: 2 } ], proration_behavior: "none" } ],
+      gateway.update_args, "they were never refunded, so they're never re-charged"
+    assert_equal 58, @account.reload.monthly_price
+  end
+
+  test "restoring a publication that already went dark is prorated like adding one" do
+    @publication.close
+    clear_enqueued_jobs
+    gateway = quantity_gateway(1)
+
+    travel_to @publication.closes_on + 1.day do
+      perform_enqueued_jobs do
+        Payments.stub(:platform, gateway) do
+          delete account_publication_closure_path(account_id: @account.id, publication_id: @publication.id)
+        end
+      end
+    end
+
+    assert_not @publication.reload.canceled?
+    assert_equal [ "sub_publisher", { items: [ { id: "si_1", quantity: 2 } ] } ], gateway.update_args
+  end
+
+  test "the last publication a subscription pays for is canceled by canceling the subscription" do
+    publications(:lincoln).close
+
+    assert_no_enqueued_jobs only: Account::SyncSubscriptionQuantityJob do
+      post account_publication_closure_path(account_id: @account.id, publication_id: @publication.id)
+    end
+
+    assert_not @publication.reload.canceled?
+    assert_match(/Cancel the subscription itself/, flash[:alert])
+    assert_equal 29, @account.reload.monthly_price, "still billed for the one that's left"
+  end
+
+  test "the last publication the subscription pays for offers the subscription's own cancel" do
+    publications(:lincoln).close
+
+    get account_billing_path(account_id: @account.id)
+
+    assert_response :success
+    assert_no_match(/Cancel the subscription to shut this one down/, response.body)
+    assert_select "ul.list form[action=?]",
+      account_billing_subscription_cancellation_path(account_id: @account.id) do
+      assert_select "button", text: "Cancel subscription"
+    end
+  end
+
+  test "a subscription that's already ending offers its undo on the row too" do
+    publications(:lincoln).close
+    @account.update!(subscription_cancel_at_period_end: true)
+
+    get account_billing_path(account_id: @account.id)
+
+    assert_match "Subscription ends on September", response.body
+    assert_select "ul.list form[action=?]",
+      account_billing_subscription_cancellation_path(account_id: @account.id) do
+      assert_select "input[name=_method][value=delete]", 1
+      assert_select "button", text: "Keep it"
+    end
+  end
+
+  test "canceling a publication is scoped to the account that owns it" do
+    rival = publications(:rival)
+
+    post account_publication_closure_path(account_id: @account.id, publication_id: rival.id)
+
+    assert_response :not_found
+    assert_not rival.reload.canceled?
+  end
+
+  test "the billing page lists each publication with its own cancel button" do
+    get account_billing_path(account_id: @account.id)
+    assert_response :success
+    assert_select "form[action=?]", account_publication_closure_path(account_id: @account.id, publication_id: @publication.id)
+
+    @publication.close
+    get account_billing_path(account_id: @account.id)
+    assert_match "$29/month", response.body
+    assert_match "Readers keep playing until", response.body
+    assert_select "form[action=?]", account_publication_closure_path(account_id: @account.id,
+      publication_id: @publication.id) do
+      assert_select "input[name=_method][value=delete]", 1, "the canceled one offers its undo instead"
+    end
+  end
+
+  test "the publications card carries the whole bill, with the account-wide cancel in its menu" do
+    get account_billing_path(account_id: @account.id)
+    assert_response :success
+    assert_match "2 publications × $29 = $58/month", response.body
+    assert_match "Next renewal is", response.body
+    assert_select ".card-head .menu-panel form[action=?]",
+      account_billing_subscription_cancellation_path(account_id: @account.id) do
+      assert_select "button", text: "Cancel all subscriptions"
+    end
+
+    @account.update!(subscription_status: "trialing")
+    get account_billing_path(account_id: @account.id)
+    assert_match "free until", response.body
+    # The standalone trial card folded into the list heading.
+    assert_no_match(/<b>Free trial/, response.body)
+
+    @account.update!(subscription_cancel_at_period_end: true)
+    get account_billing_path(account_id: @account.id)
+    assert_match "Your subscription ends", response.body
+    assert_select ".card-head .menu-panel button", text: "Keep my subscription"
+  end
+
+  test "an account with no subscription is asked to start one above the list, not in the menu" do
+    @account.update!(subscription_status: "canceled")
+
+    get account_billing_path(account_id: @account.id)
+
+    assert_match "once a subscription is running", response.body
+    assert_select ".attention form[action=?]", account_billing_subscription_path(account_id: @account.id)
+    assert_select ".card-head .menu-panel", { count: 0 }, "nothing to cancel when nothing is running"
+  end
+
   test "the billing page shows the one subscription and the portal opens from it" do
     get account_billing_path(account_id: @account.id)
     assert_response :success
@@ -231,9 +409,47 @@ class BillingTest < ActionDispatch::IntegrationTest
     assert_equal "cus_own", gateway.portal_params[:customer]
   end
 
+  test "the publications list paginates once it outgrows a screenful" do
+    11.times { |index| @account.publications.create!(name: "Weekly #{format("%02d", index)}") }
+
+    get account_billing_path(account_id: @account.id)
+    assert_response :success
+    assert_select "ul.list li", 10
+    assert_match "Showing 1-10 of 13 publications", response.body
+    assert_select "a[href=?]", account_billing_path(account_id: @account.id, page: 2), "Next"
+    assert_select "a", text: "Previous", count: 0
+
+    get account_billing_path(account_id: @account.id, page: 2)
+    assert_select "ul.list li", 3
+    assert_match "Showing 11-13 of 13 publications", response.body
+    assert_select "a", text: "Next", count: 0
+
+    # A page number past the end lands on the last real page, never an empty one.
+    get account_billing_path(account_id: @account.id, page: 99)
+    assert_select "ul.list li", 3
+  end
+
+  test "ten publications or fewer carry no page links" do
+    8.times { |index| @account.publications.create!(name: "Weekly #{index}") }
+
+    get account_billing_path(account_id: @account.id)
+    assert_select "ul.list li", 10
+    assert_select ".pagination", count: 0
+  end
+
+  test "canceling from a later page comes back to that page" do
+    11.times { |index| @account.publications.create!(name: "Weekly #{format("%02d", index)}") }
+    last = @account.publications.order(:name).last
+
+    post account_publication_closure_path(account_id: @account.id, publication_id: last.id),
+      params: { page: 2 }
+
+    assert_redirected_to account_billing_path(account_id: @account.id, page: 2)
+    assert last.reload.canceled?
+  end
+
   test "a subscription webhook flips status and unblocks rotation on the next request" do
-    game = create_running_game(@publication)
-    game.update_columns(starts_on: @publication.local_date - 40, ends_on: @publication.local_date - 17)
+    game = age_out_game(create_running_game(@publication))
     @account.update!(subscription_status: "canceled")
 
     get account_publication_today_path(account_id: @account.id, publication_id: @publication.id)
@@ -320,6 +536,16 @@ class BillingTest < ActionDispatch::IntegrationTest
   end
 
   private
+    # A Stripe subscription sitting at the given quantity, ready to be
+    # re-pointed.
+    def quantity_gateway(quantity)
+      FakeGateway.new(subscription: OpenStruct.new(
+        id: "sub_publisher", status: "active", customer: "cus_own",
+        items: OpenStruct.new(data: [ OpenStruct.new(id: "si_1", quantity: quantity,
+          current_period_end: 20.days.from_now.to_i) ])
+      ))
+    end
+
     def make_unsubscribed(account)
       account.update!(stripe_subscription_id: nil, subscription_status: nil,
         subscription_current_period_end: nil)

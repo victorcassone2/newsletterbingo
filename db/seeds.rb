@@ -62,7 +62,7 @@ game_words = GAME_WORDS.each_with_index.map do |label, index|
   game.game_words.create!(word: word, label: word.label, position: index + 1)
 end
 
-# Issue cadence: nine sends have gone out so far, one word per issue, so
+# Nine sends have gone out so far, one word per issue, so
 # FARMERS MARKET (index 8) is the current word. The rest wait undated.
 game_words.each_with_index do |game_word, index|
   issued_on = index <= 8 ? starts_on + index : nil

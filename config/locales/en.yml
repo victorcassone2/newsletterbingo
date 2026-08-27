@@ -32,4 +32,4 @@ en:
   activerecord:
     attributes:
       daily_call:
-        prize_description: "Prize title"
+        prize_description: "Title"

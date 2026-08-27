@@ -1,18 +1,14 @@
 require "test_helper"
 
-class IssueCadenceTest < ActionDispatch::IntegrationTest
+# Words advance one per send. A publication whose platform stamps a
+# campaign id proves each send with its token; one without a tag has the
+# send inferred from how long it has been quiet.
+class WordAdvanceTest < ActionDispatch::IntegrationTest
   setup do
     @publication = publications(:omaha)
-    @publication.update!(cadence: "issues")
     @game = @publication.games.create!(starts_on: @publication.local_date)
     @game.assign_words(Game.random_word_selection(@publication, count: @game.pool_size))
     @game.launch
-  end
-
-  test "launching an issue-cadence game leaves all calls undated" do
-    assert_equal @game.pool_size, @game.daily_calls.count
-    assert_equal 0, @game.issued_calls.count
-    assert_nil @game.current_call
   end
 
   test "the first click of a new send advances the word and claims it" do
@@ -183,6 +179,50 @@ class IssueCadenceTest < ActionDispatch::IntegrationTest
     successor = @publication.active_game
     assert_equal "camp-final", successor.issues.sole.token
     assert_equal 1, successor.current_call.position
+  end
+
+  test "a publication with no campaign tag draws the next word on the first click of a send" do
+    @publication.update!(campaign_merge_tag: nil)
+
+    get claim_path(@publication.public_code, email: "a@example.com")
+
+    assert_redirected_to board_path(@publication.public_code)
+    call = @game.reload.current_call
+    assert_equal 1, call.position
+    assert_equal 1, call.daily_claims.count
+  end
+
+  test "every reader of a tokenless send claims that send's word, not the next one" do
+    @publication.update!(campaign_merge_tag: nil)
+
+    get claim_path(@publication.public_code, email: "a@example.com")
+    get claim_path(@publication.public_code, email: "b@example.com")
+
+    assert_equal 1, @game.issues.count
+    assert_equal 1, @game.reload.current_call.position
+    assert_equal 2, @game.current_call.daily_claims.count
+  end
+
+  test "the next tokenless send after the interval floor draws the next word" do
+    @publication.update!(campaign_merge_tag: nil)
+    get claim_path(@publication.public_code, email: "a@example.com")
+
+    travel 13.hours do
+      get claim_path(@publication.public_code, email: "a@example.com")
+    end
+
+    assert_equal 2, @game.issues.count
+    assert_equal 2, @game.reload.current_call.position
+    assert_equal 2, @publication.participants.find_by(email: "a@example.com").daily_claims.count
+  end
+
+  test "the newsletter block leaves the token off a tokenless publication's claim link" do
+    @publication.update!(campaign_merge_tag: nil)
+
+    url = NewsletterBlock.new(@publication).claim_url
+
+    assert_no_match(/issue=/, url)
+    assert_match(/email=\{\{email\}\}\z/, url)
   end
 
   private

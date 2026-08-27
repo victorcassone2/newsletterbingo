@@ -10,12 +10,12 @@
     <h2>No card yet</h2>
     <p>Your card is created the first time you tap the bingo button in a
       <%= @publication.name %> email. It claims
-      <%= @publication.issue_cadence? ? "that issue's word" : "the day's word" %> and deals your card
+      that issue's word and deals your card
       right here. Watch for the next one!</p>
   <% else %>
     <h2>Your card opens from the email</h2>
     <p>Tap the bingo button in the latest <%= @publication.name %> email. It claims
-      <%= @publication.issue_cadence? ? "that issue's word" : "the day's word" %> and
+      that issue's word and
       opens your card right here. No account, no password.</p>
 
     <%= form_with url: participant_session_path(@publication.public_code), class: "board-lookup" do |form| %>

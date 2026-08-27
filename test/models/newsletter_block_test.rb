@@ -4,7 +4,7 @@ class NewsletterBlockTest < ActiveSupport::TestCase
   setup do
     @publication = publications(:omaha)
     @game = create_running_game(@publication)
-    @call = @game.call_for(@publication.local_date)
+    @call = @game.current_call
     @call.update!(description: "Secret detail for after the click.",
       link_url: "https://example.com/detail", link_text: "See details")
   end
@@ -15,11 +15,19 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "email={{email}}"
   end
 
-  test "both cadences carry the campaign token that proves a click is from the current send" do
+  test "a campaign tag rides along to prove a click is from the current send" do
     assert_includes NewsletterBlock.new(@publication).to_html, "issue={{campaign_id}}"
 
-    @publication.update!(cadence: "issues", campaign_merge_tag: "*|CAMPAIGN_UID|*")
+    @publication.update!(campaign_merge_tag: "*|CAMPAIGN_UID|*")
     assert_includes NewsletterBlock.new(@publication).to_html, "issue=*|CAMPAIGN_UID|*"
+  end
+
+  test "a platform with no campaign tag gets a link with no issue parameter at all" do
+    @publication.update!(campaign_merge_tag: nil)
+    html = NewsletterBlock.new(@publication).to_html
+
+    assert_not_includes html, "issue="
+    assert_includes html, "email={{email}}"
   end
 
   test "a custom merge tag is inserted verbatim" do
@@ -28,22 +36,15 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "email=|EMAIL|"
   end
 
-  test "the word arrives as a dynamic inline image, never baked into the HTML" do
+  test "the current word never gets baked into the HTML" do
     html = NewsletterBlock.new(@publication).to_html
-    assert_includes html, "/c/#{@publication.public_code}/word.png?variant=inline"
     assert_not_includes html, @call.label
+    assert_includes html, "A new word has dropped."
   end
 
   test "the section header carries the Newsletter Bingo mark, not an emoji" do
     html = NewsletterBlock.new(@publication).to_html
     assert_includes html, "/icon-192x192.png"
-  end
-
-  test "the issue-cadence block carries no word image" do
-    @publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
-    html = NewsletterBlock.new(@publication).to_html
-    assert_not_includes html, "word.png"
-    assert_includes html, "A new word drops with this issue"
   end
 
   test "the block is identical from day to day: no per-call state leaks in" do
@@ -54,12 +55,6 @@ class NewsletterBlockTest < ActiveSupport::TestCase
 
   test "sponsored by line appears only when the publication has a sponsor name" do
     assert_not_includes NewsletterBlock.new(@publication).to_html, "Sponsored by"
-    @publication.update!(sponsor_name: "Midtown Market")
-    assert_includes NewsletterBlock.new(@publication).to_html, "Sponsored by Midtown Market"
-  end
-
-  test "the evergreen block carries the sponsor line" do
-    @publication.update!(cadence: "issues", campaign_merge_tag: "{{campaign}}")
     @publication.update!(sponsor_name: "Midtown Market")
     assert_includes NewsletterBlock.new(@publication).to_html, "Sponsored by Midtown Market"
   end
@@ -78,9 +73,13 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "<table"
   end
 
-  test "publication branding colors are applied" do
-    @publication.update!(accent_color: "#AB12CD")
-    assert_includes NewsletterBlock.new(@publication).to_html, "#ab12cd"
+  test "publication text color is applied, but the claim link keeps the Bingo amber" do
+    @publication.update!(text_color: "#AB12CD", accent_color: "#E5FCEF")
+    html = NewsletterBlock.new(@publication).to_html
+
+    assert_includes html, "#ab12cd"
+    assert_includes html, NewsletterBlock::CLAIM_LINK_COLOR
+    assert_not_includes html, "#e5fcef", "a pale accent must not be able to hide the claim link"
   end
 
   test "sponsor names are HTML-escaped" do

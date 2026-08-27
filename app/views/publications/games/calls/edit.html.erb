@@ -8,13 +8,6 @@
         Went out <strong><%= @call.today? ? "today" : @call.call_on.strftime("%A, %B %-d") %></strong>
       <% elsif @game.draft? %>
         Goes live when the game launches
-      <% elsif @call.issued? %>
-        <% days_away = (@call.call_on - @publication.local_date).to_i %>
-        <% if days_away == 1 %>
-          Goes out <strong>tomorrow</strong>
-        <% else %>
-          Goes out <strong><%= @call.call_on.strftime("%A, %B %-d") %></strong> · <%= days_away %> days away
-        <% end %>
       <% elsif (sends_away = @call.sends_away) %>
         <% if sends_away == 1 %>
           Goes out with your <strong>next send</strong>
@@ -29,7 +22,7 @@
 
 <div class="grid-2">
   <div class="card">
-    <div class="card-head"><h2>Call content</h2></div>
+    <div class="card-head"><h2>Extra call content</h2></div>
     <p class="small muted">The story behind the word. Readers see it on their card the moment
       they claim, never in the email itself.</p>
     <%= form_with model: @call, url: account_publication_game_call_path(publication_id: @publication.id, game_id: @game.id, id: @call.id), method: :patch do |form| %>
@@ -41,8 +34,8 @@
         <label><%= form.check_box :prize_call %> Prize call: show a 🎁 in the newsletter block</label>
       </div>
       <div class="field">
-        <%= form.label :prize_description, "Prize title" %>
-        <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee!" %>
+        <%= form.label :prize_description, "Title" %>
+        <%= form.text_field :prize_description, placeholder: "First 50 claims get a free coffee, or Sponsored by Bloom Coffee" %>
       </div>
       <div class="field">
         <%= form.label :description, "Short description" %>
@@ -84,7 +77,7 @@
     <% else %>
       <p class="small muted">
         <% if @call.daily_claims.any? %>
-          Readers have already claimed this word today, so it's locked.
+          Readers have already claimed this word, so it's locked.
         <% else %>
           This word has been called and is part of game history.
         <% end %>

@@ -10,6 +10,13 @@ class AccountBillingTest < ActiveSupport::TestCase
     @publication = publications(:omaha)
   end
 
+  # A Stripe subscription whose one item sits at the given quantity.
+  def stripe_item_at(quantity)
+    OpenStruct.new(id: "sub_publisher", status: "active", customer: "cus_x",
+      items: OpenStruct.new(data: [ OpenStruct.new(id: "si_1", quantity: quantity,
+        current_period_end: 20.days.from_now.to_i) ]))
+  end
+
   test "billing_state is exactly three situations" do
     assert_equal :active, @account.billing_state
 
@@ -61,8 +68,7 @@ class AccountBillingTest < ActiveSupport::TestCase
   end
 
   test "a subscribed account rotates its publications into new games" do
-    game = create_running_game(@publication)
-    game.update_columns(starts_on: @publication.local_date - 40, ends_on: @publication.local_date - 17)
+    game = age_out_game(create_running_game(@publication))
 
     @publication.rotate_games
 
@@ -71,8 +77,7 @@ class AccountBillingTest < ActiveSupport::TestCase
   end
 
   test "a lapsed account's game plays out but no successor launches" do
-    game = create_running_game(@publication)
-    game.update_columns(starts_on: @publication.local_date - 40, ends_on: @publication.local_date - 17)
+    game = age_out_game(create_running_game(@publication))
     @account.update!(subscription_status: "canceled")
 
     @publication.rotate_games
@@ -151,13 +156,107 @@ class AccountBillingTest < ActiveSupport::TestCase
     end
   end
 
+  test "a canceled publication comes off the price right away but stays on the air" do
+    assert_equal 58, @account.monthly_price
+
+    @publication.close
+
+    assert_equal 29, @account.reload.monthly_price, "off the next invoice immediately"
+    assert @publication.canceled?
+    assert_not @publication.closed?, "still running out the period it was paid for"
+    assert_equal @account.subscription_current_period_end.to_date, @publication.closes_on
+    assert_not_includes @account.billable_publications, @publication
+    assert_includes @account.billable_publications, publications(:lincoln)
+    assert_includes Publication.playable, @publication, "readers still reach it"
+  end
+
+  test "a canceled publication goes dark on its own when the paid period runs out" do
+    @publication.close
+
+    travel_to @publication.closes_on + 1.day do
+      assert @publication.reload.closed?
+      assert_not_includes Publication.playable, @publication
+      assert_not @publication.billing_active?
+    end
+  end
+
+  test "canceling stops the next game from starting, and the running one plays out" do
+    game = age_out_game(create_running_game(@publication))
+    @publication.close
+
+    @publication.rotate_games
+
+    assert game.reload.completed?, "the running game still completes"
+    assert_nil @publication.active_game, "no game starts that couldn't finish before the lights go out"
+    assert @publication.on_deck_game.present?, "drafting continues so calling it off resumes instantly"
+  end
+
+  test "canceling with nothing paid for goes dark on the spot" do
+    @account.update!(subscription_status: "canceled")
+
+    @publication.close
+
+    assert @publication.closed?
+    assert_equal Date.current, @publication.closes_on
+  end
+
+  test "canceling and calling it off enqueue quantity syncs with the right proration" do
+    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account, false ] do
+      @publication.close
+    end
+
+    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account, false ] do
+      @publication.reopen
+    end
+
+    @publication.close
+    travel_to @publication.closes_on + 1.day do
+      assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account, true ] do
+        @publication.reload.reopen
+      end
+    end
+  end
+
+  test "a quantity drop never credits the customer, a quantity rise prorates" do
+    gateway = Minitest::Mock.new
+    gateway.expect :retrieve_subscription, stripe_item_at(2), [ "sub_publisher" ]
+    gateway.expect :update_subscription, stripe_item_at(1), [ "sub_publisher" ],
+      items: [ { id: "si_1", quantity: 1 } ], proration_behavior: "none"
+
+    @publication.close
+    Payments.stub(:platform, gateway) do
+      @account.sync_subscription_quantity!(prorate: false)
+    end
+    assert gateway.verify
+  end
+
+  test "the last publication the subscription pays for is not closable" do
+    assert @publication.closable?, "two billable publications, either can go"
+
+    publications(:lincoln).close
+    assert_not @publication.reload.closable?
+
+    # Lapsed accounts bill for nothing, so the bar is only that something stays open.
+    @account.update!(subscription_status: "canceled")
+    assert_not @publication.reload.closable?
+
+    @account.publications.create!(name: "Bellevue Beacon")
+    assert @publication.reload.closable?
+  end
+
+  test "a complimentary publication is closable even when it is the only billable one" do
+    publications(:lincoln).update!(complimentary: true)
+    assert_not @publication.closable?, "the only publication being billed"
+    assert publications(:lincoln).closable?, "free ones carry no quantity to drop"
+  end
+
   test "creating and destroying publications enqueues a quantity sync for subscribed accounts" do
     publication = nil
-    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account ] do
+    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account, true ] do
       publication = @account.publications.create!(name: "Papillion Post")
     end
 
-    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account ] do
+    assert_enqueued_with job: Account::SyncSubscriptionQuantityJob, args: [ @account, true ] do
       publication.destroy
     end
 

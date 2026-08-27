@@ -1,8 +1,9 @@
 module GameTestHelper
-  # A launched game in the publication's format, fully worded and called.
-  # Launch clamps dates to today, so a past starts_on launches back then
-  # via time travel.
-  def create_running_game(publication, starts_on: publication.local_date)
+  # A launched game in the publication's format, with its history already
+  # sent. Launch dates nothing now: words go out one per send, so the
+  # helper plays those sends itself, starting on starts_on and running a
+  # day apart up to today. Pass issued: to send a different number.
+  def create_running_game(publication, starts_on: publication.local_date, issued: nil)
     game = publication.games.create!(starts_on: starts_on)
     game.assign_words(Game.random_word_selection(publication, count: game.pool_size))
     if starts_on < publication.local_date
@@ -10,7 +11,42 @@ module GameTestHelper
     else
       game.launch
     end
+    issue_words(game, from: starts_on, count: issued || sends_through_today(game, starts_on))
     game
+  end
+
+  # Sends the first `count` words that haven't gone out yet, one per
+  # issue. Each issue is backdated past the interval floor, the way
+  # db/seeds.rb does, so a fresh send can advance the game right away.
+  def issue_words(game, from:, count:)
+    game.daily_calls.first(count).each_with_index do |call, index|
+      next if call.issued?
+      called_on = from + index
+      game.issues.create!(token: "helper-send-#{call.position}", daily_call: call, called_on: called_on,
+        created_at: [ local_noon(game.publication, called_on), (Game::ISSUE_INTERVAL_FLOOR + 1.hour).ago ].min)
+      call.update!(call_on: called_on)
+    end
+  end
+
+  # Runs a game out: every word goes out, and the whole run is backdated
+  # so the last one is past its grace period. Rotation retires a game in
+  # this state on the next visit.
+  def age_out_game(game)
+    issue_words(game, from: game.starts_on, count: game.pool_size)
+    last_sent_on = game.publication.local_date - (Game::LAST_ISSUE_OPEN_FOR + 1)
+    shift = (last_sent_on - game.daily_calls.maximum(:call_on)).to_i
+    game.daily_calls.each { |call| call.update_columns(call_on: call.call_on + shift) }
+    game.issues.each { |issue| issue.update_columns(called_on: issue.called_on + shift) }
+    game.update_columns(starts_on: game.daily_calls.minimum(:call_on), ends_on: last_sent_on)
+    game.reload
+  end
+
+  # One send a day from starts_on through today, so a game started five
+  # days ago is six words in. A start date still in the future has sent
+  # nothing yet.
+  def sends_through_today(game, starts_on)
+    elapsed = (game.publication.local_date - starts_on).to_i + 1
+    elapsed.clamp(0, game.pool_size)
   end
 
   # The draft waiting behind the current game, fully formed.

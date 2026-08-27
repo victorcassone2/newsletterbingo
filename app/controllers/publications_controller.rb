@@ -62,8 +62,8 @@ class PublicationsController < ApplicationController
 
     def publication_params
       params.require(:publication).permit(:name, :timezone, :email_merge_tag, :active,
-        :cadence, :campaign_merge_tag, :board_size, :primary_color, :accent_color,
-        :background_color, :text_color, :logo, send_days: [])
+        :campaign_merge_tag, :board_size, :primary_color, :accent_color,
+        :background_color, :text_color, :logo)
     end
 
     # Real words for the branding preview: the current game's board if

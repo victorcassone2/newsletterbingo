@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_26_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_27_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -239,21 +239,27 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_26_130000) do
     t.index ["event_id"], name: "index_processed_webhook_events_on_event_id", unique: true
   end
 
+  create_table "publication_closures", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "closes_at", null: false
+    t.datetime "created_at", null: false
+    t.uuid "publication_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["publication_id"], name: "index_publication_closures_on_publication_id", unique: true
+  end
+
   create_table "publications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "accent_color", default: "#f59e0b", null: false
     t.uuid "account_id", null: false
     t.boolean "active", default: true, null: false
     t.string "background_color", default: "#fcfcfc", null: false
     t.integer "board_size", default: 5, null: false
-    t.string "cadence", default: "issues", null: false
-    t.string "campaign_merge_tag", default: "{{campaign_id}}", null: false
+    t.string "campaign_merge_tag", default: "{{campaign_id}}"
     t.boolean "complimentary", default: false, null: false
     t.datetime "created_at", null: false
     t.string "email_merge_tag", default: "{{email}}", null: false
     t.string "name", null: false
     t.string "primary_color", default: "#b45309", null: false
     t.string "public_code", null: false
-    t.integer "send_days", default: [0, 1, 2, 3, 4, 5, 6], null: false, array: true
     t.string "sponsor_name"
     t.string "text_color", default: "#2a2118", null: false
     t.string "timezone", default: "America/Chicago", null: false

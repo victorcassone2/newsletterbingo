@@ -5,12 +5,7 @@ class DailyCallTest < ActiveSupport::TestCase
     @publication = publications(:omaha)
     @game = create_running_game(@publication, starts_on: @publication.local_date - 5)
     @participant = Participant.locate_or_register(@publication, "reader@example.com")
-    @today = @game.call_for(@publication.local_date)
-  end
-
-  test "one call per game per date" do
-    duplicate = @game.daily_calls.new(game_word: @game.game_words.first, call_on: @today.call_on)
-    assert_not duplicate.valid?
+    @today = @game.current_call
   end
 
   test "claiming today creates one claim and marks exactly one square" do
@@ -35,9 +30,8 @@ class DailyCallTest < ActiveSupport::TestCase
     assert_equal 0, @participant.daily_claims.count
   end
 
-  test "tomorrow cannot be claimed" do
-    tomorrow = @game.call_for(@publication.local_date + 1)
-    assert_raises(DailyCall::NotClaimable) { tomorrow.claim_by(@participant) }
+  test "a word still in the queue cannot be claimed" do
+    assert_raises(DailyCall::NotClaimable) { @game.next_call.claim_by(@participant) }
   end
 
   test "a missed day stays blank forever" do
@@ -50,35 +44,32 @@ class DailyCallTest < ActiveSupport::TestCase
     assert_raises(DailyCall::NotClaimable) { missed.claim_by(@participant) }
   end
 
-  test "claim eligibility flips at midnight in the publication timezone" do
-    game = @game
-    aug_start = game.starts_on
-    call = game.call_for(aug_start + 5)
+  test "the current word stays claimable until the next send, not until midnight" do
     chicago = @publication.tz
+    tonight = chicago.local(@publication.local_date.year, @publication.local_date.month,
+      @publication.local_date.day, 23, 55)
 
-    travel_to chicago.local(call.call_on.year, call.call_on.month, call.call_on.day, 23, 55) do
-      assert call.claimable_now?
+    travel_to tonight do
+      assert @today.claimable_now?
     end
-    travel_to chicago.local(call.call_on.year, call.call_on.month, call.call_on.day, 23, 55) + 10.minutes do
-      assert_not call.claimable_now?, "12:05 AM next day must not be claimable even if the server runs UTC"
+    travel_to tonight + 10.minutes do
+      assert @today.claimable_now?, "nothing has gone out since, so the word is still the current one"
     end
   end
 
-  test "today's word locks once someone claims it" do
-    assert @today.word_changeable?
-    @today.claim_by(@participant)
-    assert_not @today.reload.word_changeable?
+  test "a word that has gone out is part of game history and can't change" do
+    assert_not @today.word_changeable?
     unused = Word.system.where.not(id: @game.game_words.select(:word_id)).first
     assert_raises(DailyCall::WordLocked) { @today.replace_word(unused) }
   end
 
-  test "replacing a future word updates every board in place" do
+  test "replacing a queued word updates every board in place" do
     board = @participant.board_for(@game)
-    tomorrow = @game.call_for(@publication.local_date + 1)
-    ensure_on_card(board, tomorrow)
+    queued = @game.next_call
+    ensure_on_card(board, queued)
     unused = Word.system.where.not(id: @game.game_words.select(:word_id)).first
-    tomorrow.replace_word(unused)
-    assert_equal unused.label, board.reload.square_for(tomorrow.reload.game_word).label
+    queued.replace_word(unused)
+    assert_equal unused.label, board.reload.square_for(queued.reload.game_word).label
   end
 
   test "external links only allow http and https" do

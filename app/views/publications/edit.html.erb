@@ -14,31 +14,30 @@
   <button type="button" class="active" data-tabs-target="tab" data-pane="connect" data-action="tabs#select">Connect</button>
   <button type="button" data-tabs-target="tab" data-pane="branding" data-action="tabs#select">Branding</button>
   <button type="button" data-tabs-target="tab" data-pane="general" data-action="tabs#select">General</button>
-  <button type="button" data-tabs-target="tab" data-pane="billing" data-action="tabs#select">Billing</button>
 </div>
 
 <div data-tabs-target="pane" data-pane="connect">
-  <div class="card steps" data-controller="platform cadence clipboard">
+  <div class="card steps" data-controller="platform clipboard">
     <div class="step">
       <div class="step-head"><span class="step-no">1</span><h2>Where do you send from?</h2></div>
       <div class="step-body">
         <p class="hint" style="margin: 0 0 .6rem;" data-platform-target="hint">Pick your platform and the merge tags below fill themselves in.</p>
         <div class="platform-chips">
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
-            data-email="{{email}}" data-campaign="{{campaign_id}}" data-cadence="issues"
+            data-email="{{email}}" data-campaign="{{campaign_id}}"
             data-hint="beehiiv supports campaign tags, so your merge tags are filled in below.">beehiiv</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
-            data-email="*|EMAIL|*" data-campaign="*|CAMPAIGN_UID|*" data-cadence="issues"
+            data-email="*|EMAIL|*" data-campaign="*|CAMPAIGN_UID|*"
             data-hint="Mailchimp supports campaign tags, so your merge tags are filled in below.">Mailchimp</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
-            data-email="{{ subscriber.email_address }}" data-campaign="{{ broadcast.id }}" data-cadence="issues"
+            data-email="{{ subscriber.email_address }}" data-campaign="{{ broadcast.id }}"
             data-hint="Kit supports campaign tags, so your merge tags are filled in below.">Kit</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
-            data-email="{{email}}" data-cadence="calendar"
-            data-hint="Substack has no campaign-id tag, so words go out on a fixed schedule instead.">Substack</button>
+            data-email="{{email}}" data-campaign=""
+            data-hint="Substack has no campaign-id tag, so a new word goes out with each send, detected automatically.">Substack</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
-            data-email="{{ subscriber.email }}" data-cadence="calendar"
-            data-hint="Ghost has no campaign-id tag, so words go out on a fixed schedule instead.">Ghost</button>
+            data-email="{{ subscriber.email }}" data-campaign=""
+            data-hint="Ghost has no campaign-id tag, so a new word goes out with each send, detected automatically.">Ghost</button>
           <button type="button" class="platform-chip" data-platform-target="chip" data-action="platform#choose"
             data-hint="Paste the merge tags your platform documents for subscriber email and campaign id.">Other</button>
         </div>
@@ -48,49 +47,25 @@
     <%= form_with model: @publication, url: account_publication_path(id: @publication.id), method: :patch, id: "connect-form" do |form| %>
       <%= hidden_field_tag :pane, "connect" %>
       <div class="step">
-        <div class="step-head"><span class="step-no">2</span><h2>When words go live</h2></div>
+        <div class="step-head"><span class="step-no">2</span><h2>Your game format</h2></div>
         <div class="step-body">
           <p class="hint" style="margin: 0 0 .6rem;">Each card gets a random hand of the game&rsquo;s words, so not every
             word lands on every card. Takes effect with your next game; a game in progress never changes shape.</p>
           <div class="choice-cards">
             <label class="choice-card">
-              <%= form.radio_button :cadence, "issues", data: { cadence_target: "choice", action: "cadence#update" } %>
+              <%= form.radio_button :board_size, 5 %>
               <span class="choice-card-body">
-                <span class="choice-card-title">Match my sends</span>
-                <span class="choice-card-hint">Every issue you send reveals the next word: daily, weekly,
-                  or whenever inspiration strikes.</span>
+                <span class="choice-card-title">Classic</span>
+                <span class="choice-card-hint">5×5 card · 30 words, so 30 sends. The full arc.</span>
               </span>
             </label>
             <label class="choice-card">
-              <%= form.radio_button :cadence, "calendar", data: { cadence_target: "choice", action: "cadence#update" } %>
+              <%= form.radio_button :board_size, 3 %>
               <span class="choice-card-body">
-                <span class="choice-card-title">On a fixed schedule</span>
-                <span class="choice-card-hint">The word changes on the days you pick and is printed
-                  right in the email.</span>
+                <span class="choice-card-title">Quick</span>
+                <span class="choice-card-hint">3×3 card · 12 words, so 12 sends. A tighter arc.</span>
               </span>
             </label>
-          </div>
-
-          <div class="field" style="margin-top: 1rem;">
-            <label>Game format</label>
-            <div class="choice-cards">
-              <label class="choice-card">
-                <%= form.radio_button :board_size, 5 %>
-                <span class="choice-card-body">
-                  <span class="choice-card-title">Classic</span>
-                  <span class="choice-card-hint">5×5 card · 30-word game. The full arc,
-                    made for daily or near-daily sends.</span>
-                </span>
-              </label>
-              <label class="choice-card">
-                <%= form.radio_button :board_size, 3 %>
-                <span class="choice-card-body">
-                  <span class="choice-card-title">Quick</span>
-                  <span class="choice-card-hint">3×3 card · 12-word game. A tighter arc,
-                    made for weekly-ish sends.</span>
-                </span>
-              </label>
-            </div>
           </div>
 
           <div class="field" style="margin-top: 1rem;">
@@ -100,25 +75,11 @@
               If this is wrong, readers' claim links won't work.</div>
           </div>
 
-          <div class="field" data-cadence-target="panel" data-cadence="issues" <%= "hidden" unless @publication.issue_cadence? %>>
+          <div class="field">
             <%= form.label :campaign_merge_tag, "Campaign id tag" %>
             <%= form.text_field :campaign_merge_tag, data: { platform_target: "campaignTag" } %>
-            <div class="hint">How Newsletter Bingo notices a new issue went out and reveals the next word.</div>
-          </div>
-
-          <div class="field" data-cadence-target="panel" data-cadence="calendar" <%= "hidden" unless @publication.calendar_cadence? %>>
-            <label>Send days</label>
-            <% wdays = @publication.sending_wdays %>
-            <div class="day-pills">
-              <% Date::ABBR_DAYNAMES.each_with_index do |day_name, wday| %>
-                <label class="day-pill">
-                  <%= check_box_tag "publication[send_days][]", wday, wdays.include?(wday), id: "send_day_#{wday}" %>
-                  <%= day_name %>
-                </label>
-              <% end %>
-            </div>
-            <%= hidden_field_tag "publication[send_days][]", "" %>
-            <div class="hint">Words land only on these days, starting with the next game you launch.</div>
+            <div class="hint">How Newsletter Bingo notices a new issue went out. Leave it blank if your
+              platform has no campaign id: we&rsquo;ll detect new sends automatically.</div>
           </div>
 
           <div class="save-row">
@@ -136,8 +97,7 @@
           <div class="embed-aside">
             <p class="small" style="margin: 0 0 .25rem;">Paste it once, near the bottom of your email. It never changes.</p>
             <p class="hint" style="margin: 0 0 .8rem;">Plain email-safe tables, no JavaScript. Each subscriber
-              gets a personalized claim link<% unless @publication.issue_cadence? %>, and today's word is drawn
-              in automatically while a game is running<% end %>.</p>
+              gets a personalized claim link.</p>
             <button type="button" class="link-button with-icon" data-action="clipboard#copy">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                 <rect x="5.5" y="5.5" width="9" height="9" rx="1.5"/>
@@ -240,10 +200,10 @@
         <b><%= @publication.active? ? "Publication live" : "Publication paused" %></b>
         <p class="muted small" style="margin: .15rem 0 0;">
           <% if @publication.active? %>
-            Turn off to pause everything readers see: claim links, boards, and the word
-            image go dark, and games stop rotating until you turn it back on.
+            Turn off to pause everything readers see: claim links and boards go dark,
+            and games stop rotating until you turn it back on.
           <% else %>
-            Claim links, boards, and the word image are dark, and games aren't rotating.
+            Claim links and boards are dark, and games aren't rotating.
             Turn back on to resume.
           <% end %>
         </p>
@@ -261,29 +221,4 @@
   </div>
 </div>
 
-<div data-tabs-target="pane" data-pane="billing" hidden>
-  <div class="card">
-    <% if @publication.complimentary? %>
-      <b>On the house <span class="badge badge-green">Complimentary</span></b>
-      <p class="muted small" style="margin: .35rem 0 0;">This publication runs free of charge. No card needed.</p>
-    <% else %>
-      <b>Billing</b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">
-        <% case Current.account.billing_state when :active %>
-          <% if Current.account.trialing? %>
-            Free trial — your first charge is <%= Current.account.subscription_current_period_end&.strftime("%B %-d, %Y") %>.
-          <% else %>
-            Active — $<%= Current.account.monthly_price %>/month<% if Current.account.subscription_current_period_end %>,
-            renews <%= Current.account.subscription_current_period_end.strftime("%B %-d, %Y") %><% end %>.
-          <% end %>
-        <% when :payment_problem %>
-          Payment problem — update your card to keep games rotating.
-        <% else %>
-          Inactive — games won't rotate until your subscription starts.
-        <% end %>
-      </p>
-      <%= link_to "Manage billing", account_billing_path, class: "btn" %>
-    <% end %>
-  </div>
-</div>
 </div>

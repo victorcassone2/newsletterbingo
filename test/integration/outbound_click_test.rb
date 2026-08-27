@@ -3,8 +3,9 @@ require "test_helper"
 class OutboundClickTest < ActionDispatch::IntegrationTest
   setup do
     @publication = publications(:omaha)
-    @game = create_running_game(@publication)
-    @call = @game.call_for(@publication.local_date)
+    # Nothing has gone out yet: the claim below is the send that draws it.
+    @game = create_running_game(@publication, issued: 0)
+    @call = @game.daily_calls.first
     @call.update!(description: "Market", link_url: "https://example.com/market", link_text: "Details")
   end
 
@@ -22,12 +23,12 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
   end
 
   test "an unclaimed call's link stays locked" do
-    tomorrow = @game.call_for(@publication.local_date + 1)
-    tomorrow.update!(link_url: "https://example.com/future", link_text: "Future")
+    queued = @game.daily_calls.second
+    queued.update!(link_url: "https://example.com/future", link_text: "Future")
     get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
-    get call_outbound_path(@publication.public_code, tomorrow.id)
+    get call_outbound_path(@publication.public_code, queued.id)
     assert_redirected_to board_path(@publication.public_code)
-    assert_equal 0, tomorrow.reload.link_clicks_count
+    assert_equal 0, queued.reload.link_clicks_count
   end
 
   test "the destination is never taken from request params" do
@@ -55,7 +56,7 @@ class OutboundClickTest < ActionDispatch::IntegrationTest
 
   test "another publication's call is not reachable" do
     rival_game = create_running_game(publications(:rival))
-    rival_call = rival_game.call_for(publications(:rival).local_date)
+    rival_call = rival_game.current_call
     rival_call.update!(link_url: "https://example.com/rival", link_text: "X")
 
     get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")

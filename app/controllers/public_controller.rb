@@ -10,7 +10,7 @@ class PublicController < ApplicationController
 
   private
     def set_publication
-      @publication = Publication.active.find_by(public_code: params[:public_code])
+      @publication = Publication.playable.find_by(public_code: params[:public_code])
       render_unavailable("This bingo game isn't available right now.") if @publication.nil?
     end
 

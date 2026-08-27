@@ -63,7 +63,7 @@ class TenancyTest < ActionDispatch::IntegrationTest
     lincoln_reader = Participant.locate_or_register(publications(:lincoln), "reader@example.com")
 
     omaha_game = create_running_game(@omaha)
-    omaha_game.call_for(@omaha.local_date).claim_by(omaha_reader)
+    omaha_game.current_call.claim_by(omaha_reader)
 
     assert_equal 1, omaha_reader.daily_claims.count
     assert_equal 0, lincoln_reader.daily_claims.count

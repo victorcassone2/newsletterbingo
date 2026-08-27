@@ -14,6 +14,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Your first game", response.body
     assert_match "Launch game", response.body
+    assert_select "a", { text: "Edit game", count: 0 }, "a draft has no dates left to edit"
     assert_select "ul.schedule li", @publication.pool_size
 
     game = @publication.on_deck_game
@@ -27,7 +28,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
 
     get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
-    assert_match game.call_for(@publication.local_date).label, response.body
+    assert_match game.current_call.label, response.body
     assert_match game.next_call.label, response.body
     assert_select "ul.schedule li", game.pool_size
     assert_select ".tabs a", text: "Next game"
@@ -43,7 +44,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
   end
 
   test "the schedule collapses all but the last two previous words" do
-    create_running_game(@publication, starts_on: @publication.local_date - 10) # today is Day 11
+    create_running_game(@publication, starts_on: @publication.local_date - 10) # word 11 is current
 
     get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
@@ -88,7 +89,7 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     get edit_account_publication_game_call_path(account_id: @account_id,
       publication_id: @publication.id, game_id: game.id, id: call.id)
     assert_response :success
-    assert_match "Call content", response.body
+    assert_match "Extra call content", response.body
     assert_match replacement.label, response.body
 
     patch account_publication_game_call_path(account_id: @account_id,
@@ -221,5 +222,8 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_match "Branding", response.body
     assert_match @publication.public_code, response.body
     assert_select ".preview-grid .preview-square", 25
+    assert_select "input[name=?]", "publication[campaign_merge_tag]"
+    assert_select ".field[hidden]", count: 0, message: "the campaign tag field is always on screen now"
+    assert_no_match(/send_days/, response.body)
   end
 end

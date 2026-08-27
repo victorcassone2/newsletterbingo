@@ -1,0 +1,50 @@
+<%# One publication as a line on the bill: what it costs, what's happening to
+    it, and the one button that changes that. %>
+<li>
+  <div>
+    <%= publication.name %>
+    <% if publication.closed? %>
+      <span class="badge badge-gray">Cancelled</span>
+    <% elsif publication.canceled? %>
+      <span class="badge badge-amber">Cancelling</span>
+    <% elsif publication.complimentary? %>
+      <span class="badge badge-green">Free</span>
+    <% end %>
+    <div class="small muted">
+      <% if publication.closed? %>
+        Cancelled <%= publication.closes_on.strftime("%B %-d, %Y") %>.
+        Its claim links and boards are dark.
+      <% elsif publication.canceled? %>
+        Off your next bill. Readers keep playing until <%= publication.closes_on.strftime("%B %-d") %>,
+        then it goes dark.
+      <% elsif publication.complimentary? %>
+        Complimentary: this one isn't billed.
+      <% elsif current_account.cancel_scheduled? %>
+        Subscription ends on <%= current_account.subscription_current_period_end&.strftime("%B %-d") %>.
+      <% else %>
+        $<%= Account::PRICE_PER_PUBLICATION %>/month
+      <% end %>
+    </div>
+  </div>
+  <% if publication.canceled? %>
+    <%= button_to (publication.closed? ? "Restore" : "Keep it"),
+          account_publication_closure_path(publication_id: publication.id),
+          method: :delete, params: { page: page_number }, class: "btn btn-small",
+          data: { turbo_confirm: restoration_confirmation(publication) } %>
+  <% elsif publication.closable? %>
+    <%= button_to "Cancel", account_publication_closure_path(publication_id: publication.id),
+          params: { page: page_number }, class: "btn btn-quiet btn-small",
+          data: { turbo_confirm: cancellation_confirmation(publication) } %>
+  <% elsif current_account.cancel_scheduled? %>
+    <%# The subscription is already ending, so the only move left on this row
+        is calling that off. %>
+    <%= button_to "Keep it", account_billing_subscription_cancellation_path,
+          method: :delete, class: "btn btn-small" %>
+  <% elsif current_account.subscribed? %>
+    <%# The last publication the subscription pays for can't come off it
+        alone, so this row offers the only cancellation left to make. %>
+    <%= button_to "Cancel subscription", account_billing_subscription_cancellation_path,
+          class: "btn btn-quiet btn-small",
+          data: { turbo_confirm: subscription_cancellation_confirmation(publication) } %>
+  <% end %>
+</li>

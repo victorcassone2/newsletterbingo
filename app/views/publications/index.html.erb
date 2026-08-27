@@ -10,12 +10,22 @@
         <li>
           <div>
             <%= link_to publication.name, account_publication_today_path(publication_id: publication.id) %>
-            <% unless publication.active? %><span class="badge badge-gray">Paused</span><% end %>
-            <% unless publication.billing_active? %>
-              <span class="badge badge-amber">Needs billing</span>
+            <% if publication.closed? %>
+              <span class="badge badge-gray">Cancelled</span>
+            <% elsif publication.canceled? %>
+              <span class="badge badge-amber">Cancelling</span>
+            <% else %>
+              <% unless publication.active? %><span class="badge badge-gray">Paused</span><% end %>
+              <% unless publication.billing_active? %>
+                <span class="badge badge-amber">Needs billing</span>
+              <% end %>
             <% end %>
             <div class="small muted">
-              <% if (game = publication.games.active.first) %>
+              <% if publication.closed? %>
+                Cancelled. Restore it from Billing.
+              <% elsif publication.canceled? %>
+                Runs until <%= publication.closes_on.strftime("%B %-d") %>
+              <% elsif (game = publication.games.active.first) %>
                 Word <%= game.days_elapsed %> of <%= game.pool_size %>
               <% else %>
                 No game running

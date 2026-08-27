@@ -67,14 +67,9 @@ class ClaimsController < PublicController
       if token.present? && !Issue.plausible_token?(token)
         "That link couldn't prove it came from the current email, so nothing was claimed. If this keeps happening, reply to the newsletter so they can fix their bingo link."
       elsif game.current_call
-        source = @publication.issue_cadence? ? "latest newsletter" : "current email"
-        "This link is from an earlier email, so nothing was claimed. The word can only be claimed from the bingo button in the #{source}."
-      elsif @publication.issue_cadence?
-        "The game starts with the next newsletter. Watch your inbox!"
-      elsif !game.started?
-        "This game starts #{game.starts_on.strftime("%B %-d")}. Come back on Day 1!"
+        "This link is from an earlier email, so nothing was claimed. The word can only be claimed from the bingo button in the latest newsletter."
       else
-        "There's no bingo word today. Check back tomorrow!"
+        "The game starts with the next newsletter. Watch your inbox!"
       end
     end
 

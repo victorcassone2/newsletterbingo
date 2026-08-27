@@ -26,7 +26,7 @@
 <% elsif @celebrate == "blackout" %>
   <div class="celebration blackout">
     <h2>BLACKOUT!</h2>
-    <p>Every single day, claimed. Incredible.</p>
+    <p>Every single word, claimed. Incredible.</p>
     <% if @blackout_prize&.enabled? %>
       <p>You won: <strong><%= @blackout_prize.name %></strong></p>
       <% if @blackout_prize.image.attached? %>
@@ -69,10 +69,12 @@
       </div>
 
       <% if @claimed_today %>
-        <% if @todays_call.prize_call? && @todays_call.prize_description.present? || @todays_call.description.present? || @todays_call.link? %>
+        <% if @todays_call.prize_description.present? || @todays_call.description.present? || @todays_call.link? %>
           <div class="receipt-story">
-            <% if @todays_call.prize_call? && @todays_call.prize_description.present? %>
-              <p class="today-desc">🎁 <%= @todays_call.prize_description %></p>
+            <%# The title stands on its own, so a sponsor can back a call
+                without giving anything away. The gift belongs to prize calls. %>
+            <% if @todays_call.prize_description.present? %>
+              <p class="today-desc"><% if @todays_call.prize_call? %>🎁 <% end %><%= @todays_call.prize_description %></p>
             <% end %>
             <% if @todays_call.description.present? %>
               <p class="today-desc"><%= @todays_call.description %></p>
@@ -140,8 +142,8 @@
             <div class="square-detail" hidden data-board-target="detail" data-square-key="<%= square.position %>">
               <h3><%= square.label %> <% if call&.prize_call? %>🎁<% end %></h3>
               <% if call %>
-                <p class="small muted"><%= @publication.call_unit.capitalize %> <%= call.position %><% if call.issued? %> · called <%= call.call_on.strftime("%B %-d") %><% end %></p>
-                <% if call.prize_call? && call.prize_description.present? %>
+                <p class="small muted">Word <%= call.position %><% if call.issued? %> · called <%= call.call_on.strftime("%B %-d") %><% end %></p>
+                <% if call.prize_description.present? %>
                   <p><%= call.prize_description %></p>
                 <% end %>
                 <% if call.description.present? %><p><%= call.description %></p><% end %>
@@ -193,7 +195,7 @@
         <p>A new word drops with every <%= @publication.name %> email. Tap the bingo link in the email to claim
           its square. It&rsquo;s the only way to fill your card.</p>
         <p>Your card holds <%= @game.board_cells %> of the game&rsquo;s <%= @game.pool_size %> words, dealt
-          just for you, so some days the word won&rsquo;t be on your card. Claiming still counts: every
+          just for you, so some sends the word won&rsquo;t be on your card. Claiming still counts: every
           word lands on someone&rsquo;s.</p>
         <p><%= @game.board_size %> claimed squares in a row (across, down, or diagonal) is a <strong>bingo</strong>.
           Claim every word on your card for a <strong>blackout</strong>. The center square is free.</p>

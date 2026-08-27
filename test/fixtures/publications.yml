@@ -4,18 +4,15 @@ omaha:
   public_code: pub_omaha_test_code_1234
   timezone: America/Chicago
   email_merge_tag: "{{email}}"
-  cadence: calendar
 
 lincoln:
   account: publisher
   name: Lincoln Daily
   public_code: pub_lincoln_test_code_12
   timezone: America/Chicago
-  cadence: calendar
 
 rival:
   account: rival
   name: Rival Weekly
   public_code: pub_rival_test_code_1234
   timezone: America/New_York
-  cadence: calendar

@@ -11,15 +11,13 @@ class DailyCall < ApplicationRecord
   scope :chronological, -> { order(:position) }
 
   validates :position, presence: true, uniqueness: { scope: :game_id }
-  validates :call_on, uniqueness: { scope: :game_id },
-    if: -> { call_on.present? && game&.calendar_cadence? }
   validates :link_url, http_url: true
   validates :link_text, presence: true, if: -> { link_url.present? }
   validates :prize_description, presence: true, if: :prize_call?
 
   delegate :label, to: :game_word
 
-  # Issue-cadence calls get their date the moment their newsletter goes out.
+  # A call gets its date the moment its newsletter goes out.
   def issued?
     call_on.present?
   end
@@ -30,11 +28,7 @@ class DailyCall < ApplicationRecord
 
   # The one call readers can claim right now.
   def current?
-    if game.issue_cadence?
-      issued? && self == game.current_call
-    else
-      call_on == publication.local_date
-    end
+    issued? && self == game.current_call
   end
 
   # A call is "called" once its date has arrived (or its issue went out).
@@ -46,8 +40,8 @@ class DailyCall < ApplicationRecord
     call_on == date
   end
 
-  def upcoming?(date = publication.local_date)
-    !issued? || call_on > date
+  def upcoming?
+    !issued?
   end
 
   def day_number
@@ -63,13 +57,7 @@ class DailyCall < ApplicationRecord
   # Once a word is out (called, claimed, or sent with an issue) it keeps
   # its place in game history. Draft calls are always still on the table.
   def word_changeable?
-    if game.draft?
-      true
-    elsif game.issue_cadence?
-      !issued?
-    else
-      call_on >= publication.local_date && daily_claims.none?
-    end
+    game.draft? || !issued?
   end
 
   # Moves this call's word to another slot in the upcoming schedule; the

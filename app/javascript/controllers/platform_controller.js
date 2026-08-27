@@ -1,7 +1,9 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Platform chips prefill the merge tags and pick the cadence that fits,
-// so publishers never transcribe tag syntax from their platform's docs.
+// Platform chips prefill the merge tags, so publishers never transcribe
+// tag syntax from their platform's docs. A chip for a platform with no
+// campaign id carries an empty data-campaign, which clears the field:
+// blank is what tells us to infer sends instead of proving them.
 export default class extends Controller {
   static targets = [ "chip", "emailTag", "campaignTag", "hint" ]
 
@@ -11,15 +13,6 @@ export default class extends Controller {
     this.hintTarget.textContent = chip.dataset.hint
 
     if (chip.dataset.email) this.emailTagTarget.value = chip.dataset.email
-    if (chip.dataset.campaign) this.campaignTagTarget.value = chip.dataset.campaign
-    if (chip.dataset.cadence) this.setCadence(chip.dataset.cadence)
-  }
-
-  setCadence(value) {
-    const radio = this.element.querySelector(`input[name="publication[cadence]"][value="${value}"]`)
-    if (!radio || radio.checked) return
-    radio.checked = true
-    radio.dispatchEvent(new Event("input", { bubbles: true }))
-    radio.dispatchEvent(new Event("change", { bubbles: true }))
+    if ("campaign" in chip.dataset) this.campaignTagTarget.value = chip.dataset.campaign
   }
 }

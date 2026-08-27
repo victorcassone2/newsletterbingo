@@ -3,7 +3,7 @@ class Account::SyncSubscriptionQuantityJob < ApplicationJob
   # destroys its publications, each of which enqueues one of these).
   discard_on ActiveRecord::RecordNotFound
 
-  def perform(account)
-    account.sync_subscription_quantity!
+  def perform(account, prorate = true)
+    account.sync_subscription_quantity!(prorate: prorate)
   end
 end

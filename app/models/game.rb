@@ -4,8 +4,8 @@ class Game < ApplicationRecord
   # pool word gets called, but each card holds only board_cells of them,
   # so some calls miss some cards. That's what makes it bingo.
   FORMATS = { 5 => 30, 3 => 12 }
-  # Issue cadence: minimum gap between word advances, and how long the
-  # final word stays claimable before the game completes.
+  # Minimum gap between word advances, and how long the final word stays
+  # claimable before the game completes.
   ISSUE_INTERVAL_FLOOR = 12.hours
   LAST_ISSUE_OPEN_FOR = 7 # days
 
@@ -33,8 +33,6 @@ class Game < ApplicationRecord
 
   before_validation :assign_format, on: :create
   before_validation :align_ends_on
-
-  delegate :issue_cadence?, :calendar_cadence?, to: :publication
 
   # Picks `count` words for a new game: the publication's own words
   # first, topped up with system words, in random order. Custom words win
@@ -92,11 +90,9 @@ class Game < ApplicationRecord
       avoiding: publication.recent_word_ids))
   end
 
-  # Launching fixes the draft's call order as the calling order. Calendar
-  # games get their 24 dates up front (on the publication's send days);
-  # issue games date each call when its newsletter actually goes out. A
-  # draft can sit on deck long past its estimated start, so dates are
-  # clamped to begin no earlier than today.
+  # Launching fixes the draft's call order as the calling order. Every call
+  # gets its date when its newsletter actually goes out, so the span the
+  # game carries from here is only an estimate.
   def launch
     transaction do
       # Row-lock and re-check status so concurrent launches serialize;
@@ -107,13 +103,7 @@ class Game < ApplicationRecord
 
       update!(status: "active")
       ensure_calls_drafted
-      if calendar_cadence?
-        dates = scheduled_dates(from: [ starts_on, publication.local_date ].max)
-        daily_calls.reload.each_with_index { |call, index| call.update!(call_on: dates[index]) }
-        update!(starts_on: dates.first, ends_on: dates.last)
-      else
-        update!(starts_on: publication.local_date, ends_on: publication.local_date + pool_size - 1)
-      end
+      update!(starts_on: publication.local_date, ends_on: publication.local_date + pool_size - 1)
     end
   end
 
@@ -121,71 +111,27 @@ class Game < ApplicationRecord
     update!(status: "completed") if active?
   end
 
-  # Adapts an in-flight game when the publication switches cadence. Words
-  # that already went out keep their dates; the rest go back to the
-  # unissued queue (issues) or onto upcoming send days (calendar).
-  def reschedule_for_cadence
-    return unless active?
-
-    if issue_cadence?
-      daily_calls.where(call_on: (publication.local_date + 1)..).update_all(call_on: nil)
-    else
-      transaction do
-        pending = daily_calls.where(call_on: nil).to_a
-        scheduled_dates(from: publication.local_date + 1, count: pending.size).each_with_index do |date, index|
-          pending[index].update!(call_on: date)
-        end
-        update!(starts_on: daily_calls.minimum(:call_on), ends_on: daily_calls.maximum(:call_on))
-      end
-    end
-  end
-
-  # The one claimable call right now: today's scheduled word (calendar)
-  # or the most recently issued word (issues).
+  # The one claimable call right now: the most recently issued word.
   def current_call
-    if issue_cadence?
-      issued_calls.last
-    else
-      call_for(publication.local_date)
-    end
+    issued_calls.last
   end
 
-  # The word queued to go out after the current one: next in the unissued
-  # queue (issues) or the next dated call (calendar). Nil once the last
-  # word is out.
+  # The word queued to go out with the next send. Nil once the last word
+  # is out.
   def next_call
-    if issue_cadence?
-      daily_calls.find_by(call_on: nil)
-    else
-      daily_calls.where(call_on: (publication.local_date + 1)..).first
-    end
+    daily_calls.find_by(call_on: nil)
   end
 
-  # Resolves the call a claim link's token authorizes, or nil when the
-  # token doesn't prove possession of the current send. The token gate
-  # is what separates playing from viewing: a bookmarked or stale link
-  # still opens the board, but only the current email's button claims.
-  # Issue cadence advances to the next word on a new token; calendar
-  # keeps the date-driven word and only records the token as freshness
-  # proof. Tokens already recorded on an earlier call or game are stale.
+  # Resolves the call a claim link's token authorizes. A publication whose
+  # platform stamps a campaign id per send can prove the click came from
+  # the current email; one without a tag can only infer the send from how
+  # long it has been quiet.
   def claimable_call_for(token)
-    token = token.to_s.strip
-    return nil unless Issue.plausible_token?(token)
-
-    issue = issues.find_by(token: token)
-    if issue
-      issue.daily_call if issue.daily_call == current_call
-    elsif publication.issued_call_for(token)
-      nil # an older send's token resolves to history, never a new claim
-    elsif issue_cadence?
-      advance_to_next_word(token)
+    if publication.campaign_tagged?
+      claimable_by_token(token.to_s.strip)
     else
-      register_todays_send(token)
+      claimable_by_interval
     end
-  rescue ActiveRecord::RecordNotUnique
-    # Lost a same-token race: the winner recorded it, so resolve theirs.
-    issue = issues.find_by(token: token)
-    issue.daily_call if issue && issue.daily_call == current_call
   end
 
   def issued_calls
@@ -193,35 +139,22 @@ class Game < ApplicationRecord
   end
 
   def over?(date = publication.local_date)
-    if issue_cadence?
-      last_issued = issued_calls.last
-      daily_calls.any? && daily_calls.where(call_on: nil).none? &&
-        last_issued.call_on < date - LAST_ISSUE_OPEN_FOR
-    else
-      date > ends_on
-    end
+    last_issued = issued_calls.last
+    daily_calls.any? && daily_calls.where(call_on: nil).none? &&
+      last_issued.call_on < date - LAST_ISSUE_OPEN_FOR
   end
 
-  def started?(date = publication.local_date)
-    if issue_cadence?
-      issued_calls.exists?
-    else
-      date >= starts_on
-    end
+  def started?
+    issued_calls.exists?
   end
 
   def in_window?(date)
     date.between?(starts_on, ends_on)
   end
 
-  # Position of the current word: the call on the given date (calendar)
-  # or the latest issued call. Nil before the game produces one.
-  def day_number(date = publication.local_date)
-    if issue_cadence?
-      issued_calls.last&.position
-    else
-      call_for(date)&.position
-    end
+  # Position of the latest issued word. Nil before the game produces one.
+  def day_number
+    issued_calls.last&.position
   end
 
   def days_elapsed(date = publication.local_date)
@@ -253,8 +186,9 @@ class Game < ApplicationRecord
       self.pool_size ||= FORMATS[board_size]
     end
 
-    # Drafts carry an estimated end date; launch replaces it with the real
-    # schedule's last day, which later saves must not clobber.
+    # Drafts carry an estimated end date off their estimated start; launch
+    # re-estimates it from the real launch day, which later saves must not
+    # clobber. Only the words going out settle the real span.
     def align_ends_on
       self.ends_on = starts_on + (pool_size - 1) if starts_on.present? && pool_size.present? && draft?
     end
@@ -268,17 +202,37 @@ class Game < ApplicationRecord
       game_words.each { |game_word| daily_calls.create!(game_word: game_word, position: game_word.position) }
     end
 
-    # The next `count` dates on the publication's send days, starting no
-    # earlier than `from`.
-    def scheduled_dates(from: starts_on, count: pool_size)
-      wdays = publication.sending_wdays
-      dates = []
-      date = from
-      while dates.size < count
-        dates << date if wdays.include?(date.wday)
-        date += 1
+    # The token gate is what separates playing from viewing: a bookmarked
+    # or stale link still opens the board, but only the current email's
+    # button claims. The first sight of an unseen token advances the game.
+    # Tokens already recorded on an earlier call or game are stale.
+    def claimable_by_token(token)
+      return nil unless Issue.plausible_token?(token)
+
+      issue = issues.find_by(token: token)
+      if issue
+        issue.daily_call if issue.daily_call == current_call
+      elsif publication.issued_call_for(token)
+        nil # an older send's token resolves to history, never a new claim
+      else
+        advance_to_next_word(token)
       end
-      dates
+    rescue ActiveRecord::RecordNotUnique
+      # Lost a same-token race: the winner recorded it, so resolve theirs.
+      issue = issues.find_by(token: token)
+      issue.daily_call if issue && issue.daily_call == current_call
+    end
+
+    # Without a campaign id, a send is inferred rather than proven: the
+    # first click after the interval floor draws the next word. Every later
+    # click in that send resolves to the same word and claims it, so
+    # readers who open hours later still play.
+    def claimable_by_interval
+      if issue_floor_elapsed?
+        advance_to_next_word(SecureRandom.uuid) || current_call
+      else
+        current_call
+      end
     end
 
     def issue_floor_elapsed?
@@ -317,18 +271,6 @@ class Game < ApplicationRecord
       successor = publication.active_game
       if successor && successor != self
         successor.claimable_call_for(token)
-      end
-    end
-
-    # Calendar words are date-driven, so an unseen plausible token just
-    # proves the click came from a fresh send and maps to today's word.
-    # A day can carry several sends (test send, resend); each token is
-    # recorded so its links go stale once the day passes.
-    def register_todays_send(token)
-      call = call_for(publication.local_date)
-      if call
-        issues.create!(token: token, daily_call: call, called_on: call.call_on)
-        call
       end
     end
 end

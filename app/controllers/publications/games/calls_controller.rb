@@ -22,7 +22,7 @@ class Publications::Games::CallsController < Publications::Games::BaseController
     end
 
     def latest_issue
-      @game.issues.order(:created_at).last if @publication.issue_cadence?
+      @game.issues.order(:created_at).last
     end
 
     def call_params

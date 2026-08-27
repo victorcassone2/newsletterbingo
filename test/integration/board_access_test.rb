@@ -85,8 +85,7 @@ class BoardAccessTest < ActionDispatch::IntegrationTest
 
   test "a finished game's board stays visible until the reader joins the new game" do
     get claim_path(@publication.public_code, email: "me@example.com", issue: "send-1")
-    @game.update_columns(starts_on: @publication.local_date - 30, ends_on: @publication.local_date - 7)
-    @game.daily_calls.update_all("call_on = call_on - 27")
+    age_out_game(@game)
 
     get board_path(@publication.public_code)
     assert_response :success

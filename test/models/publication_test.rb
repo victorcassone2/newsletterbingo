@@ -36,16 +36,6 @@ class PublicationTest < ActiveSupport::TestCase
     assert_equal "#2a2118", publication.text_color
   end
 
-  test "the call unit follows the cadence" do
-    publication = publications(:omaha)
-
-    publication.cadence = "calendar"
-    assert_equal "day", publication.call_unit
-
-    publication.cadence = "issues"
-    assert_equal "word", publication.call_unit
-  end
-
   test "timezone must be recognized" do
     publication = publications(:omaha)
     publication.timezone = "Mars/Olympus"
@@ -128,8 +118,7 @@ class PublicationTest < ActiveSupport::TestCase
 
   test "an over game rolls straight into its successor, clamped to today" do
     publication = publications(:omaha)
-    game = create_running_game(publication)
-    game.update_columns(starts_on: publication.local_date - 40, ends_on: publication.local_date - 17)
+    game = age_out_game(create_running_game(publication))
 
     publication.rotate_games
 
@@ -141,26 +130,24 @@ class PublicationTest < ActiveSupport::TestCase
     assert publication.on_deck_game.present?
   end
 
-  test "a pre-staged draft launches on schedule when the game ends on time" do
+  test "a pre-staged draft launches the moment the current game runs out" do
     publication = publications(:omaha)
     game = create_running_game(publication)
     on_deck = create_on_deck_draft(publication)
 
-    travel_to local_noon(publication, game.ends_on + 1) do
-      publication.rotate_games
-    end
+    age_out_game(game)
+    publication.rotate_games
 
     assert game.reload.completed?
     assert on_deck.reload.active?
-    assert_equal game.ends_on + 1, on_deck.starts_on
+    assert_equal publication.local_date, on_deck.starts_on
   end
 
   test "sponsor and prizes stay on across rollover" do
     publication = publications(:omaha)
     publication.update!(sponsor_name: "Dundee Coffee")
     publication.line_prize.update!(enabled: true, name: "$25 Gift Card")
-    game = create_running_game(publication)
-    game.update_columns(starts_on: publication.local_date - 40, ends_on: publication.local_date - 17)
+    age_out_game(create_running_game(publication))
 
     publication.rotate_games
 

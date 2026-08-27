@@ -1,68 +1,90 @@
 <div class="page-head">
   <div>
     <h1>Billing</h1>
-    <p class="muted small">One subscription — $29/month for each publication you run.</p>
+    <p class="muted small">One subscription: $29/month for each publication you run.</p>
   </div>
 </div>
 
-<div class="card" style="margin-bottom: 1.25rem;">
-  <% case Current.account.billing_state when :active %>
-    <% if Current.account.cancel_scheduled? %>
-      <b>Cancellation scheduled
-        <span class="badge badge-amber">Ends <%= Current.account.subscription_current_period_end&.strftime("%b %-d, %Y") %></span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">You're paid through then and games run
-        until the clock runs out; after that the next game won't start. Changed your mind?</p>
-      <%= button_to "Keep my subscription", account_billing_subscription_cancellation_path,
-            method: :delete, class: "btn btn-primary" %>
-    <% elsif Current.account.trialing? %>
-      <b>Free trial <span class="badge badge-green">$<%= Current.account.monthly_price %>/month after</span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">
-        <%= pluralize(Current.account.billable_publications.count, "publication") %> × $29.
-        Everything is unlocked. Your first charge
-        is <%= Current.account.subscription_current_period_end&.strftime("%B %-d, %Y") %> — cancel
-        before then and you won't pay a thing.</p>
-      <%= button_to "Cancel subscription", account_billing_subscription_cancellation_path,
-            class: "btn",
-            data: { turbo_confirm: "Cancel your subscription? Games stop rotating when the trial ends." } %>
-    <% else %>
-      <b>Active <span class="badge badge-green">$<%= Current.account.monthly_price %>/month</span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">
-        <%= pluralize(Current.account.billable_publications.count, "publication") %> × $29.
-        <% if Current.account.subscription_current_period_end %>
-          Next renewal is <%= Current.account.subscription_current_period_end.strftime("%B %-d, %Y") %>.
-        <% end %>
-      </p>
-      <%= button_to "Cancel subscription", account_billing_subscription_cancellation_path,
-            class: "btn",
-            data: { turbo_confirm: "Cancel your subscription? Games stop rotating when the paid period ends." } %>
-    <% end %>
-  <% when :payment_problem %>
-    <b>Payment problem <span class="badge badge-amber">Past due</span></b>
-    <p class="muted small" style="margin: .35rem 0 .8rem;">Your last payment didn't go through.
-      Stripe is retrying your card; update it to keep your games rotating.</p>
-    <%= button_to "Update card", account_billing_portal_path, class: "btn btn-primary",
-          form: { data: { turbo: false } } %>
-  <% else %>
-    <% if Current.account.publications.none? %>
-      <b>Nothing to bill yet</b>
-      <p class="muted small" style="margin: .35rem 0 0;">Create your first publication and your
-        30-day free trial starts with it.</p>
-    <% elsif Current.account.stripe_subscription_id.present? %>
-      <b>Inactive <span class="badge badge-amber">Games won't rotate</span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">Running games finish out, but the next
-        ones won't start. Restart to keep the streak going.</p>
-      <%= button_to "Restart — $#{Current.account.monthly_price}/month",
-            account_billing_subscription_path, class: "btn btn-primary",
+<% if @page.total.positive? %>
+  <%# Only the two states the publisher has to act on get a banner of their
+      own. Everything else is a line under the list's heading, because the
+      list is the bill. %>
+  <% case Current.account.billing_state when :payment_problem %>
+    <div class="attention">
+      <span>💳 Your last payment didn't go through. Stripe is retrying your card; update it to keep your games rotating.</span>
+      <%= button_to "Update card", account_billing_portal_path, class: "btn btn-small",
             form: { data: { turbo: false } } %>
-    <% else %>
-      <b>Inactive <span class="badge badge-amber">Games won't rotate</span></b>
-      <p class="muted small" style="margin: .35rem 0 .8rem;">Start your subscription — 30 days free,
-        then $<%= Current.account.monthly_price %>/month.</p>
-      <%= button_to "Start free trial", account_billing_subscription_path, class: "btn btn-primary",
+    </div>
+  <% when :inactive %>
+    <div class="attention">
+      <span>⏳ No subscription running. Games that are live finish out, but the next ones won't start.</span>
+      <%= button_to subscription_start_label, account_billing_subscription_path, class: "btn btn-small",
             form: { data: { turbo: false } } %>
-    <% end %>
+    </div>
   <% end %>
-</div>
+
+  <%# One line per publication, because each one is a $29 unit on the single
+      subscription. Canceling one takes it off the next invoice and darkens it
+      when the paid period runs out; the rest keep running. %>
+  <div class="card" style="margin-bottom: 1.25rem;">
+    <div class="card-head">
+      <div>
+        <b>Your publications</b>
+        <p class="muted small" style="margin: .35rem 0 0;"><%= billing_summary %></p>
+      </div>
+      <% if Current.account.subscribed? %>
+        <div class="menu" data-controller="menu">
+          <button type="button" class="menu-button menu-button-plain" data-action="click->menu#toggle"
+                  aria-label="More billing options">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M6 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM14 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM22 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" />
+            </svg>
+          </button>
+          <div class="menu-panel" data-menu-target="panel" hidden>
+            <div class="menu-group">
+              <% if Current.account.cancel_scheduled? %>
+                <%= button_to "Keep my subscription", account_billing_subscription_cancellation_path,
+                      method: :delete, class: "menu-item", form: { class: "menu-form" } %>
+              <% else %>
+                <%= button_to "Cancel all subscriptions", account_billing_subscription_cancellation_path,
+                      class: "menu-item", form: { class: "menu-form" },
+                      data: { turbo_confirm: "Cancel your whole subscription? Every publication stops " \
+                        "rotating games when the paid period ends." } %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+    <ul class="list">
+      <%= render partial: "publication", collection: @page.records,
+            locals: { page_number: @page.number } %>
+    </ul>
+    <% if @page.multiple? %>
+      <div class="pagination">
+        <span class="small muted">
+          Showing <%= @page.range %> of <%= pluralize(@page.total, "publication") %>
+        </span>
+        <span class="pagination__links">
+          <% unless @page.first? %>
+            <%= link_to "Previous", account_billing_path(page: @page.previous_number),
+                  class: "btn btn-quiet btn-small" %>
+          <% end %>
+          <% unless @page.last? %>
+            <%= link_to "Next", account_billing_path(page: @page.next_number),
+                  class: "btn btn-quiet btn-small" %>
+          <% end %>
+        </span>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="card" style="margin-bottom: 1.25rem;">
+    <b>Nothing to bill yet</b>
+    <p class="muted small" style="margin: .35rem 0 0;">Create your first publication and your
+      30-day free trial starts with it.</p>
+  </div>
+<% end %>
 
 <%# Never subscribed means no invoices and nothing to manage: hide the portal
     card so starting the trial stays the page's one action. A lapsed account

@@ -46,9 +46,17 @@ module Account::Billable
     end
   end
 
-  # The publications the subscription charges for; complimentary ones ride free.
+  # The publications the subscription charges for; complimentary ones ride
+  # free and canceled ones come off the moment they're canceled, even though
+  # they keep running to the end of the period already paid for.
   def billable_publications
-    publications.where(complimentary: false)
+    publications.uncanceled.where(complimentary: false)
+  end
+
+  # The moment the current paid period runs out, and so the moment a canceled
+  # publication goes dark. Nil when nothing is paid for.
+  def paid_through
+    subscription_current_period_end if subscribed?
   end
 
   def monthly_price
@@ -103,14 +111,17 @@ module Account::Billable
     end
   end
 
-  # Re-point the subscription's quantity at the billable publication count
-  # (Stripe prorates the difference). Publications enqueue this after
-  # create/destroy/complimentary changes.
-  def sync_subscription_quantity_later
-    Account::SyncSubscriptionQuantityJob.perform_later(self)
+  # Re-point the subscription's quantity at the billable publication count.
+  # Publications enqueue this after create/destroy/complimentary changes, and
+  # closures after canceling and restoring. prorate: false leaves the current
+  # invoice alone and applies the new quantity to the next one, which is what
+  # a cancellation wants: the publication runs out the period it was paid for,
+  # so there is nothing to refund and nothing to re-charge if it comes back.
+  def sync_subscription_quantity_later(prorate: true)
+    Account::SyncSubscriptionQuantityJob.perform_later(self, prorate)
   end
 
-  def sync_subscription_quantity!
+  def sync_subscription_quantity!(prorate: true)
     return if stripe_subscription_id.blank? || !subscribed?
     quantity = billable_publications.count
     return if quantity.zero?
@@ -120,7 +131,8 @@ module Account::Billable
     if item.try(:quantity) != quantity
       updated = Payments.platform.update_subscription(
         stripe_subscription_id,
-        items: [ { id: item.id, quantity: quantity } ]
+        items: [ { id: item.id, quantity: quantity } ],
+        **proration_params(prorate)
       )
       sync_stripe_subscription!(updated)
     end
@@ -170,5 +182,11 @@ module Account::Billable
       period_end = subscription.try(:current_period_end) ||
         subscription.try(:items)&.try(:data)&.first&.try(:current_period_end)
       period_end && Time.zone.at(period_end)
+    end
+
+    # Stripe's default prorates both directions, which is right for adding a
+    # publication mid-period and wrong for canceling one.
+    def proration_params(prorate)
+      prorate ? {} : { proration_behavior: "none" }
     end
 end

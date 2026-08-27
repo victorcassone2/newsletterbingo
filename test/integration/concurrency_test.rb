@@ -8,7 +8,7 @@ class ConcurrencyTest < ActiveSupport::TestCase
   setup do
     @publication = publications(:omaha)
     @game = create_running_game(@publication)
-    @call = @game.call_for(@publication.local_date)
+    @call = @game.current_call
   end
 
   teardown do
@@ -35,7 +35,7 @@ class ConcurrencyTest < ActiveSupport::TestCase
   end
 
   test "simultaneous rotations produce one active successor and one draft" do
-    @game.update_columns(starts_on: @publication.local_date - 46, ends_on: @publication.local_date - 17)
+    age_out_game(@game)
 
     threads = 4.times.map do
       Thread.new do

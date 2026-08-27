@@ -6,26 +6,17 @@
     <div class="eyebrow">Today · <%= @publication.local_date.strftime("%A, %B %-d") %></div>
     <h1>
       <% if @call %>
-        <%= @publication.call_unit.capitalize %> <%= @call.position %> of <%= @game.pool_size %>
+        Word <%= @call.position %> of <%= @game.pool_size %>
         <span class="badge badge-green">Live</span>
-      <% elsif @publication.issue_cadence? %>
-        Word 1 of <%= @game.pool_size %> <span class="badge badge-amber">Waiting</span>
-      <% elsif !@game.started? %>
-        Starts soon <span class="badge badge-amber">Waiting</span>
       <% else %>
-        No word today <span class="badge badge-green">Live</span>
+        Word 1 of <%= @game.pool_size %> <span class="badge badge-amber">Waiting</span>
       <% end %>
     </h1>
     <p class="cockpit-sub">
       <% if @call %>
-        <strong><%= @call.label %></strong>
-        <%= @publication.issue_cadence? ? "went out #{@call.call_on.strftime("%A, %B %-d")}" : "is today's word" %>
-      <% elsif @publication.issue_cadence? %>
-        Arrives with your next newsletter; the first reader's click draws it
-      <% elsif !@game.started? %>
-        The game begins <%= @game.starts_on.strftime("%A, %B %-d") %>
+        <strong><%= @call.label %></strong> went out <%= @call.call_on.strftime("%A, %B %-d") %>
       <% else %>
-        The game continues on your next send day
+        Arrives with your next newsletter; the first reader's click draws it
       <% end %>
     </p>
     <div class="gameticks" aria-hidden="true">
@@ -56,7 +47,7 @@
         <div class="ticket-label">Next word</div>
         <% if @next_call %>
           <div class="ticket-word"><%= @next_call.label %></div>
-          <div class="ticket-sub"><%= @publication.issue_cadence? ? "Goes out with your next send" : @next_call.call_on.strftime("%A, %B %-d") %></div>
+          <div class="ticket-sub">Goes out with your next send</div>
         <% else %>
           <div class="ticket-word muted">—</div>
         <% end %>
@@ -77,22 +68,20 @@
 
   <div class="card" style="margin-top: .5rem;">
     <div class="card-head">
-      <h2><%= @publication.issue_cadence? ? "Reveal order" : "Schedule" %></h2>
-      <% if @publication.issue_cadence? %>
-        <span class="small muted"><%= @game.pool_size - @game.issued_calls.count %> words waiting</span>
-      <% end %>
+      <h2>Reveal order</h2>
+      <span class="small muted"><%= @game.pool_size - @game.issued_calls.count %> words waiting</span>
     </div>
     <%= render "schedule", calls: @calls, game: @game, collapse: true %>
   </div>
 
-<% elsif @publication.issue_cadence? %>
+<% else %>
   <div class="grid-2">
     <div class="card">
       <h2>The first word arrives with your next newsletter</h2>
       <p class="small muted">Nothing to schedule. When your next issue goes out, the first reader's click
         draws word 1 of <%= @game.pool_size %> and claims their square, and the claims counter above starts moving.</p>
-      <p class="small muted">Make sure the embed block below is in your email template and your campaign
-        merge tag is set in <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
+      <p class="small muted">Make sure the embed block below is in your email template. You can copy it
+        again from <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
     </div>
 
     <div class="card" data-controller="clipboard">
@@ -110,14 +99,6 @@
     <div class="card-head"><h2>Reveal order</h2></div>
     <%= render "schedule", calls: @calls, game: @game, collapse: true %>
   </div>
-
-<% else %>
-  <% if @calls&.any? %>
-    <div class="card">
-      <div class="card-head"><h2>Schedule</h2></div>
-      <%= render "schedule", calls: @calls, game: @game, collapse: true %>
-    </div>
-  <% end %>
 <% end %>
 
 <% if @next_game && @next_game.game_words.count == @next_game.pool_size %>
