@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title><%= content_for(:title) || "Newsletter Bingo: the game that gets your emails opened" %></title>
+    <title><%= content_for(:title) || "Newsletter Bingo: easy engagement for your newsletter" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <% meta_description = "Newsletter Bingo puts a one-click bingo game inside your email publication, whether you send daily or once a month. Readers claim each send's word on their own 5x5 board, and the block becomes sponsorship inventory: the whole game, single squares, or the prizes." %>
+    <% meta_description = "Set Newsletter Bingo up in one paste: a block in your email template turns each send into a word readers claim in one click. No API, no plugin, no reset." %>
     <meta name="description" content="<%= meta_description %>">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Newsletter Bingo">
-    <meta property="og:title" content="Newsletter Bingo: the game that gets your emails opened">
+    <meta property="og:title" content="Newsletter Bingo: easy engagement for your newsletter">
     <meta property="og:description" content="<%= meta_description %>">
-    <meta property="og:image" content="<%= request.base_url %>/icon-512x512.png">
+    <meta property="og:image" content="<%= request.base_url %>/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Newsletter Bingo: a bingo board inside an email, one square from a line.">
     <meta property="og:url" content="<%= request.original_url %>">
-    <meta name="twitter:card" content="summary">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="icon" type="image/svg+xml" href="/icon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<rect width="1200" height="630" fill="#ffffff"/>
+<rect x="0" y="0" width="1200" height="10" fill="#f59e0b"/>
+<g transform="translate(80 68) scale(0.4792)">
+<rect x="0" y="0" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="34" y="0" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="68" y="0" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="0" y="34" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="34" y="34" width="28" height="28" rx="8" fill="#b45309"/>
+<rect x="68" y="34" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="0" y="68" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="34" y="68" width="28" height="28" rx="8" fill="#f59e0b"/>
+<rect x="68" y="68" width="28" height="28" rx="8" fill="#f59e0b"/>
+</g>
+<text x="140" y="103" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="27" font-weight="600" fill="#0f172a">Newsletter Bingo</text>
+<text x="80" y="242" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#0f172a">Keep your readers engaged,</text>
+<text x="80" y="300" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="46" font-weight="700" fill="#0f172a">one square at a time.</text>
+<text x="80" y="382" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="25" fill="#64748b">Paste one block into your email template.</text>
+<text x="80" y="418" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="25" fill="#64748b">Every send calls a word. One click claims it.</text>
+<rect x="80" y="480" width="376" height="52" rx="26" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+<text x="268" y="513" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="21" font-weight="600" fill="#b45309">No API &#183; no plugin &#183; no reset</text>
+<rect x="740" y="100" width="380" height="460" rx="20" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+<text x="764" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#64748b">The Morning Pour</text>
+<rect x="764" y="168" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="832" y="168" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="900" y="168" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="918,199 926,208 943,189" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="968" y="168" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="1036" y="168" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="764" y="236" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="832" y="236" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="850,267 858,276 875,257" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="900" y="236" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="968" y="236" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="1036" y="236" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="764" y="304" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="782,335 790,344 807,325" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="832" y="304" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="850,335 858,344 875,325" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="900" y="304" width="60" height="60" rx="12" fill="#b45309"/>
+<text x="930.0" y="342" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#ffffff">FREE</text>
+<rect x="968" y="304" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="986,335 994,344 1011,325" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1036" y="304" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="764" y="372" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="832" y="372" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="900" y="372" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="968" y="372" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="986,403 994,412 1011,393" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1036" y="372" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="764" y="440" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="832" y="440" width="60" height="60" rx="12" fill="#f59e0b"/>
+<polyline points="850,471 858,480 875,461" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="900" y="440" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="968" y="440" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<rect x="1036" y="440" width="60" height="60" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+<text x="764" y="534" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" font-weight="600" fill="#0f172a">8 of 25 claimed</text>
+<text x="1096" y="534" text-anchor="end" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="17" fill="#64748b">1 away from a line</text>
+</svg>
