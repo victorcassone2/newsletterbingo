@@ -59,7 +59,7 @@ class NewsletterBlock
             <td style="font-family:Helvetica,Arial,sans-serif;">
               <div style="font-size:17px;font-weight:bold;color:#{h publication.text_color};margin:#{head_margin};"><img src="#{h brand_icon_url}" alt="" width="15" height="15" border="0" style="vertical-align:-1px;">&nbsp; Today&#8217;s bingo</div>
               #{sponsor_row}
-              <div style="font-size:14px;line-height:1.6;color:#{h publication.text_color};">#{sentence} <a href="#{h claim_url}" style="color:#{CLAIM_LINK_COLOR};font-weight:bold;text-decoration:none;white-space:nowrap;">Claim today&#8217;s spot &#8594;</a></div>
+              <div style="font-size:14px;line-height:1.6;color:#{h publication.text_color};">#{sentence} <a href="#{h claim_url}" style="color:#{CLAIM_LINK_COLOR};font-weight:bold;text-decoration:none;white-space:nowrap;">Claim today&#8217;s word &#8594;</a></div>
             </td>
           </tr>
         </table>

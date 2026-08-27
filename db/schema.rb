@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_27_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_27_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -148,9 +148,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_27_120000) do
     t.index ["publication_id"], name: "index_games_on_publication_id"
     t.index ["publication_id"], name: "index_games_one_active_per_publication", unique: true, where: "((status)::text = 'active'::text)"
     t.index ["publication_id"], name: "index_games_one_draft_per_publication", unique: true, where: "((status)::text = 'draft'::text)"
-    t.check_constraint "board_size = ANY (ARRAY[3, 5])", name: "games_board_size_check"
+    t.check_constraint "board_size = ANY (ARRAY[3, 4, 5])", name: "games_board_size_check"
     t.check_constraint "ends_on >= starts_on", name: "games_span_forward"
-    t.check_constraint "pool_size >= (board_size * board_size - 1)", name: "games_pool_covers_board"
+    t.check_constraint "pool_size >= (board_size * board_size - board_size % 2)", name: "games_pool_covers_board"
     t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'active'::character varying::text, 'completed'::character varying::text])", name: "games_status_check"
   end
 

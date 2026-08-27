@@ -1,9 +1,9 @@
 class Game < ApplicationRecord
-  # The two game formats, chosen on the publication and snapshotted here
-  # at draft time: board size => how many words the game calls. Every
-  # pool word gets called, but each card holds only board_cells of them,
-  # so some calls miss some cards. That's what makes it bingo.
-  FORMATS = { 5 => 30, 3 => 12 }
+  # The game formats, chosen on the publication and snapshotted here at
+  # draft time: board size => how many words the game calls. Every pool
+  # word gets called, but each card holds only board_cells of them, so
+  # some calls miss some cards. That's what makes it bingo.
+  FORMATS = { 5 => 30, 4 => 20, 3 => 12 }
   # Minimum gap between word advances, and how long the final word stays
   # claimable before the game completes.
   ISSUE_INTERVAL_FLOOR = 12.hours
@@ -58,13 +58,23 @@ class Game < ApplicationRecord
     FORMATS.fetch(board_size)
   end
 
+  # An odd board has a middle square, and that square plays FREE. An even
+  # board has no middle, so every square on it carries a word.
+  def self.free_center?(board_size)
+    board_size.odd?
+  end
+
   def draft? = status == "draft"
   def active? = status == "active"
   def completed? = status == "completed"
 
-  # Squares on a card, excluding the FREE center.
+  # Squares on a card, excluding the FREE center on formats that have one.
   def board_cells
-    board_size * board_size - 1
+    board_size * board_size - (free_center? ? 1 : 0)
+  end
+
+  def free_center?
+    self.class.free_center?(board_size)
   end
 
   # Replaces the draft game's word set. Labels are snapshotted so later

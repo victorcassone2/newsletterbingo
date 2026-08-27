@@ -87,9 +87,10 @@ class Publication < ApplicationRecord
     Game.pool_size_for(board_size)
   end
 
-  # Squares on a card under the chosen format, excluding the FREE center.
+  # Squares on a card under the chosen format, excluding the FREE center
+  # on formats that have one.
   def board_cells
-    board_size * board_size - 1
+    board_size * board_size - (Game.free_center?(board_size) ? 1 : 0)
   end
 
   def tz

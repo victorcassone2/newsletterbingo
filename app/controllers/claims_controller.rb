@@ -60,7 +60,7 @@ class ClaimsController < PublicController
       end
     end
 
-    # The reader most likely tapped "Claim today's spot" in an old email,
+    # The reader most likely tapped "Claim today's word" in an old email,
     # so say why nothing was claimed instead of silently showing the board.
     def not_claimable_message(game, token)
       token = token.to_s.strip

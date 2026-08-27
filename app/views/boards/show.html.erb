@@ -198,7 +198,7 @@
           just for you, so some sends the word won&rsquo;t be on your card. Claiming still counts: every
           word lands on someone&rsquo;s.</p>
         <p><%= @game.board_size %> claimed squares in a row (across, down, or diagonal) is a <strong>bingo</strong>.
-          Claim every word on your card for a <strong>blackout</strong>. The center square is free.</p>
+          Claim every word on your card for a <strong>blackout</strong>.<%= " The center square is free." if @game.free_center? %></p>
         <p>Tap any claimed square to see what it was about.</p>
       </details>
     </div>

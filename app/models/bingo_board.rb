@@ -3,7 +3,7 @@ class BingoBoard < ApplicationRecord
   belongs_to :game
   has_many :bingo_squares, -> { order(:position) }, dependent: :destroy, inverse_of: :bingo_board
 
-  delegate :board_size, :board_cells, to: :game
+  delegate :board_size, :board_cells, :free_center?, to: :game
 
   # Line geometry for a given board size: every row, every column, and
   # the two diagonals, as arrays of square positions.
@@ -18,8 +18,10 @@ class BingoBoard < ApplicationRecord
     end
   end
 
+  # The middle square of an odd board, which plays FREE. Even boards have
+  # no middle square, so they have no FREE and this is nil.
   def self.center_for(size)
-    (size * size - 1) / 2
+    (size * size - 1) / 2 if Game.free_center?(size)
   end
 
   # Builds a participant's permanent card: board_cells of the game's pool
@@ -36,7 +38,7 @@ class BingoBoard < ApplicationRecord
       dealt = words.shuffle(random: SecureRandom).first(game.board_cells)
       center = center_for(game.board_size)
       positions = (0...game.board_size**2).to_a - [ center ]
-      board.bingo_squares.create!(position: center, game_word: nil)
+      board.bingo_squares.create!(position: center, game_word: nil) if center
       positions.each_with_index do |position, index|
         board.bingo_squares.create!(position: position, game_word: dealt[index])
       end
@@ -56,7 +58,7 @@ class BingoBoard < ApplicationRecord
       .shuffle(random: Random.new(game.id.delete("-").to_i(16)))
       .first(game.board_cells)
     center = center_for(game.board_size)
-    board.bingo_squares.build(position: center, game_word: nil)
+    board.bingo_squares.build(position: center, game_word: nil) if center
     ((0...game.board_size**2).to_a - [ center ]).each_with_index do |position, index|
       word = dealt[index]
       claimed = through && word.daily_call && word.daily_call.position <= through.position

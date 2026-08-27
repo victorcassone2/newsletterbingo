@@ -56,14 +56,21 @@
               <%= form.radio_button :board_size, 5 %>
               <span class="choice-card-body">
                 <span class="choice-card-title">Classic</span>
-                <span class="choice-card-hint">5×5 card · 30 words, so 30 sends. The full arc.</span>
+                <span class="choice-card-hint">5×5 card · 24 squares and 30 words. The full arc.</span>
+              </span>
+            </label>
+            <label class="choice-card">
+              <%= form.radio_button :board_size, 4 %>
+              <span class="choice-card-body">
+                <span class="choice-card-title">Compact</span>
+                <span class="choice-card-hint">4×4 card · 16 squares and 20 words. No FREE square.</span>
               </span>
             </label>
             <label class="choice-card">
               <%= form.radio_button :board_size, 3 %>
               <span class="choice-card-body">
                 <span class="choice-card-title">Quick</span>
-                <span class="choice-card-hint">3×3 card · 12 words, so 12 sends. A tighter arc.</span>
+                <span class="choice-card-hint">3×3 card · 8 squares and 12 words. A tighter arc.</span>
               </span>
             </label>
           </div>
@@ -165,7 +172,7 @@
             <% if position == center %>
               <div class="preview-square free">FREE</div>
             <% else %>
-              <% word_index = position < center ? position : position - 1 %>
+              <% word_index = center && position > center ? position - 1 : position %>
               <div class="preview-square <%= word_index % 3 == 0 ? "claimed" : "unclaimed" %>"><%= board[word_index] %></div>
             <% end %>
           <% end %>

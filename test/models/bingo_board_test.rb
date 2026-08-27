@@ -35,6 +35,37 @@ class BingoBoardTest < ActiveSupport::TestCase
     assert_equal 12, game.game_words.count
   end
 
+  test "a compact board is a 4x4 grid with no FREE square and 16 of the game's 20 words" do
+    publication = publications(:lincoln)
+    publication.update!(board_size: 4)
+    game = create_running_game(publication)
+    participant = Participant.locate_or_register(publication, "reader@example.com")
+    board = participant.board_for(game)
+
+    assert_equal 16, board.bingo_squares.count
+    assert_nil board.center
+    assert_not board.bingo_squares.any?(&:free?)
+
+    dealt = board.bingo_squares.filter_map(&:game_word_id)
+    assert_equal 16, dealt.size
+    assert_equal 16, dealt.uniq.size
+    assert_empty dealt - game.game_words.pluck(:id)
+    assert_equal 20, game.game_words.count
+  end
+
+  test "a compact board takes a blackout only once every square is claimed" do
+    publication = publications(:lincoln)
+    publication.update!(board_size: 4)
+    game = create_running_game(publication)
+    participant = Participant.locate_or_register(publication, "reader@example.com")
+    board = participant.board_for(game)
+
+    board.bingo_squares.order(:position).each_with_index do |square, index|
+      square.update!(claimed_at: Time.current)
+      assert_equal index == 15, board.reload.blackout?
+    end
+  end
+
   test "one board per participant per game" do
     board = @participant.board_for(@game)
     assert_equal board, @participant.board_for(@game)

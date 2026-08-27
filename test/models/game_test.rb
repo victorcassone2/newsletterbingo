@@ -21,6 +21,16 @@ class GameTest < ActiveSupport::TestCase
     assert_equal Date.new(2026, 8, 12), game.ends_on
   end
 
+  test "a compact game calls 20 words onto a 16-square card" do
+    @publication.update!(board_size: 4)
+    game = @publication.games.create!(starts_on: Date.new(2026, 8, 1))
+    assert_equal 4, game.board_size
+    assert_equal 20, game.pool_size
+    assert_equal 16, game.board_cells
+    assert_not game.free_center?
+    assert_equal Date.new(2026, 8, 20), game.ends_on
+  end
+
   test "ends_on stays aligned even if given a wrong value" do
     game = @publication.games.create!(starts_on: Date.new(2026, 8, 1), ends_on: Date.new(2026, 9, 30))
     assert_equal Date.new(2026, 8, 30), game.ends_on
