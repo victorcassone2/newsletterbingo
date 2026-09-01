@@ -22,6 +22,14 @@ module ApplicationHelper
     ].join("; ")
   end
 
+  # Billing is owner-only, so members see the situation but not a link that
+  # would only bounce them back with "Only account owners can do that."
+  def link_to_billing(label, **options)
+    if Current.user&.owner_of?(Current.account)
+      link_to label, account_billing_path, **options
+    end
+  end
+
   def nav_link_to(name, path, active:)
     link_to name, path, class: class_names("nav-link", active: active)
   end

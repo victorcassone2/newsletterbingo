@@ -1,18 +1,18 @@
 <% if @publication.closed? %>
   <div class="attention">
     <span>🚫 This publication is cancelled. Readers can't reach it and no games run.</span>
-    <%= link_to "Restore it", account_billing_path, class: "btn btn-small" %>
+    <%= link_to_billing "Restore it", class: "btn btn-small" %>
   </div>
 <% elsif @publication.canceled? %>
   <div class="attention">
     <span>⏳ Cancelled: readers keep playing until <%= @publication.closes_on.strftime("%B %-d") %>,
       then this publication goes dark. No new game starts before then.</span>
-    <%= link_to "Keep it", account_billing_path, class: "btn btn-small" %>
+    <%= link_to_billing "Keep it", class: "btn btn-small" %>
   </div>
 <% elsif !@publication.billing_active? %>
   <div class="attention">
     <span>⏳ Your next game won't start. Subscribe to keep the streak going.</span>
-    <%= link_to "Go to Billing", account_billing_path, class: "btn btn-small" %>
+    <%= link_to_billing "Go to Billing", class: "btn btn-small" %>
   </div>
 <% end %>
 

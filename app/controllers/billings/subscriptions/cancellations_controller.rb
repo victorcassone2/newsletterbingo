@@ -1,5 +1,6 @@
 class Billings::Subscriptions::CancellationsController < ApplicationController
   include AccountScoping
+  before_action :require_account_owner
 
   # Cancel at period end: the month is already paid for, running games play
   # out, and Stripe deletes the subscription when the clock runs out (the

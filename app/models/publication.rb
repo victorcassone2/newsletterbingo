@@ -1,5 +1,5 @@
 class Publication < ApplicationRecord
-  include Billable
+  include Billable, ImageAttachable
 
   COLOR_FORMAT = /\A#\h{6}\z/
 
@@ -41,6 +41,7 @@ class Publication < ApplicationRecord
   validates :primary_color, :accent_color, :background_color, :text_color,
     format: { with: COLOR_FORMAT, message: "must be a hex color like #1A2B3C" }
   validate :timezone_must_be_recognized
+  validates_attached_image :logo
 
   before_validation :assign_public_code, on: :create
   after_create :create_default_prizes

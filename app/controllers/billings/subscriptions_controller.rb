@@ -1,5 +1,6 @@
 class Billings::SubscriptionsController < ApplicationController
   include AccountScoping, SubscriptionStarting
+  before_action :require_account_owner
 
   # One button on the Billing page: subscribe (or restart). No confirm
   # interstitial -- the button itself carries the price, and hosted Checkout

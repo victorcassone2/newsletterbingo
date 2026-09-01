@@ -48,7 +48,7 @@ Rails.application.configure do
   config.active_support.report_deprecations = false
 
   # Replace the default in-process memory cache store with a durable alternative.
-  # config.cache_store = :mem_cache_store
+  config.cache_store = :solid_cache_store
 
   # Replace the default in-process and non-durable queuing backend for Active Job.
   # The Solid Queue supervisor runs inside Puma (SOLID_QUEUE_IN_PUMA), which is
@@ -60,13 +60,15 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.perform_deliveries = true
 
-  # Set host to be used by links generated in mailer templates. APP_HOST doubles
-  # as the claim-link origin (see config/initializers/public_host.rb), so it may
-  # carry a scheme; default_url_options wants the bare host.
-  config.action_mailer.default_url_options = {
-    host: ENV.fetch("APP_HOST", "newsletterbingo.herokuapp.com").sub(%r{\Ahttps?://}, ""),
-    protocol: "https"
-  }
+  # APP_HOST doubles as the claim-link origin (see
+  # config/initializers/public_host.rb), so it may carry a scheme; both the
+  # mailer and host authorization below want the bare host. Computed here
+  # rather than read from NewsletterBingo.public_host because environment
+  # files load before initializers.
+  canonical_host = ENV.fetch("APP_HOST", "newsletterbingo.herokuapp.com").sub(%r{\Ahttps?://}, "")
+
+  # Set host to be used by links generated in mailer templates.
+  config.action_mailer.default_url_options = { host: canonical_host, protocol: "https" }
 
   # Email via Mailgun SMTP. MAILGUN_DOMAIN is the verified sending domain;
   # credentials come from Heroku config vars.
@@ -91,12 +93,16 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
+  # Enable DNS rebinding protection and other `Host` header attacks. www is on
+  # the list because the router's redirect to the apex has to see the request
+  # before it can redirect it, and the herokuapp.com domain stays allowed so
+  # platform routing and one-off dyno access keep working.
+  config.hosts = [
+    canonical_host,
+    "www.#{canonical_host}",
+    ENV["HEROKU_APP_DEFAULT_DOMAIN_NAME"]
+  ].compact_blank
+
   # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

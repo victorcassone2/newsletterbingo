@@ -1,5 +1,6 @@
 class Billings::PortalsController < ApplicationController
   include AccountScoping
+  before_action :require_account_owner
 
   # One-time URL into the Stripe-hosted billing portal (update card, view
   # invoices). The portal is customer-level: one card, every subscription.

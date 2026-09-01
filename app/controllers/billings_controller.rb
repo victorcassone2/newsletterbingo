@@ -1,5 +1,6 @@
 class BillingsController < ApplicationController
   include AccountScoping
+  before_action :require_account_owner
 
   # The account's one billing home: payment method and invoices live in the
   # Stripe portal; each publication's subscription state is summarized here

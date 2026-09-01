@@ -1,0 +1,18 @@
+# Solid Cache lives in the primary database, exactly like Solid Queue: Heroku
+# exposes a single DATABASE_URL, so there is no separate cache database to
+# connect to and no `database:` key here. The tables come from a normal
+# migration into db/schema.rb.
+default: &default
+  store_options:
+    max_age: <%= 60.days.to_i %>
+    max_size: <%= 256.megabytes %>
+    namespace: <%= Rails.env %>
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
+production:
+  <<: *default

@@ -7,7 +7,12 @@
 # merge tags) still land the reader on their board, with a notice
 # explaining that only the current email's button claims.
 class ClaimsController < PublicController
-  rate_limit to: 60, within: 1.minute, only: :create
+  # Readers behind one corporate or carrier NAT all share an IP, and a send
+  # lands them at once, so this cap guards against runaway traffic rather
+  # than abuse: forcing the game forward is already floored at 12 hours in
+  # Game#advance_to_next_word. Set it high enough that a crowd never trips
+  # it, and land whoever does on their board instead of a bare 429.
+  rate_limit to: 300, within: 1.minute, only: :create, with: :too_many_claims
 
   def create
     email = params[:email].to_s.strip
@@ -47,6 +52,11 @@ class ClaimsController < PublicController
   end
 
   private
+    def too_many_claims
+      land_without_claim("We're seeing a lot of taps from your network at once. "\
+        "Here's your board; tap the bingo button again in a minute to claim.")
+    end
+
     def land_without_claim(message)
       flash[:claim_notice] = message
       redirect_to board_path(@publication.public_code)

@@ -1,4 +1,6 @@
 class Prize < ApplicationRecord
+  include ImageAttachable
+
   KINDS = %w[ line blackout ]
 
   belongs_to :publication
@@ -8,6 +10,7 @@ class Prize < ApplicationRecord
   validates :kind, inclusion: { in: KINDS }, uniqueness: { scope: :publication_id }
   validates :name, presence: true, if: :enabled?
   validates :link_url, http_url: true
+  validates_attached_image :image
 
   def line? = kind == "line"
   def blackout? = kind == "blackout"

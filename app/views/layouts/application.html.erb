@@ -37,7 +37,9 @@
                 </div>
                 <div class="menu-group">
                   <%= link_to "Publications", account_publications_path(account_id: Current.account.id), class: "menu-item" %>
-                  <%= link_to "Billing", account_billing_path(account_id: Current.account.id), class: "menu-item" %>
+                  <% if Current.user.owner_of?(Current.account) %>
+                    <%= link_to "Billing", account_billing_path(account_id: Current.account.id), class: "menu-item" %>
+                  <% end %>
                   <%= link_to "People", account_account_profile_path(account_id: Current.account.id), class: "menu-item" %>
                 </div>
                 <div class="menu-group">

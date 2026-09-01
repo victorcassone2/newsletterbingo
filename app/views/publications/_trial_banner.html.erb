@@ -4,6 +4,6 @@
   <div class="trial-banner">
     <span>✨ Free trial: your first charge of $<%= Current.account.monthly_price %> is
       <%= Current.account.subscription_current_period_end&.strftime("%B %-d, %Y") %>.</span>
-    <%= link_to "Billing", account_billing_path %>
+    <%= link_to_billing "Billing" %>
   </div>
 <% end %>

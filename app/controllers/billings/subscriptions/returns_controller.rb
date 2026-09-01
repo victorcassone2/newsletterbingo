@@ -1,5 +1,6 @@
 class Billings::Subscriptions::ReturnsController < ApplicationController
   include AccountScoping
+  before_action :require_account_owner
 
   # Stripe sends the user back here after Checkout. Sync the subscription now
   # instead of waiting on the webhook, so the page reflects the new state
