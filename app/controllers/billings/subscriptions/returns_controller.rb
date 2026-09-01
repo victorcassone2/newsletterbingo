@@ -18,7 +18,7 @@ class Billings::Subscriptions::ReturnsController < ApplicationController
     end
 
     if Current.account.subscribed?
-      redirect_to landing_path, notice: "You're set — now connect your newsletter."
+      redirect_to landing_path, notice: "You're set. Now connect your newsletter."
     else
       redirect_to account_billing_path,
         notice: "Checkout didn't finish. You can subscribe whenever you're ready."

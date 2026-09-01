@@ -13,7 +13,7 @@ class AddPositionToDailyCalls < ActiveRecord::Migration[8.1]
 
     change_column_null :daily_calls, :position, false
     # Issue-cadence games date calls when their issue goes out, so call_on
-    # is unknown until then — and two issues can share a calendar date.
+    # is unknown until then, and two issues can share a calendar date.
     change_column_null :daily_calls, :call_on, true
     remove_index :daily_calls, name: "index_daily_calls_on_game_id_and_call_on"
     add_index :daily_calls, %i[ game_id call_on ]

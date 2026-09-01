@@ -1,6 +1,8 @@
 <div class="page-head">
   <h1>Publications</h1>
-  <%= link_to "New publication", new_account_publication_path, class: "btn btn-primary" %>
+  <% if @publications.any? %>
+    <%= link_to "New publication", new_account_publication_path, class: "btn btn-primary" %>
+  <% end %>
 </div>
 
 <% if @publications.any? %>

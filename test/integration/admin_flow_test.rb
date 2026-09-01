@@ -37,25 +37,17 @@ class AdminFlowTest < ActionDispatch::IntegrationTest
     # so creation lands straight on Setup; billing has its own tests.
     assert_redirected_to edit_account_publication_path(account_id: account_id, id: publication.id)
 
-    # Visiting Today drafts the first game automatically: 30 words, prizes
-    get account_publication_today_path(account_id: account_id, publication_id: publication.id)
-    assert_response :success
-    assert_match "Your first game", response.body
-    game = publication.games.first
-    assert_equal 30, game.game_words.count
-    assert game.draft?
-    assert_equal 2, publication.prizes.count
-
-    # Launch queues every word: the calls exist but stay undated
-    post account_publication_game_launch_path(account_id: account_id, publication_id: publication.id, game_id: game.id)
-    assert game.reload.active?
-    assert_equal 30, game.daily_calls.count
-    assert_equal 0, game.issued_calls.count
-
-    # Today dashboard waits for the first send
+    # Visiting Today launches the first game automatically: 30 words, prizes,
+    # every call queued but undated, and the dashboard waiting for a send
     get account_publication_today_path(account_id: account_id, publication_id: publication.id)
     assert_response :success
     assert_match "first word arrives", response.body
+    game = publication.active_game
+    assert game.active?
+    assert_equal 30, game.game_words.count
+    assert_equal 30, game.daily_calls.count
+    assert_equal 0, game.issued_calls.count
+    assert_equal 2, publication.prizes.count
 
     # The first click of a send advances the game and claims the square
     get claim_path(publication.public_code, email: "reader@example.com", issue: "campaign-001")

@@ -22,7 +22,7 @@ class Publications::Games::LaunchesController < Publications::Games::BaseControl
       if @publication.canceled?
         "#{@publication.name} is cancelled. Restore it from the Billing page to run games again."
       else
-        "Start your subscription to launch this game — it takes a minute from the Billing page."
+        "Start your subscription to launch this game. It takes a minute from the Billing page."
       end
     end
 end

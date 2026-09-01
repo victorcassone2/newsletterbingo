@@ -18,10 +18,10 @@ module SubscriptionStarting
 
     def subscription_started_notice
       if Current.account.trialing?
-        "You're set — free until #{Current.account.subscription_current_period_end&.strftime("%B %-d")}, " \
+        "You're set: free until #{Current.account.subscription_current_period_end&.strftime("%B %-d")}, " \
           "then $#{Current.account.monthly_price}/month."
       else
-        "You're subscribed — $#{Current.account.monthly_price}/month. Games will keep rotating."
+        "You're subscribed: $#{Current.account.monthly_price}/month. Games will keep rotating."
       end
     end
 

@@ -179,8 +179,21 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "before the first launch there is no game to claim" do
+  test "a first click with no game yet launches one and claims its first word" do
     @game.destroy!
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
+    assert_redirected_to board_path(@publication.public_code)
+
+    game = @publication.active_game
+    assert game.present?
+    assert_equal 1, game.current_call.position
+    assert_equal 1, game.current_call.daily_claims.count
+  end
+
+  test "an unpaid publication has no game to claim" do
+    @game.destroy!
+    @publication.account.update!(stripe_subscription_id: nil, subscription_status: nil,
+      subscription_current_period_end: nil)
     get claim_path(@publication.public_code, email: "reader@example.com", issue: "send-1")
     assert_redirected_to board_path(@publication.public_code)
     follow_redirect!

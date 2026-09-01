@@ -1,14 +1,4 @@
 <h1>New publication</h1>
-<p class="muted">
-  <% if Current.account.subscribed? %>
-    Adds $29/month to your subscription<% if Current.account.trialing? %> once your free trial ends<% end %>.
-    You'll land on Setup: merge tag, embed block, and branding, all on one page.
-  <% else %>
-    Creating it starts your 30-day free trial — then $29/month. You'll land on Setup:
-    merge tag, embed block, and branding, all on one page.
-  <% end %>
-</p>
-
 <div class="card">
   <%= render "form", publication: @publication, url: account_publications_path %>
 </div>

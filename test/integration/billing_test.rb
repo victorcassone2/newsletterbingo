@@ -160,11 +160,11 @@ class BillingTest < ActionDispatch::IntegrationTest
   test "publication pages carry the free-trial banner while the account trial runs" do
     @account.update!(subscription_status: "trialing", subscription_current_period_end: 20.days.from_now)
     get account_publication_today_path(account_id: @account.id, publication_id: @publication.id)
-    assert_match "Free trial — your first charge of $58", response.body
+    assert_match "Free trial: your first charge of $58", response.body
 
     @account.update!(subscription_status: "active")
     get account_publication_today_path(account_id: @account.id, publication_id: @publication.id)
-    assert_no_match(/Free trial —/, response.body)
+    assert_no_match(/Free trial:/, response.body)
   end
 
   test "canceling schedules the end of the paid period, and can be undone" do
@@ -455,7 +455,7 @@ class BillingTest < ActionDispatch::IntegrationTest
     get account_publication_today_path(account_id: @account.id, publication_id: @publication.id)
     assert game.reload.completed?
     assert_nil @publication.active_game, "lapsed: the finished game gets no successor"
-    assert_match "subscribe to keep the streak going", response.body
+    assert_match "Subscribe to keep the streak going", response.body
 
     fire_webhook subscription_event(id: "evt_sub_1", type: "customer.subscription.updated",
       subscription: stripe_subscription(id: "sub_publisher", status: "active", account: @account))

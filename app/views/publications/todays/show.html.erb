@@ -11,7 +11,7 @@
   </div>
 <% elsif !@publication.billing_active? %>
   <div class="attention">
-    <span>⏳ Your next game won't start — subscribe to keep the streak going.</span>
+    <span>⏳ Your next game won't start. Subscribe to keep the streak going.</span>
     <%= link_to "Go to Billing", account_billing_path, class: "btn btn-small" %>
   </div>
 <% end %>

@@ -16,7 +16,7 @@
       <% if @call %>
         <strong><%= @call.label %></strong> went out <%= @call.call_on.strftime("%A, %B %-d") %>
       <% else %>
-        Arrives with your next newsletter; the first reader's click draws it
+        Arrives with your next newsletter
       <% end %>
     </p>
     <div class="gameticks" aria-hidden="true">
@@ -32,7 +32,7 @@
   <% end %>
 </div>
 
-<% if @next_game && @next_game.game_words.count < @next_game.pool_size %>
+<% if @game.started? && @next_game && @next_game.game_words.count < @next_game.pool_size %>
   <div class="attention">
     <span>⚠️ Your next game has only <%= @next_game.game_words.count %> of <%= @next_game.pool_size %> words;
       the word pool ran short. Add words so it can launch.</span>
@@ -78,8 +78,8 @@
   <div class="grid-2">
     <div class="card">
       <h2>The first word arrives with your next newsletter</h2>
-      <p class="small muted">Nothing to schedule. When your next issue goes out, the first reader's click
-        draws word 1 of <%= @game.pool_size %> and claims their square, and the claims counter above starts moving.</p>
+      <p class="small muted">Nothing to schedule. Word 1 of <%= @game.pool_size %> goes out with your next
+        issue, and the claims counter above starts moving.</p>
       <p class="small muted">Make sure the embed block below is in your email template. You can copy it
         again from <%= link_to "Setup", edit_account_publication_path(id: @publication.id) %>.</p>
     </div>

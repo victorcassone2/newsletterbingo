@@ -6,7 +6,7 @@ class Billings::PortalsController < ApplicationController
   def create
     if Current.account.stripe_customer_id.blank?
       redirect_to account_billing_path,
-        alert: "No billing info yet — it's collected when you confirm your first subscription." and return
+        alert: "No billing info yet: it's collected when you confirm your first subscription." and return
     end
 
     portal = Payments.platform.create_billing_portal_session(

@@ -69,14 +69,25 @@ class PublicationTest < ActiveSupport::TestCase
     assert_not_includes eligible, words(:custom_rival)
   end
 
-  test "rotation drafts the first game but never auto-launches it" do
+  test "rotation launches the first game and puts a fresh draft on deck" do
     publication = publications(:omaha)
     publication.rotate_games
 
-    draft = publication.on_deck_game
-    assert draft.present?
+    game = publication.active_game
+    assert game.present?
+    assert_equal 30, game.game_words.count
+    assert_equal 0, game.issued_calls.count, "the first word waits for a send"
+    assert publication.on_deck_game.present?
+  end
+
+  test "rotation launches nothing for a publication the account stopped paying for" do
+    publication = publications(:omaha)
+    publication.account.update!(stripe_subscription_id: nil, subscription_status: nil,
+      subscription_current_period_end: nil)
+    publication.rotate_games
+
     assert_nil publication.active_game
-    assert_equal 30, draft.game_words.count
+    assert publication.on_deck_game.present?, "drafts keep drafting"
   end
 
   test "changing the format reshapes the on-deck draft but never a game in progress" do

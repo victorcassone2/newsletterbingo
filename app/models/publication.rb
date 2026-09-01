@@ -123,14 +123,15 @@ class Publication < ApplicationRecord
   # Keeps the games carousel turning: finished games complete, the
   # on-deck draft launches in their place, and a fresh draft goes on
   # deck. Idempotent and safe to run concurrently: the partial unique
-  # indexes on games referee every race. The first-ever game is only
-  # drafted, never auto-launched; the publisher reviews and launches it.
+  # indexes on games referee every race. The first game launches like
+  # every later one: there is nothing to decide, and its first word waits
+  # for a send either way.
   # A lapsed subscription blocks only the launch: the running game plays
   # out, drafts keep drafting, and readers hit the existing "no game
   # running" soft landing rather than a paywall.
   def rotate_games
     games.active.each { |game| game.complete if game.over? }
-    launch_on_deck_game if billing_active? && games.active.none? && games.completed.exists?
+    launch_on_deck_game if billing_active? && games.active.none?
     draft_on_deck_game if games.draft.none?
   end
 

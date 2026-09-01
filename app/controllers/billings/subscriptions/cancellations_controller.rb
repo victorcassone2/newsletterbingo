@@ -23,7 +23,7 @@ class Billings::Subscriptions::CancellationsController < ApplicationController
       )
       Current.account.sync_stripe_subscription!(subscription)
     end
-    redirect_to account_billing_path, notice: "Cancellation undone — your subscription continues."
+    redirect_to account_billing_path, notice: "Cancellation undone. Your subscription continues."
   end
 
   private

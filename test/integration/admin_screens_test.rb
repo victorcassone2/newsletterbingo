@@ -9,18 +9,18 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     @publication = publications(:omaha)
   end
 
-  test "today drafts the first game automatically and shows it for review" do
+  test "today launches the first game automatically and waits for the first send" do
     get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
     assert_response :success
-    assert_match "Your first game", response.body
-    assert_match "Launch game", response.body
-    assert_select "a", { text: "Edit game", count: 0 }, "a draft has no dates left to edit"
+    assert_match "first word arrives", response.body
+    assert_match "Word 1 of 30", response.body
+    assert_no_match(/Launch game/, response.body)
     assert_select "ul.schedule li", @publication.pool_size
 
-    game = @publication.on_deck_game
+    game = @publication.active_game
     assert game.present?
     assert_equal 30, game.game_words.count
-    assert_nil @publication.active_game
+    assert_equal 0, game.issued_calls.count
   end
 
   test "today shows the word, next word, schedule and the on-deck game once live" do

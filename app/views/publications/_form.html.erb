@@ -11,17 +11,10 @@
     <%= form.text_field :name, placeholder: "Omaha Daily" %>
   </div>
 
-  <div class="field-row">
-    <div class="field">
-      <%= form.label :timezone %>
-      <%= form.select :timezone, options_for_select(timezone_options, publication.timezone) %>
-      <div class="hint">Game days follow this timezone.</div>
-    </div>
-    <div class="field">
-      <%= form.label :email_merge_tag, "Subscriber email merge tag" %>
-      <%= form.text_field :email_merge_tag %>
-      <div class="hint">Enter the merge tag your email platform uses for the subscriber's email address, e.g. <code>{{email}}</code>, <code>|EMAIL|</code> or <code>{{ subscriber.email }}</code>. You can adjust this in Setup later.</div>
-    </div>
+  <div class="field">
+    <%= form.label :timezone %>
+    <%= form.select :timezone, options_for_select(timezone_options, publication.timezone) %>
+    <div class="hint">Game days follow this timezone.</div>
   </div>
 
   <% if publication.persisted? %>
