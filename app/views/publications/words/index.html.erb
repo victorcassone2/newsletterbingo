@@ -10,10 +10,10 @@
   <div id="word-errors"></div>
   <div class="qa-hints">
     <span>Need ideas?</span>
-    <% { "Neighborhoods" => "e.g. DUNDEE, BENSON, FLORENCE…",
-         "Rival teams" => "e.g. JAYHAWKS, CYCLONES…",
+    <% { "Neighborhoods" => "the parts of town everyone names",
+         "Rival teams" => "the teams your readers love to beat",
          "Local legends" => "the names only your readers know",
-         "Annual events" => "e.g. TACO RIDE, COLLEGE WORLD SERIES…",
+         "Annual events" => "the traditions that come around every year",
          "Inside jokes" => "the words only your readers get" }.each do |category, prompt| %>
       <button type="button" class="qa-hint" data-action="word-add#hint"
               data-word-add-placeholder-param="<%= prompt %>"><%= category %></button>
