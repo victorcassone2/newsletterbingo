@@ -207,6 +207,44 @@ safe), and only for participants who actually earned that content.
   text is escaped; game-day eligibility is enforced server-side in the
   publication's timezone (a 12:05 AM click cannot claim yesterday).
 
+## Deployment
+
+Heroku, buildpack build, one dyno. `Procfile` runs migrations in the release
+phase and boots Puma; `SOLID_QUEUE_IN_PUMA` starts the Solid Queue supervisor
+inside that same dyno, which is what runs the mailers, the Stripe quantity
+syncs, and the hourly `RotateGamesJob`.
+
+```bash
+git push heroku prod:main
+```
+
+`origin/prod` is history; the release is the push to `heroku`.
+
+### Config vars
+
+Every one of these is required. `APP_HOST` and `MAIL_FROM` are checked at boot
+(`config/initializers/required_env.rb`) because they fail silently otherwise;
+the rest fail loudly at the point of use.
+
+| Var | Purpose |
+| --- | --- |
+| `APP_HOST` | Origin every claim link and mailer URL is built from (`newsletterbingo.com`). Scheme optional. |
+| `MAIL_FROM` | From address on invitations and password resets. Must sit on the Mailgun-verified domain. |
+| `SOLID_QUEUE_IN_PUMA` | `true`. Without it no job ever runs: resets and invitations never send, and jobs pile up unnoticed in `solid_queue_jobs`. |
+| `MAILGUN_DOMAIN` | Verified sending domain (`mail.newsletterbingo.com`). |
+| `MAILGUN_SMTP_USERNAME` / `MAILGUN_SMTP_PASSWORD` | SMTP credentials. `MAILGUN_SMTP_ADDRESS` defaults to `smtp.mailgun.org`. |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_BUCKET` | Active Storage on S3, for logos and prize images. Heroku's disk is ephemeral, so there is no local fallback. `AWS_REGION` defaults to `us-east-1`. |
+| `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `STRIPE_BINGO_PRICE_ID` | Subscriptions. The webhook secret is what authenticates `POST /webhooks/stripe`; the price is the $29/month per-publication Price. |
+| `SENTRY_DSN` | Error reporting. The one genuinely optional var: unset simply means no reporting. `SENTRY_TRACES_SAMPLE_RATE` defaults to `0.1`. |
+| `DATABASE_URL` | Set by the Heroku Postgres addon. Solid Queue and Solid Cache share it. |
+| `RAILS_MASTER_KEY` | Decrypts `config/credentials.yml.enc`. |
+
+To check a deploy against this list:
+
+```bash
+heroku config -a newsletterbingo
+```
+
 ## Timezones
 
 All game-day math uses the publication's timezone via `Publication#local_date`,

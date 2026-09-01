@@ -65,7 +65,12 @@ Rails.application.configure do
   # mailer and host authorization below want the bare host. Computed here
   # rather than read from NewsletterBingo.public_host because environment
   # files load before initializers.
-  canonical_host = ENV.fetch("APP_HOST", "newsletterbingo.herokuapp.com").sub(%r{\Ahttps?://}, "")
+  #
+  # No default: a stand-in host is indistinguishable from the real one at a
+  # glance and wrong everywhere it lands. config/initializers/required_env.rb
+  # refuses the boot a few steps later, so the only pass that ever sees this
+  # blank is an asset build, which never reads it.
+  canonical_host = ENV["APP_HOST"].to_s.sub(%r{\Ahttps?://}, "")
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: canonical_host, protocol: "https" }
