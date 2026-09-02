@@ -215,15 +215,17 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_not prize.reload.enabled?
   end
 
-  test "setup gathers merge tag, embed, branding and settings on one page" do
+  test "setup gathers the platform, embed, test check, branding and settings on one page" do
     get edit_account_publication_path(account_id: @account_id, id: @publication.id)
     assert_response :success
-    assert_match "Where do you send from?", response.body
+    assert_match "Sending from beehiiv", response.body
     assert_match "Branding", response.body
     assert_match @publication.public_code, response.body
     assert_select ".preview-grid .preview-square", 25
-    assert_select "input[name=?]", "publication[campaign_merge_tag]"
-    assert_select ".field[hidden]", count: 0, message: "the campaign tag field is always on screen now"
+    assert_select "details.tag-details input[name=?]", "publication[campaign_merge_tag]",
+      message: "the tags are a disclosure now, not the question the page opens with"
+    assert_match "Watching for your test click", response.body
+    assert_select "input[name=?]", "publication[board_size]", message: "format belongs with the game, in General"
     assert_no_match(/send_days/, response.body)
   end
 end

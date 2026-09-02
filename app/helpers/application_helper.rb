@@ -8,6 +8,13 @@ module ApplicationHelper
   # CSS custom properties carrying a publication's branding. Cards render
   # on --brand-surface, computed so they stay readable whether the
   # publisher picked a light or a dark background.
+  # The tick a completed setup step wears in place of its number.
+  def check_glyph
+    tag.svg(tag.path(d: "M3 8.5 6.2 11.5 13 4.5"), viewBox: "0 0 16 16", width: 13, height: 13,
+      fill: "none", stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round",
+      "stroke-linejoin": "round", "aria-hidden": true)
+  end
+
   # The shareable sample-card link, absolute so it can be pasted anywhere.
   def preview_url(publication)
     "#{NewsletterBingo.public_host}#{publication_preview_path(publication.public_code, publication.preview_token)}"

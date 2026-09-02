@@ -11,6 +11,7 @@ class Publication < ApplicationRecord
   has_many :prizes, dependent: :destroy
   has_many :words, dependent: :destroy
   has_many :test_addresses, dependent: :destroy
+  has_many :link_checks, dependent: :destroy
   has_one :line_prize, -> { where(kind: "line") }, class_name: "Prize", inverse_of: :publication
   has_one :blackout_prize, -> { where(kind: "blackout") }, class_name: "Prize", inverse_of: :publication
   has_one :closure, class_name: "PublicationClosure", dependent: :destroy
@@ -62,11 +63,39 @@ class Publication < ApplicationRecord
     "#{local.split("+").first}@#{domain}"
   end
 
-  # Platforms that stamp a campaign id per send let us prove a click came
-  # from the current email. Substack and Ghost don't, so those publications
-  # advance on the first click after a quiet period instead.
+  # A tag whose value changes with every send lets us prove a click came
+  # from the current email: a campaign id, or beehiiv's send date. Kit and
+  # Ghost personalize by subscriber only, so those publications advance on
+  # the first click after a quiet period instead.
   def campaign_tagged?
     campaign_merge_tag.present?
+  end
+
+  # The platform these tags came from, when they came from one of ours.
+  def platform
+    Platform.for(self)
+  end
+
+  # What the last diagnostic click carried. Nil until one arrives, which
+  # is what Setup reads as "no test yet".
+  def latest_link_check
+    link_checks.order(:created_at).last
+  end
+
+  # Keeps one row: the newest thing a link has said. A click that repeats
+  # what we already know writes nothing, so a broken tag mailed to the
+  # whole list costs one insert rather than one per reader.
+  def record_link_check(email:, token:)
+    email = email.to_s
+    token = token.to_s
+    latest = latest_link_check
+    if latest && latest.email_value == email && latest.token_value == token
+      latest
+    else
+      link_checks.create!(email_value: email, token_value: token).tap do |check|
+        link_checks.where.not(id: check.id).delete_all
+      end
+    end
   end
 
   # Whether a bingo link arriving from this address should open a preview

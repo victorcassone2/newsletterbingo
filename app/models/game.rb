@@ -132,13 +132,18 @@ class Game < ApplicationRecord
     daily_calls.find_by(call_on: nil)
   end
 
-  # Resolves the call a claim link's token authorizes. A publication whose
-  # platform stamps a campaign id per send can prove the click came from
-  # the current email; one without a tag can only infer the send from how
-  # long it has been quiet.
-  def claimable_call_for(token)
-    if publication.campaign_tagged?
-      claimable_by_token(token.to_s.strip)
+  # Resolves the call a claim link's token authorizes. Any value that
+  # survived its platform's replacement proves which send it came from,
+  # whether it rode in the publication's own merge tag or was stamped
+  # into the link by the platform itself. A tagged publication whose link
+  # carried nothing usable proves nothing and claims nothing; an untagged
+  # one infers the send from how long it has been quiet instead.
+  def claimable_call_for(candidate)
+    token = candidate.to_s.strip
+    if Issue.plausible_token?(token)
+      claimable_by_token(token)
+    elsif publication.campaign_tagged?
+      nil
     else
       claimable_by_interval
     end

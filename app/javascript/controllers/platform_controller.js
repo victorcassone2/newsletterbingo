@@ -1,11 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Platform chips prefill the merge tags, so publishers never transcribe
-// tag syntax from their platform's docs. A chip for a platform with no
-// campaign id carries an empty data-campaign, which clears the field:
-// blank is what tells us to infer sends instead of proving them.
+// Platform chips fill in the merge tags and save on the spot: picking a
+// platform is the whole answer, and a publisher can't audit tag syntax
+// they've never seen. A chip for a platform with no per-send tag carries
+// an empty data-campaign, which clears the field: blank is what tells us
+// to infer sends instead of proving them.
 export default class extends Controller {
-  static targets = [ "chip", "emailTag", "campaignTag", "hint" ]
+  static targets = [ "chip", "emailTag", "campaignTag", "hint", "form", "quiet" ]
 
   choose(event) {
     const chip = event.currentTarget
@@ -14,5 +15,10 @@ export default class extends Controller {
 
     if (chip.dataset.email) this.emailTagTarget.value = chip.dataset.email
     if ("campaign" in chip.dataset) this.campaignTagTarget.value = chip.dataset.campaign
+
+    // The step, the chip and the paste steps all change on their own, so
+    // this save says nothing a banner needs to repeat.
+    this.quietTarget.value = "1"
+    this.formTarget.requestSubmit()
   }
 }

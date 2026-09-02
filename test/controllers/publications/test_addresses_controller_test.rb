@@ -12,7 +12,7 @@ class Publications::TestAddressesControllerTest < ActionDispatch::IntegrationTes
       post account_publication_test_addresses_path(account_id: @account_id, publication_id: @publication.id),
         params: { test_address: { email: "designer@studio.test" } }
     end
-    assert_redirected_to edit_account_publication_path(account_id: @account_id, id: @publication.id, pane: "testing")
+    assert_redirected_to edit_account_publication_path(account_id: @account_id, id: @publication.id, pane: "connect")
   end
 
   test "unlisting an address lets it claim again" do
@@ -24,12 +24,12 @@ class Publications::TestAddressesControllerTest < ActionDispatch::IntegrationTes
     assert_not @publication.tester?("designer@studio.test")
   end
 
-  test "the Testing tab lists only addresses that were added" do
+  test "the connect step lists only addresses that were added" do
     @publication.test_addresses.create!(email: "designer@studio.test")
 
     get edit_account_publication_path(account_id: @account_id, id: @publication.id)
 
-    assert_select "[data-pane=testing] .wchip", text: /designer@studio\.test/
+    assert_select "[data-pane=connect] .wchip", text: /designer@studio\.test/
     # A teammate who was never added stays off the list, and off the page.
     assert_no_match(/#{Regexp.escape(users(:three).email_address)}/, response.body)
   end

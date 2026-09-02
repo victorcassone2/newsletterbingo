@@ -50,7 +50,7 @@ class WordAdvanceTest < ActionDispatch::IntegrationTest
   end
 
   test "an unreplaced merge tag token never advances" do
-    get claim_path(@publication.public_code, email: "a@example.com", issue: "{{campaign_id}}")
+    get claim_path(@publication.public_code, email: "a@example.com", issue: "{{current_date_ymd}}")
     assert_equal 0, @game.issues.count
 
     get claim_path(@publication.public_code, email: "a@example.com", issue: "camp-001")
@@ -214,6 +214,38 @@ class WordAdvanceTest < ActionDispatch::IntegrationTest
     assert_equal 2, @game.issues.count
     assert_equal 2, @game.reload.current_call.position
     assert_equal 2, @publication.participants.find_by(email: "a@example.com").daily_claims.count
+  end
+
+  test "an untagged publication proves its send with the campaign id its platform stamps into the link" do
+    @publication.update!(campaign_merge_tag: nil)
+
+    get claim_path(@publication.public_code, email: "a@example.com", utm_campaign: "newsletter1234")
+    get claim_path(@publication.public_code, email: "b@example.com", utm_campaign: "newsletter1234")
+
+    assert_equal "newsletter1234", @game.issues.sole.token
+    assert_equal 1, @game.reload.current_call.position
+    assert_equal 2, @game.current_call.daily_claims.count
+  end
+
+  test "a stamped campaign id from an earlier send opens the board but claims nothing" do
+    @publication.update!(campaign_merge_tag: nil)
+    get claim_path(@publication.public_code, email: "a@example.com", utm_campaign: "newsletter1")
+
+    travel 13.hours do
+      get claim_path(@publication.public_code, email: "a@example.com", utm_campaign: "newsletter2")
+      get claim_path(@publication.public_code, email: "b@example.com", utm_campaign: "newsletter1")
+    end
+
+    assert_equal 2, @game.issues.count
+    assert_equal 2, @game.reload.current_call.position
+    assert_equal 0, @publication.participants.find_by(email: "b@example.com").daily_claims.count
+  end
+
+  test "a tagged publication ignores the utm campaign its platform appends" do
+    get claim_path(@publication.public_code, email: "a@example.com",
+      issue: "camp-001", utm_campaign: "todays-post-title")
+
+    assert_equal "camp-001", @game.issues.sole.token
   end
 
   test "the newsletter block leaves the token off a tokenless publication's claim link" do

@@ -135,8 +135,8 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_equal 0, @publication.active_game.issues.count
   end
 
-  test "an unreplaced campaign merge tag shows a configuration hint and claims nothing" do
-    get claim_path(@publication.public_code, email: "reader@example.com", issue: "{{campaign_id}}")
+  test "an unreplaced per-send merge tag shows a configuration hint and claims nothing" do
+    get claim_path(@publication.public_code, email: "reader@example.com", issue: "{{current_date_ymd}}")
 
     assert_redirected_to board_path(@publication.public_code)
     participant = @publication.participants.find_by(email: "reader@example.com")
@@ -159,6 +159,15 @@ class ClaimFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to board_path(@publication.public_code)
     follow_redirect!
     assert_match(/bingo link/, response.body)
+  end
+
+  test "a plus-addressed reader claims even though the plus arrives as a space" do
+    get claim_path(@publication.public_code, email: "reader news@example.com", issue: "send-1")
+
+    assert_redirected_to board_path(@publication.public_code)
+    participant = @publication.participants.find_by(email: "reader+news@example.com")
+    assert participant.present?
+    assert_equal 1, participant.daily_claims.count
   end
 
   test "malformed email lands on the welcome without claiming" do

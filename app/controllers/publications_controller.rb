@@ -47,7 +47,8 @@ class PublicationsController < ApplicationController
     if @publication.update(publication_params)
       # pane rides as a query param, not a URL fragment: Turbo drops
       # fragments when following a form submission's redirect.
-      redirect_to edit_account_publication_path(id: @publication.id, pane: params[:pane].presence), notice: "Saved."
+      redirect_to edit_account_publication_path(id: @publication.id, pane: params[:pane].presence),
+        notice: saved_notice
     else
       @newsletter_block = NewsletterBlock.new(@publication)
       @preview_words = preview_words
@@ -56,6 +57,14 @@ class PublicationsController < ApplicationController
   end
 
   private
+    # Picking a platform is its own confirmation: the step names it, the
+    # chip fills in, the paste steps change underneath. A banner on top of
+    # that is noise, so the chip asks to be saved quietly. Buttons the
+    # publisher pressed on purpose still say so.
+    def saved_notice
+      "Saved." unless params[:quiet] == "1"
+    end
+
     def set_publication
       @publication = Current.account.publications.find(params[:id])
     end

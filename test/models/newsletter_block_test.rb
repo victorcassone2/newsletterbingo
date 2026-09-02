@@ -15,14 +15,14 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_includes html, "email={{email}}"
   end
 
-  test "a campaign tag rides along to prove a click is from the current send" do
-    assert_includes NewsletterBlock.new(@publication).to_html, "issue={{campaign_id}}"
+  test "a per-send tag rides along to prove a click is from the current send" do
+    assert_includes NewsletterBlock.new(@publication).to_html, "issue={{current_date_ymd}}"
 
     @publication.update!(campaign_merge_tag: "*|CAMPAIGN_UID|*")
     assert_includes NewsletterBlock.new(@publication).to_html, "issue=*|CAMPAIGN_UID|*"
   end
 
-  test "a platform with no campaign tag gets a link with no issue parameter at all" do
+  test "a platform with no per-send tag gets a link with no issue parameter at all" do
     @publication.update!(campaign_merge_tag: nil)
     html = NewsletterBlock.new(@publication).to_html
 

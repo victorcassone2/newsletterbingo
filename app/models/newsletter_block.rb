@@ -11,11 +11,13 @@
 #
 # The HTML is evergreen: pasted once, it never names a word, because the
 # first click of a new send is what draws the next one. Platforms that
-# stamp a campaign id per send get that merge tag in the claim URL, so
-# the freshly stamped token proves a click came from the current email
-# and stale bookmarks can look but not claim. Platforms without one
-# (Substack, Ghost) get a link with no token, and the send is inferred
-# from how long the publication has been quiet.
+# stamp a value per send (a campaign id, or beehiiv's send date) get that
+# merge tag in the claim URL, so the freshly stamped token proves a click
+# came from the current email and stale bookmarks can look but not claim.
+# Platforms with neither (Kit, Ghost) get a link with no token: the send
+# is proven by whatever campaign id the platform stamps into the link on
+# its way out, and inferred from how long the publication has been quiet
+# when it stamps nothing.
 class NewsletterBlock
   include ERB::Util
 
@@ -23,7 +25,12 @@ class NewsletterBlock
   # to see, so it wears the Newsletter Bingo amber rather than the
   # publication's accent. A publisher who picks a pale accent for their
   # board can't accidentally hide the link their whole game depends on.
-  CLAIM_LINK_COLOR = "#f59e0b"
+  #
+  # The dark amber, not the bright one: newsletters are overwhelmingly
+  # white, where #f59e0b measures 2.15:1 and fails WCAG AA for text this
+  # size. This clears it at 5.02:1 on white and still reads at 3.15:1 on
+  # a dark background, which the bright amber wins but only there.
+  CLAIM_LINK_COLOR = "#b45309"
 
   attr_reader :publication
 

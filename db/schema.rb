@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_190000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -177,6 +177,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
     t.index ["game_id"], name: "index_issues_on_game_id"
   end
 
+  create_table "link_checks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email_value"
+    t.uuid "publication_id", null: false
+    t.string "token_value"
+    t.datetime "updated_at", null: false
+    t.index ["publication_id"], name: "index_link_checks_on_publication_id"
+  end
+
   create_table "memberships", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "account_id", null: false
     t.datetime "created_at", null: false
@@ -253,7 +262,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
     t.boolean "active", default: true, null: false
     t.string "background_color", default: "#fcfcfc", null: false
     t.integer "board_size", default: 5, null: false
-    t.string "campaign_merge_tag", default: "{{campaign_id}}"
+    t.string "campaign_merge_tag", default: "{{current_date_ymd}}"
     t.boolean "complimentary", default: false, null: false
     t.datetime "created_at", null: false
     t.string "email_merge_tag", default: "{{email}}", null: false

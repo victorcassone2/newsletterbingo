@@ -1,0 +1,47 @@
+<%# What the last diagnostic click carried, or an invitation to send one.
+    The three states are the whole point of the step: nothing tested yet,
+    tested and sound, tested and a tag came through as written. %>
+<% if check.nil? %>
+  <div class="check-wait">
+    <span class="check-dot" aria-hidden="true"></span>
+    <div>
+      <div class="check-title">Watching for your test click</div>
+      <p class="small muted" style="margin: .2rem 0 0;">Send a test from
+        <%= publication.platform&.name || "your platform" %> to a listed address and tap the bingo link.
+        We&rsquo;ll tell you exactly what arrived.</p>
+    </div>
+  </div>
+<% else %>
+  <% if check.complete? %>
+    <div class="flash flash-notice" style="margin-bottom: .8rem;"><b>Connected.</b>
+      Your test link carried everything a claim needs.</div>
+  <% else %>
+    <div class="flash flash-alert" style="margin-bottom: .8rem;"><b>Your test arrived, but a tag came
+      through as written.</b></div>
+  <% end %>
+
+  <div class="check-rows">
+    <div class="check-row <%= "flagged" unless check.email_replaced? %>">
+      <span class="check-k">Reader address</span>
+      <span class="check-v"><%= check.email_value.presence || "nothing" %>
+        <%= render "publications/check_badge", replaced: check.email_replaced? %></span>
+    </div>
+    <% if check.token_expected? %>
+      <div class="check-row <%= "flagged" unless check.token_replaced? %>">
+        <span class="check-k">Send id</span>
+        <span class="check-v"><%= check.token_value.presence || "nothing" %>
+          <%= render "publications/check_badge", replaced: check.token_replaced? %></span>
+      </div>
+    <% end %>
+  </div>
+
+  <% if check.complete? %>
+    <p class="small" style="margin: .9rem 0 0;">Your first word goes out with your next send.
+      Nothing else to do.</p>
+  <% else %>
+    <p class="small" style="margin: .9rem 0 0;">Until this is fixed, readers can open their card but
+      nothing they tap will claim. Pick your platform again above to reset the tags, or open the tag
+      list and paste the one your platform documents.</p>
+  <% end %>
+  <p class="hint">Checked <%= time_ago_in_words(check.created_at) %> ago.</p>
+<% end %>

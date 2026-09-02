@@ -35,6 +35,6 @@ class Publications::TestAddressesController < Publications::BaseController
     end
 
     def setup_path
-      edit_account_publication_path(id: @publication.id, pane: "testing")
+      edit_account_publication_path(id: @publication.id, pane: "connect")
     end
 end

@@ -19,9 +19,9 @@ class ClaimsController < PublicController
   rate_limit to: 300, within: 1.minute, only: :create, with: :too_many_claims
 
   def create
-    email = params[:email].to_s.strip
-    return land_without_claim(unreadable_email_message(email)) unless valid_email?(email)
-    return open_rehearsal if @publication.tester?(email)
+    email = claimed_email
+    return unreadable_link(email) unless valid_email?(email)
+    return open_rehearsal(email) if @publication.tester?(email)
 
     participant = Participant.locate_or_register(@publication, email)
     establish_participant_session(participant)
@@ -30,8 +30,8 @@ class ClaimsController < PublicController
     game = @publication.active_game
     return land_without_claim("There's no bingo game running right now. Check back soon!") if game.nil?
 
-    call = game.claimable_call_for(params[:issue])
-    return land_without_claim(not_claimable_message(game, params[:issue])) if call.nil?
+    call = game.claimable_call_for(send_token)
+    return land_without_claim(not_claimable_message(game, send_token)) if call.nil?
 
     record_claim(call, participant, call.game) # a rollover token lands on the successor game
     redirect_to board_path(@publication.public_code)
@@ -42,12 +42,62 @@ class ClaimsController < PublicController
   end
 
   private
+    # A plus in a query string decodes to a space, so a plus-addressed
+    # reader arrives as "reader news@example.com" from any platform whose
+    # merge tag doesn't URL-encode: beehiiv and Ghost offer no encoded
+    # tag at all. Put the plus back when that's the only thing between
+    # what arrived and a real address.
+    def claimed_email
+      email = params[:email].to_s.strip
+      if valid_email?(email)
+        email
+      else
+        plus_restored(email)
+      end
+    end
+
+    # Hands back the original when the plus doesn't rescue it, so the
+    # notice still describes what actually arrived.
+    def plus_restored(email)
+      restored = email.tr(" ", "+")
+      if valid_email?(restored)
+        restored
+      else
+        email
+      end
+    end
+
+    # A link whose address didn't survive its platform's replacement
+    # claims nothing, and it is the plainest evidence Setup can get that a
+    # tag is wrong, so what arrived is recorded on the way past.
+    def unreadable_link(email)
+      @publication.record_link_check(email: email, token: send_token)
+      land_without_claim(unreadable_email_message(email))
+    end
+
     # The preview says which list caught the click, so a tester isn't left
     # wondering why nothing happened. The marker rides in the flash: it is
-    # needed for exactly one redirect and nothing longer.
-    def open_rehearsal
+    # needed for exactly one redirect and nothing longer. A test send is
+    # the one click that exists to be inspected, so it is also what Setup
+    # reports back: this is where the link proves itself.
+    def open_rehearsal(email)
+      @publication.record_link_check(email: email, token: send_token)
       flash[:rehearsal] = "listed"
       redirect_to rehearsal_path(@publication.public_code)
+    end
+
+    # What proves the click came from the current send: the publication's
+    # own merge tag when it has one, otherwise the campaign id its platform
+    # stamps into every link. Kit's automatic UTM carries one that changes
+    # with each broadcast, so a Kit publisher who turns it on gets proven
+    # sends without pasting a tag. A tagged publication reads only its own
+    # tag, so the UTM beehiiv appends can never stand in for it.
+    def send_token
+      if @publication.campaign_tagged?
+        params[:issue]
+      else
+        params[:utm_campaign]
+      end
     end
 
     def record_claim(call, participant, game)
