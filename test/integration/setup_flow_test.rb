@@ -53,6 +53,17 @@ class SetupFlowTest < ActionDispatch::IntegrationTest
     assert_not check.complete?
   end
 
+  test "the paste step stays numbered until a click proves an email carried the link" do
+    sign_in_as users(:one)
+    get edit_account_publication_path(account_id: @account_id, id: @publication.id)
+    assert_select ".step-no", text: "2"
+
+    get claim_path(@publication.public_code, email: @tester, issue: "2026-09-02")
+    get edit_account_publication_path(account_id: @account_id, id: @publication.id)
+    assert_select ".step-no", text: "2", count: 0
+    assert_select ".step-no.done", 3
+  end
+
   test "the block step says where this platform's block goes" do
     sign_in_as users(:one)
     get edit_account_publication_path(account_id: @account_id, id: @publication.id)

@@ -82,6 +82,18 @@ class NewsletterBlockTest < ActiveSupport::TestCase
     assert_not_includes html, "#e5fcef", "a pale accent must not be able to hide the claim link"
   end
 
+  test "the mark rides in its own cell so a host stylesheet cannot drop it onto its own line" do
+    html = NewsletterBlock.new(@publication).to_html
+
+    assert_match %r{<td[^>]*><img[^>]*icon-192x192\.png[^>]*></td>\s*<td[^>]*>Today}, html
+  end
+
+  test "the claim link stands on its own line, not trailing the sentence" do
+    html = NewsletterBlock.new(@publication).to_html
+
+    assert_match %r{on your board\.</div>\s*<div[^>]*><a }, html
+  end
+
   test "sponsor names are HTML-escaped" do
     @publication.update!(sponsor_name: "<b>Sneaky</b>")
     html = NewsletterBlock.new(@publication).to_html

@@ -59,18 +59,31 @@ class NewsletterBlock
     end
 
     def section_html(sentence)
-      head_margin = sponsor_name.present? ? "0 0 2px" : "0 0 8px"
       <<~HTML
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:16px 0;">
           <tr>
             <td style="font-family:Helvetica,Arial,sans-serif;">
-              <div style="font-size:17px;font-weight:bold;color:#{h publication.text_color};margin:#{head_margin};"><img src="#{h brand_icon_url}" alt="" width="15" height="15" border="0" style="vertical-align:-1px;">&nbsp; Today&#8217;s bingo</div>
+              #{header_html}
               #{sponsor_row}
-              <div style="font-size:14px;line-height:1.6;color:#{h publication.text_color};">#{sentence} <a href="#{h claim_url}" style="color:#{CLAIM_LINK_COLOR};font-weight:bold;text-decoration:none;white-space:nowrap;">Claim today&#8217;s word &#8594;</a></div>
+              <div style="font-size:14px;line-height:1.6;color:#{h publication.text_color};">#{sentence}</div>
+              <div style="font-size:14px;line-height:1.6;margin:6px 0 0;"><a href="#{h claim_url}" style="color:#{CLAIM_LINK_COLOR};font-weight:bold;text-decoration:none;white-space:nowrap;">Claim today&#8217;s word &#8594;</a></div>
             </td>
           </tr>
         </table>
       HTML
+    end
+
+    # The mark and the header sit in their own two cells rather than
+    # riding the same text line. Editors like beehiiv style every image
+    # in a pasted snippet as a block, which drops an inline mark onto a
+    # line of its own; cells lay out side by side no matter what the
+    # host stylesheet says about images.
+    def header_html
+      bottom_margin = sponsor_name.present? ? "2px" : "8px"
+      %(<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 #{bottom_margin};"><tr>) +
+        %(<td width="15" style="width:15px;padding:0 8px 0 0;vertical-align:middle;"><img src="#{h brand_icon_url}" alt="" width="15" height="15" border="0" style="display:block;width:15px;height:15px;"></td>) +
+        %(<td style="vertical-align:middle;font-family:Helvetica,Arial,sans-serif;font-size:17px;font-weight:bold;color:#{h publication.text_color};">Today&#8217;s bingo</td>) +
+        %(</tr></table>)
     end
 
     def evergreen_sentence

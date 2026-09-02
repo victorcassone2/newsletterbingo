@@ -1,6 +1,11 @@
 # Lightweight engagement metrics, all plain Rails queries against
 # indexed columns. Instantiated via Publication#analytics.
 class Publication::Analytics
+  # A participation rate over a handful of players describes the handful,
+  # not the game: one player who claimed reads as 100%. Under this many,
+  # the count itself is the honest number to show.
+  RATE_FLOOR = 5
+
   attr_reader :publication
 
   def initialize(publication)

@@ -63,7 +63,13 @@
     </div>
 
     <div class="step">
-      <div class="step-head"><span class="step-no">2</span><h2>Paste the block into your email, once</h2></div>
+      <%# A click that reached us came from an email, which means something got
+          pasted. It can't tell the block from the plain link below it, so this
+          checks off the step, and step 3 is the one that reports what arrived. %>
+      <div class="step-head">
+        <span class="step-no<%= " done" if check %>"><%= check ? check_glyph : "2" %></span>
+        <h2>Paste the block into your email, once</h2>
+      </div>
       <div class="step-body">
         <div class="embed-row">
           <div class="embed-preview"><%= @newsletter_block.to_html %></div>

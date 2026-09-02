@@ -9,15 +9,26 @@
       <%= link_to "Analytics →", account_publication_analytics_path(publication_id: @publication.id) %>
     <% end %>
   </div>
+  <%# A percentage of one player says nothing and reads like a bug. Below a
+      handful of players, name the players themselves; the rate is worth
+      printing only once there are enough of them to move it. %>
   <p class="pulse-sub">
-    <% if @call && @players.positive? %>
+    <% if @call && @players >= Publication::Analytics::RATE_FLOOR %>
       <%= @publication.analytics.participation_rate_today(@game) %>% of <%= @players %> players this game
+    <% elsif @call && @players.positive? %>
+      <%= @players %> <%= "player".pluralize(@players) %> so far this game
     <% else %>
       claims appear as readers play
     <% end %>
   </p>
+  <%# One called word draws no line, and the expanded card is tall enough that
+      the missing chart reads as something broken. Say what it's waiting for. %>
   <div class="pulse-row">
-    <%= expanded ? claim_sparkline(@claim_series.map(&:last), width: 340, height: 72) : claim_sparkline(@claim_series.map(&:last)) %>
+    <% if expanded && @claim_series.size < 2 %>
+      <p class="pulse-wait">The chart starts with your second word.</p>
+    <% else %>
+      <%= expanded ? claim_sparkline(@claim_series.map(&:last), width: 340, height: 72) : claim_sparkline(@claim_series.map(&:last)) %>
+    <% end %>
     <% unless expanded %>
       <%= link_to "Analytics →", account_publication_analytics_path(publication_id: @publication.id) %>
     <% end %>

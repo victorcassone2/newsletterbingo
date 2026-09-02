@@ -43,6 +43,34 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_select "ul.schedule li[draggable=true]", game.pool_size
   end
 
+  test "the claims card says what it is waiting for until a second word can draw a line" do
+    create_running_game(@publication)
+    get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
+    assert_select ".pulse-fill .pulse-wait", text: /starts with your second word/
+    assert_select ".pulse-fill .pulse-row svg", 0
+  end
+
+  test "the claims card counts players until there are enough of them for a rate" do
+    game = create_running_game(@publication)
+    seat_players(game, 1)
+
+    get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
+    assert_select ".pulse-sub", text: /1 player so far this game/
+    assert_no_match(/100% of 1/, response.body)
+
+    seat_players(game, Publication::Analytics::RATE_FLOOR)
+
+    get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
+    assert_select ".pulse-sub", text: /% of \d+ players this game/
+  end
+
+  test "the claims card draws its line once a second word has been called" do
+    create_running_game(@publication, starts_on: @publication.local_date - 3)
+    get account_publication_today_path(account_id: @account_id, publication_id: @publication.id)
+    assert_select ".pulse-fill .pulse-row svg", 1
+    assert_select ".pulse-fill .pulse-wait", 0
+  end
+
   test "the schedule collapses all but the last two previous words" do
     create_running_game(@publication, starts_on: @publication.local_date - 10) # word 11 is current
 
@@ -228,4 +256,12 @@ class AdminScreensTest < ActionDispatch::IntegrationTest
     assert_select "input[name=?]", "publication[board_size]", message: "format belongs with the game, in General"
     assert_no_match(/send_days/, response.body)
   end
+
+  private
+    # Boards, not claims: the rate's denominator is everyone holding a card.
+    def seat_players(game, count)
+      count.times do |index|
+        Participant.locate_or_register(game.publication, "player#{index}@example.com").board_for(game)
+      end
+    end
 end
