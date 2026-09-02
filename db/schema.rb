@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_01_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_02_160000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -258,6 +258,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_000000) do
     t.datetime "created_at", null: false
     t.string "email_merge_tag", default: "{{email}}", null: false
     t.string "name", null: false
+    t.string "preview_token", null: false
     t.string "primary_color", default: "#b45309", null: false
     t.string "public_code", null: false
     t.string "sponsor_name"
@@ -265,6 +266,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_000000) do
     t.string "timezone", default: "America/Chicago", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_publications_on_account_id"
+    t.index ["preview_token"], name: "index_publications_on_preview_token", unique: true
     t.index ["public_code"], name: "index_publications_on_public_code", unique: true
   end
 
@@ -407,6 +409,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_01_000000) do
     t.index ["expires_at"], name: "index_solid_queue_semaphores_on_expires_at"
     t.index ["key", "value"], name: "index_solid_queue_semaphores_on_key_and_value"
     t.index ["key"], name: "index_solid_queue_semaphores_on_key", unique: true
+  end
+
+  create_table "test_addresses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.uuid "publication_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["publication_id", "email"], name: "index_test_addresses_on_publication_id_and_email", unique: true
+    t.index ["publication_id"], name: "index_test_addresses_on_publication_id"
   end
 
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|

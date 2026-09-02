@@ -1,0 +1,10 @@
+<%# Re-rendered by the create stream rather than cleared in JavaScript: a
+    fresh TestAddress carries no email, so the field empties itself even
+    when no controller is listening. %>
+<%= form_with model: TestAddress.new,
+      url: account_publication_test_addresses_path(publication_id: @publication.id),
+      id: "test-address-form", class: "quickadd-row" do |form| %>
+  <%= form.email_field :email, placeholder: Current.user.email_address, autocomplete: "off",
+        autofocus: local_assigns[:autofocus] %>
+  <%= form.submit "Add", class: "btn btn-quiet" %>
+<% end %>

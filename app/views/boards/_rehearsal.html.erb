@@ -1,0 +1,28 @@
+<%# System chrome, not part of the publication's board: it wears
+    Newsletter Bingo's own dark rather than the publisher's palette so a
+    tester can tell at a glance who is talking to them. %>
+<div class="rehearsal">
+  <div class="rehearsal-head">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+    <span class="rehearsal-eyebrow">Newsletter Bingo preview</span>
+  </div>
+
+  <% if kind == :listed %>
+    <h2>Nothing was claimed</h2>
+    <p>This address is on <%= @publication.name %>&rsquo;s test list, so its bingo links always open a
+      preview. The game hasn&rsquo;t moved: <strong><%= @todays_call.label %></strong> is still word
+      <%= @todays_call.position %>, waiting for the next send.</p>
+    <p class="rehearsal-foot">Meant to be playing? Ask <%= @publication.name %> to take this address off
+      the test list in Setup.</p>
+  <% else %>
+    <h2>A sample card</h2>
+    <p>This is what a reader&rsquo;s card looks like partway through <%= @publication.name %>&rsquo;s game.
+      It isn&rsquo;t anyone&rsquo;s real card, and nothing here claims a word.</p>
+    <p class="rehearsal-foot">Tap the bingo button in the latest <%= @publication.name %> email to open
+      your own card.</p>
+  <% end %>
+</div>

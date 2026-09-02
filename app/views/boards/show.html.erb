@@ -1,3 +1,7 @@
+<% if @rehearsal %>
+  <%= render "boards/rehearsal", kind: @rehearsal %>
+<% end %>
+
 <div class="player-head">
   <% if @publication.logo.attached? %>
     <%= image_tag @publication.logo, alt: @publication.name, class: "player-logo" %>

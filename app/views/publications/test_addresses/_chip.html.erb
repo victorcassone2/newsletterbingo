@@ -1,0 +1,5 @@
+<span class="wchip" id="<%= dom_id test_address %>">
+  <%= test_address.email %>
+  <%= button_to "×", account_publication_test_address_path(publication_id: @publication.id, id: test_address.id),
+        method: :delete, class: "x", title: "Let #{test_address.email} claim again" %>
+</span>

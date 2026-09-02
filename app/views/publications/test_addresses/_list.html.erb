@@ -1,0 +1,7 @@
+<% addresses = @publication.test_addresses.order(:email).to_a %>
+<div class="chips" id="test-addresses">
+  <%= render partial: "publications/test_addresses/chip", collection: addresses, as: :test_address %>
+  <% if addresses.empty? %>
+    <span class="small muted">No addresses listed yet, so every bingo link claims for real.</span>
+  <% end %>
+</div>

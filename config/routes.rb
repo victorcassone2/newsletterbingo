@@ -50,6 +50,8 @@ Rails.application.routes.draw do
         resources :words, only: %i[ index create ] do
           resource :archival, only: %i[ create destroy ], module: :words
         end
+        resources :test_addresses, only: %i[ create destroy ]
+        resource :preview_link, only: %i[ update ]
         resources :prizes, only: %i[ index update ]
         resource :sponsor, only: %i[ update ]
         resources :games, only: %i[ index show ] do
@@ -78,6 +80,12 @@ Rails.application.routes.draw do
   # Public player experience. The newsletter link itself performs the claim.
   get "c/:public_code/today", to: "claims#create", as: :claim
   get "p/:public_code/board", to: "boards#show", as: :board
+  # A listed test address opens the preview instead of claiming.
+  get "p/:public_code/rehearsal", to: "rehearsals#show", as: :rehearsal
+
+  # A sample card for anyone the publisher hands the link to. No email
+  # involved, so nothing here can claim.
+  get "p/:public_code/preview/:token", to: "previews#show", as: :publication_preview
   post "p/:public_code/session", to: "participant_sessions#create", as: :participant_session
   get "p/:public_code/out/call/:id", to: "outbound_clicks#call", as: :call_outbound
   get "p/:public_code/out/prize/:id", to: "outbound_clicks#prize", as: :prize_outbound

@@ -14,6 +14,7 @@
   <button type="button" class="active" data-tabs-target="tab" data-pane="connect" data-action="tabs#select">Connect</button>
   <button type="button" data-tabs-target="tab" data-pane="branding" data-action="tabs#select">Branding</button>
   <button type="button" data-tabs-target="tab" data-pane="general" data-action="tabs#select">General</button>
+  <button type="button" data-tabs-target="tab" data-pane="testing" data-action="tabs#select">Testing</button>
 </div>
 
 <div data-tabs-target="pane" data-pane="connect">
@@ -114,6 +115,10 @@
           </div>
         </div>
         <textarea hidden readonly data-clipboard-target="source"><%= @newsletter_block.to_html %></textarea>
+        <p class="hint" style="margin: .8rem 0 0;">Before you send a test, add the address you&rsquo;ll test
+          from under <button type="button" class="link-button" data-pane="testing"
+                  data-action="tabs#select">Testing</button>. Bingo links from a listed address open a
+          preview instead of claiming, so a test never starts your game.</p>
       </div>
     </div>
 
@@ -225,6 +230,53 @@
         </label>
       <% end %>
     </div>
+  </div>
+</div>
+
+<div data-tabs-target="pane" data-pane="testing" hidden>
+  <div class="card">
+    <h2>Test it before you send</h2>
+    <p class="small muted">List the addresses you&rsquo;ll test from, below. A bingo link clicked from one
+      of them opens a preview of the reader board instead of claiming, so nothing counts and your game
+      never moves forward. Test as often as you like, before your first send or years into it.</p>
+    <p class="small muted" style="margin: 0;">An address that isn&rsquo;t listed claims for real, so add
+      your own before you send yourself a test.</p>
+  </div>
+
+  <div class="card" style="margin-top: 1.25rem;" data-controller="clipboard">
+    <div class="card-head">
+      <h2>Share a preview</h2>
+      <button type="button" class="btn btn-small" data-action="clipboard#copy"
+              data-clipboard-target="button">Copy link</button>
+    </div>
+    <p class="small muted">A link to a sample card that anyone can open. No email, no claim, no card of
+      their own. Good for a sponsor, a designer, or anyone who just wants to see it.</p>
+    <div class="quickadd-row">
+      <%= text_field_tag :preview_link, preview_url(@publication), readonly: true, class: "mono-field",
+            "aria-label": "Shareable preview link", data: { clipboard_target: "source" } %>
+      <%= button_to "Regenerate", account_publication_preview_link_path(publication_id: @publication.id),
+            method: :patch, class: "btn btn-quiet",
+            form: { data: { turbo_confirm: "Every copy of the current link stops working. Send the new one to anyone who still needs it." } } %>
+    </div>
+    <div class="hint">Regenerating turns off every copy of the link you&rsquo;ve already sent. Readers are
+      untouched: their claim links never carried this token.</div>
+  </div>
+
+  <div class="card" style="margin-top: 1.25rem;">
+    <div class="card-head">
+      <h2>Test addresses</h2>
+      <%= render "publications/test_addresses/count" %>
+    </div>
+
+    <div id="test-address-errors"></div>
+
+    <%= render "publications/test_addresses/list" %>
+    <%= render "publications/test_addresses/form" %>
+
+    <div class="hint">Your own address, anyone else on the team who tests, seed lists, an outside
+      designer: every address you want previewing rather than claiming goes here.
+      Don&rsquo;t add a reader&rsquo;s address; they would stop being able to claim. Remove an address
+      and it claims normally again.</div>
   </div>
 </div>
 

@@ -295,3 +295,23 @@ body.player {
   background: var(--brand-accent, var(--ink));
   color: var(--brand-on-accent, #fff);
 }
+
+/* Preview banner: Newsletter Bingo speaking to a tester, not part of the
+   publication's board, so it wears the product's own dark rather than the
+   publisher's palette. Sits in the claim-notice slot at the top of the page. */
+.rehearsal {
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 12px;
+  padding: .95rem 1rem 1rem;
+  margin-bottom: 1.15rem;
+  text-align: left;
+}
+.rehearsal-head { display: flex; align-items: center; gap: .45rem; margin-bottom: .35rem; color: #fbbf24; }
+.rehearsal-eyebrow {
+  font-size: .66rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+}
+.rehearsal h2 { font-size: 1rem; font-weight: 700; margin: 0 0 .3rem; color: #fff; }
+.rehearsal p { font-size: .84rem; line-height: 1.5; margin: 0 0 .85rem; color: #cbd5e1; }
+.rehearsal p strong { color: #fff; font-weight: 700; }
+.rehearsal .rehearsal-foot { font-size: .8rem; color: #94a3b8; margin-bottom: 0; }

@@ -1,4 +1,5 @@
 omaha:
+  preview_token: preview_omaha_token_00001
   account: publisher
   name: Omaha Daily
   public_code: pub_omaha_test_code_1234
@@ -6,12 +7,14 @@ omaha:
   email_merge_tag: "{{email}}"
 
 lincoln:
+  preview_token: preview_lincoln_token_001
   account: publisher
   name: Lincoln Daily
   public_code: pub_lincoln_test_code_12
   timezone: America/Chicago
 
 rival:
+  preview_token: preview_rival_token_0001
   account: rival
   name: Rival Weekly
   public_code: pub_rival_test_code_1234

@@ -599,3 +599,15 @@ a.word-chip:hover { border-color: var(--ink-soft); background: var(--card); text
 .people-row-meta .link-button { color: var(--ink-faint); font-size: .8rem; text-decoration: none; white-space: nowrap; }
 .people-row-meta .link-button:hover { color: var(--ink); text-decoration: underline; }
 .people-invite { border-top: 1px solid var(--line-soft); margin-top: .5rem; padding-top: 1rem; }
+
+/* Test addresses: the word library's chip cloud with an inline add row. */
+.quickadd-row { display: flex; gap: .5rem; align-items: center; margin-top: .7rem; }
+.quickadd-row input[type="email"] { flex: 1 1 auto; }
+.quickadd-row input[type="submit"] { flex: none; }
+.quickadd-row .mono-field { font-family: var(--mono); font-size: .8rem; color: var(--ink-soft); }
+.quickadd-row form { display: contents; }
+
+/* Test addresses are few and deliberately chosen, so their remove button
+   stays visible rather than waiting for a hover the way the word cloud's
+   does: a list of a dozen can afford it, a cloud of hundreds can't. */
+#test-addresses .wchip .x { display: inline; }

@@ -8,6 +8,11 @@ module ApplicationHelper
   # CSS custom properties carrying a publication's branding. Cards render
   # on --brand-surface, computed so they stay readable whether the
   # publisher picked a light or a dark background.
+  # The shareable sample-card link, absolute so it can be pasted anywhere.
+  def preview_url(publication)
+    "#{NewsletterBingo.public_host}#{publication_preview_path(publication.public_code, publication.preview_token)}"
+  end
+
   def brand_style(publication)
     surface = brand_surface_color(publication.background_color)
     [

@@ -6,6 +6,10 @@
 # Links that can't claim (stale bookmarks, earlier sends, unreplaced
 # merge tags) still land the reader on their board, with a notice
 # explaining that only the current email's button claims.
+#
+# A click from a listed test address never claims at all: it opens a
+# preview of the reader board and leaves the game exactly where it was,
+# so a test send can be repeated as often as the publisher likes.
 class ClaimsController < PublicController
   # Readers behind one corporate or carrier NAT all share an IP, and a send
   # lands them at once, so this cap guards against runaway traffic rather
@@ -17,6 +21,7 @@ class ClaimsController < PublicController
   def create
     email = params[:email].to_s.strip
     return land_without_claim(unreadable_email_message(email)) unless valid_email?(email)
+    return open_rehearsal if @publication.tester?(email)
 
     participant = Participant.locate_or_register(@publication, email)
     establish_participant_session(participant)
@@ -27,23 +32,8 @@ class ClaimsController < PublicController
 
     call = game.claimable_call_for(params[:issue])
     return land_without_claim(not_claimable_message(game, params[:issue])) if call.nil?
-    game = call.game # a rollover token lands on the successor game
 
-    board_before = participant.bingo_boards.find_by(game: game)
-    had_bingo = board_before&.bingo_achieved?
-    had_blackout = board_before&.blackout_achieved?
-
-    claim = call.claim_by(participant)
-    if claim.previously_new_record?
-      board = participant.board_for(game)
-      flash[:celebrate] =
-        if !had_blackout && board.blackout_achieved? then "blackout"
-        elsif !had_bingo && board.bingo_achieved? then "bingo"
-        elsif board.covers?(call.game_word) then "claimed"
-        else "off_card"
-        end
-    end
-
+    record_claim(call, participant, call.game) # a rollover token lands on the successor game
     redirect_to board_path(@publication.public_code)
   rescue ActiveRecord::RecordInvalid
     land_without_claim("We couldn't read your email address from that link. Open today's email and tap the bingo button again.")
@@ -52,6 +42,38 @@ class ClaimsController < PublicController
   end
 
   private
+    # The preview says which list caught the click, so a tester isn't left
+    # wondering why nothing happened. The marker rides in the flash: it is
+    # needed for exactly one redirect and nothing longer.
+    def open_rehearsal
+      flash[:rehearsal] = "listed"
+      redirect_to rehearsal_path(@publication.public_code)
+    end
+
+    def record_claim(call, participant, game)
+      board_before = participant.bingo_boards.find_by(game: game)
+      had_bingo = board_before&.bingo_achieved?
+      had_blackout = board_before&.blackout_achieved?
+
+      claim = call.claim_by(participant)
+      if claim.previously_new_record?
+        board = participant.board_for(game)
+        flash[:celebrate] = celebration_for(board, call, had_bingo: had_bingo, had_blackout: had_blackout)
+      end
+    end
+
+    def celebration_for(board, call, had_bingo:, had_blackout:)
+      if !had_blackout && board.blackout_achieved?
+        "blackout"
+      elsif !had_bingo && board.bingo_achieved?
+        "bingo"
+      elsif board.covers?(call.game_word)
+        "claimed"
+      else
+        "off_card"
+      end
+    end
+
     def too_many_claims
       land_without_claim("We're seeing a lot of taps from your network at once. "\
         "Here's your board; tap the bingo button again in a minute to claim.")
@@ -64,7 +86,7 @@ class ClaimsController < PublicController
 
     def unreadable_email_message(email)
       if merge_tag_unreplaced?(email)
-        "That link couldn't tell us who you are, so we can't find your card. Try tapping the bingo button in today's email again. If this keeps happening, reply to the newsletter so they can fix their bingo link."
+        "This link didn't carry an email address, so there was nothing to claim. That's expected in most test sends. If you're a reader and it keeps happening, reply to the newsletter so they can fix their bingo link."
       else
         "We couldn't read your email address from that link. Open today's email and tap the bingo button again."
       end

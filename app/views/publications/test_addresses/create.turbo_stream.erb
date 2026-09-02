@@ -1,0 +1,4 @@
+<%= turbo_stream.update "test-address-errors", "" %>
+<%= turbo_stream.replace "test-addresses" do %><%= render "publications/test_addresses/list" %><% end %>
+<%= turbo_stream.replace "test-address-count" do %><%= render "publications/test_addresses/count" %><% end %>
+<%= turbo_stream.replace "test-address-form" do %><%= render "publications/test_addresses/form", autofocus: true %><% end %>

@@ -10,10 +10,15 @@ class Publication < ApplicationRecord
   has_many :games, dependent: :destroy
   has_many :prizes, dependent: :destroy
   has_many :words, dependent: :destroy
+  has_many :test_addresses, dependent: :destroy
   has_one :line_prize, -> { where(kind: "line") }, class_name: "Prize", inverse_of: :publication
   has_one :blackout_prize, -> { where(kind: "blackout") }, class_name: "Prize", inverse_of: :publication
   has_one :closure, class_name: "PublicationClosure", dependent: :destroy
   has_one_attached :logo
+
+  # The credential on the shareable preview link, regenerable so a copy
+  # that travels too far can be turned off.
+  has_secure_token :preview_token, length: 24
 
   # active is the publisher's live/paused switch; canceling is the harder
   # stop, taking the publication off the subscription and, once the paid
@@ -47,11 +52,39 @@ class Publication < ApplicationRecord
   after_create :create_default_prizes
   after_update :reformat_draft_game, if: :saved_change_to_board_size?
 
+  # Sub-addressing folds away for the tester check only ("vic+test@" is
+  # still "vic@" testing their own template), never for participant
+  # identity, where an address is only ever itself. Folding both sides
+  # means a listed "seed+1@" also covers plain "seed@"; the preview
+  # banner says which list caught the click, so nobody is left guessing.
+  def self.fold_email(email)
+    local, _, domain = email.to_s.strip.downcase.partition("@")
+    "#{local.split("+").first}@#{domain}"
+  end
+
   # Platforms that stamp a campaign id per send let us prove a click came
   # from the current email. Substack and Ghost don't, so those publications
   # advance on the first click after a quiet period instead.
   def campaign_tagged?
     campaign_merge_tag.present?
+  end
+
+  # Whether a bingo link arriving from this address should open a preview
+  # instead of claiming. Only addresses the publisher listed, never anyone
+  # inferred: a preview that nobody asked for is a claim that silently
+  # didn't happen. Being on the account earns no exemption, so a publisher
+  # who wants to test adds the address they test from.
+  #
+  # Listing is the only way in and unlisting the only way out. Nothing a
+  # recipient does can turn a test address back into a player, so a seed
+  # address can't quietly start claiming.
+  def tester?(email)
+    declared_tester?(email)
+  end
+
+  def declared_tester?(email)
+    folded = self.class.fold_email(email)
+    test_addresses.any? { |address| self.class.fold_email(address.email) == folded }
   end
 
   # Canceled: off the subscription, with a date it goes dark.
