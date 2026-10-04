@@ -45,7 +45,7 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 
 # Stripe subscriptions (hosted Checkout + Billing Portal; no Stripe.js)
-gem "stripe", "~> 13.0"
+gem "stripe", "~> 20.0"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
